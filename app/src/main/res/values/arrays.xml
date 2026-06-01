@@ -38,4 +38,40 @@
         <item>Tamil</item>
     </string-array>
 
+    <string-array name="gender_options">
+        <item>MALE</item>
+        <item>FEMALE</item>
+    </string-array>
+
+    <string-array name="organ_donor_options">
+        <item>No</item>
+        <item>Yes</item>
+    </string-array>
+
+    <string-array name="allergy_options">
+        <item>None</item>
+        <item>Peanuts / Nuts</item>
+        <item>Seafood / Shellfish</item>
+        <item>Dairy / Lactose</item>
+        <item>Eggs</item>
+        <item>Wheat / Gluten</item>
+        <item>Penicillin / Antibiotics</item>
+        <item>Aspirin / NSAIDs</item>
+        <item>Latex</item>
+        <item>Dust / Pollen</item>
+        <item>Others</item>
+    </string-array>
+
+    <string-array name="medication_options">
+        <item>None</item>
+        <item>Painkillers (Paracetamol / Panadol)</item>
+        <item>Antibiotics</item>
+        <item>Antihistamines (Allergy)</item>
+        <item>Inhaler (Asthma)</item>
+        <item>Insulin / Diabetes Meds</item>
+        <item>Blood Pressure Meds (Hypertension)</item>
+        <item>Heart / Cholesterol Meds</item>
+        <item>Gastric / Antacid Meds</item>
+        <item>Others</item>
+    </string-array>
 </resources>
