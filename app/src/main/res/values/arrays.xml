@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="relationship_options">
+        <item>Parent (Father / Mother)</item>
+        <item>Spouse (Husband / Wife)</item>
+        <item>Child (Son / Daughter)</item>
+        <item>Sibling (Brother / Sister)</item>
+        <item>Family / Relative</item>
+        <item>Friend</item>
+        <item>Guardian</item>
+        <item>Partner</item>
+        <item>Colleague / Coworker</item>
+        <item>Neighbor</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="religion_options">
+        <item>ISLAM</item>
+        <item>CHRISTIAN</item>
+        <item>BUDDHIST</item>
+        <item>HINDU</item>
+        <item>OTHER</item>
+    </string-array>
+
+    <string-array name="ethnicity_options">
+        <item>MALAY</item>
+        <item>CHINESE</item>
+        <item>INDIAN</item>
+        <item>BUMIPUTERA SABAH</item>
+        <item>BUMIPUTERA SARAWAK</item>
+        <item>OTHER</item>
+    </string-array>
+
+    <string-array name="tts_language_options">
+        <item>Bahasa Melayu</item>
+        <item>English</item>
+        <item>Chinese</item>
+        <item>Tamil</item>
+    </string-array>
+
+</resources>
