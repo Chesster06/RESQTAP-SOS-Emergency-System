@@ -43,5 +43,111 @@
         android:textStyle="bold" />
 
     <!-- First Name Input -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/layout_dialog_first_name"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        app:boxBackgroundColor="@color/panel"
+        app:boxCornerRadiusBottomEnd="16dp"
+        app:boxCornerRadiusBottomStart="16dp"
+        app:boxCornerRadiusTopEnd="16dp"
+        app:boxCornerRadiusTopStart="16dp"
+        app:boxStrokeColor="@color/brand_primary"
+        app:boxStrokeWidth="1.5dp"
+        app:boxStrokeWidthFocused="2dp"
+        app:hintEnabled="false">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/input_dialog_first_name"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:fontFamily="sans-serif-medium"
+            android:hint="@string/hint_first_name"
+            android:imeOptions="actionNext"
+            android:inputType="textPersonName|textCapCharacters"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary"
+            android:textSize="15sp" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Label: Last Name -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="LAST NAME"
+        android:textColor="@color/text_secondary"
+        android:textSize="11.5sp"
+        android:textStyle="bold" />
+
+    <!-- Last Name Input -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/layout_dialog_last_name"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        app:boxBackgroundColor="@color/panel"
+        app:boxCornerRadiusBottomEnd="16dp"
+        app:boxCornerRadiusBottomStart="16dp"
+        app:boxCornerRadiusTopEnd="16dp"
+        app:boxCornerRadiusTopStart="16dp"
+        app:boxStrokeColor="@color/brand_primary"
+        app:boxStrokeWidth="1.5dp"
+        app:boxStrokeWidthFocused="2dp"
+        app:hintEnabled="false">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/input_dialog_last_name"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:fontFamily="sans-serif-medium"
+            android:hint="@string/hint_last_name"
+            android:imeOptions="actionDone"
+            android:inputType="textPersonName|textCapCharacters"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary"
+            android:textSize="15sp" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Dialog Action Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="22dp"
+        android:gravity="end|center_vertical"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_dialog_name_cancel"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/cancel"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            app:cornerRadius="12dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_dialog_name_save"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:layout_marginStart="10dp"
+            android:backgroundTint="@color/brand_primary"
+            android:fontFamily="sans-serif-bold"
+            android:text="@string/save"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            app:cornerRadius="12dp"
+            app:elevation="0dp" />
+    </LinearLayout>
 
 </LinearLayout>
