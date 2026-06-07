@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="relationship_options">
+        <item>பெற்றோர் (தந்தை / தாய்)</item>
+        <item>மனைவி / கணவர்</item>
+        <item>மகன் / மகள்</item>
+        <item>உடன்பிறப்பு</item>
+        <item>குடும்பம் / உறவினர்</item>
+        <item>நண்பர்</item>
+        <item>பாதுகாவலர்</item>
+        <item>துணைவர்</item>
+        <item>சக பணியாளர்</item>
+        <item>அண்டை வீட்டார்</item>
+        <item>மற்றவை</item>
+    </string-array>
+
+    <string-array name="religion_options">
+        <item>இஸ்லாம்</item>
+        <item>கிறிஸ்தவம்</item>
+        <item>பௌத்தம்</item>
+        <item>இந்து</item>
+        <item>மற்றவை</item>
+    </string-array>
+
+    <string-array name="ethnicity_options">
+        <item>மலாய்</item>
+        <item>சீன</item>
+        <item>இந்திய</item>
+        <item>பூமிபுத்ரா சபா (BUMIPUTERA SABAH)</item>
+        <item>பூமிபுத்ரா சரவாக் (BUMIPUTERA SARAWAK)</item>
+        <item>மற்றவை</item>
+    </string-array>
+
+    <string-array name="tts_language_options">
+        <item>பஹாசா மலாயு</item>
+        <item>ஆங்கிலம்</item>
+        <item>சீனம்</item>
+        <item>தமிழ்</item>
+    </string-array>
+
+    <string-array name="gender_options">
+        <item>ஆண்</item>
+        <item>பெண்</item>
+    </string-array>
+
+    <string-array name="organ_donor_options">
+        <item>இல்லை</item>
+        <item>ஆம்</item>
+    </string-array>
+
+    <string-array name="allergy_options">
+        <item>இல்லை</item>
+        <item>வேர்க்கடலை / கொட்டைகள்</item>
+        <item>கடல் உணவு</item>
+        <item>பால் பொருட்கள் / லாக்டோஸ்</item>
+        <item>முட்டை</item>
+        <item>கோதுமை / குளுட்டன்</item>
+        <item>பென்சிலின் / நுண்ணுயிர் எதிர்ப்பிகள்</item>
+        <item>ஆஸ்பிரின் / NSAIDs</item>
+        <item>லேடெக்ஸ்</item>
+        <item>தூசி / மகரந்தம்</item>
+        <item>மற்றவை</item>
+    </string-array>
+
+    <string-array name="medication_options">
+        <item>இல்லை</item>
+        <item>வலி நிவாரணிகள் (பாராசிட்டமால்)</item>
+        <item>நுண்ணுயிர் எதிர்ப்பிகள்</item>
+        <item>ஆன்டிஹிஸ்டமின்கள் (ஒவ்வாமை)</item>
+        <item>இன்ஹேலர் (ஆஸ்துமா)</item>
+        <item>இன்சுலின் / நீரிழிவு மருந்துகள்</item>
+        <item>இரத்த அழுத்த மருந்துகள்</item>
+        <item>இதயம் / கொழுப்பு மருந்துகள்</item>
+        <item>வயிற்றுப்புண் மருந்துகள்</item>
+        <item>மற்றவை</item>
+    </string-array>
+</resources>
