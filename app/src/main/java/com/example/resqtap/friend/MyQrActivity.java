@@ -152,4 +152,139 @@ public class MyQrActivity extends BaseActivity {
     }
 
     /** Paparkan dialog pratonton (Preview) sebelum berkongsi poster gambar QR. */
+    private void showSharePreviewDialog() {
+        if (currentQrBitmap == null) {
+            String payload = QrCodeUtils.createQrPayload(uid, publicId, name);
+            currentQrBitmap = QrCodeUtils.generateQrCodeBitmap(payload, 600, 600);
+        }
+        if (currentQrBitmap == null) {
+            Toast.makeText(this, "QR Code is still generating...", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Bitmap posterBitmap = generatePosterBitmap(currentQrBitmap);
+        if (posterBitmap == null) {
+            Toast.makeText(this, "Failed to generate poster preview", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_ResQTap_BottomSheetDialog);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_qr_share_preview, null);
+        dialog.setContentView(dialogView);
+
+        ImageView ivPreview = dialogView.findViewById(R.id.iv_poster_preview);
+        View btnConfirm = dialogView.findViewById(R.id.btn_confirm_share);
+        View btnCancel = dialogView.findViewById(R.id.btn_cancel_share);
+
+        if (ivPreview != null) {
+            ivPreview.setImageBitmap(posterBitmap);
+        }
+
+        if (btnConfirm != null) {
+            btnConfirm.setOnClickListener(v -> {
+                dialog.dismiss();
+                sharePosterImage(posterBitmap);
+            });
+        }
+
+        if (btnCancel != null) {
+            btnCancel.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        dialog.show();
+    }
+
+    /** Hasilkan Bitmap berkualiti tinggi dari layout_qr_share_poster. */
+    private Bitmap generatePosterBitmap(Bitmap qrBitmap) {
+        try {
+            View posterView = getLayoutInflater().inflate(R.layout.layout_qr_share_poster, null);
+
+            TextView tvName = posterView.findViewById(R.id.poster_user_name);
+            TextView tvTag = posterView.findViewById(R.id.poster_user_tag);
+            ImageView ivQr = posterView.findViewById(R.id.poster_qr_image);
+            ImageView ivPosterAvatar = posterView.findViewById(R.id.poster_user_avatar);
+
+            if (tvName != null) tvName.setText(name);
+            if (tvTag != null) tvTag.setText(name + "#" + publicId);
+            if (ivQr != null) ivQr.setImageBitmap(qrBitmap);
+
+            String photoB64 = UserPrefs.getPhotoB64(this);
+            String photoUri = UserPrefs.getPhotoUri(this);
+            String photoUrl = UserPrefs.getPhotoUrl(this);
+            boolean hasCustomPhoto = (photoB64 != null && !photoB64.trim().isEmpty())
+                    || (photoUri != null && !photoUri.trim().isEmpty())
+                    || (photoUrl != null && !photoUrl.trim().isEmpty());
+            if (ivPosterAvatar != null) {
+                AvatarUtils.applyAvatar(ivPosterAvatar, photoB64, photoUrl, photoUri, R.drawable.ic_avatar);
+            }
+
+            int widthPx = 1080;
+            int widthSpec = View.MeasureSpec.makeMeasureSpec(widthPx, View.MeasureSpec.EXACTLY);
+            int heightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
+
+            posterView.measure(widthSpec, heightSpec);
+            int heightPx = posterView.getMeasuredHeight();
+            posterView.layout(0, 0, widthPx, heightPx);
+
+            Bitmap bitmap = Bitmap.createBitmap(widthPx, heightPx, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+            posterView.draw(canvas);
+            return bitmap;
+        } catch (Exception e) {
+            android.util.Log.e("MyQrActivity", "Error generating poster bitmap", e);
+            return null;
+        }
+    }
+
+    /** Simpan poster ke cache dan kongsikan melalui Intent ACTION_SEND. */
+    private void sharePosterImage(Bitmap posterBitmap) {
+        try {
+            File cacheDir = new File(getCacheDir(), "shared_posters");
+            if (!cacheDir.exists()) {
+                cacheDir.mkdirs();
+            }
+            File imageFile = new File(cacheDir, "resqtap_qr_" + System.currentTimeMillis() + ".png");
+            FileOutputStream fos = new FileOutputStream(imageFile);
+            posterBitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+            fos.flush();
+            fos.close();
+
+            Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", imageFile);
+
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("image/png");
+            shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+            shareIntent.putExtra(Intent.EXTRA_TEXT, buildShareMessage());
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(Intent.createChooser(shareIntent, "Share ResQTap Emergency QR"));
+        } catch (Exception e) {
+            android.util.Log.e("MyQrActivity", "Error sharing poster image", e);
+            Toast.makeText(this, "Failed to share image", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /** Bina teks pesanan perkongsian rasmi ResQTap Emergency bersama pautan aplikasi & laman web. */
+    private String buildShareMessage() {
+        String encodedName = "";
+        try {
+            encodedName = java.net.URLEncoder.encode(name, "UTF-8");
+        } catch (Exception ignored) {
+            encodedName = name;
+        }
+
+        String appLink = "https://resqtap.web.app/connect?uid=" + uid + "&id=" + publicId + "&name=" + encodedName;
+        String downloadLink = "https://resqtap.web.app/download";
+
+        return "🚨 ResQTap Emergency Application 🚨\n\n"
+                + "Hi! I’m sharing my personal ResQTap Emergency QR Code with you.\n\n"
+                + "This QR Code is connected to my ResQTap emergency profile and can help you access important information or connect with me when needed. Please keep this QR Code saved in a safe place for future reference.\n\n"
+                + "In the event of an emergency, having access to this QR Code may help provide faster assistance and make it easier for trusted contacts to respond quickly.\n\n"
+                + "📱 Simply scan the QR Code using the ResQTap Emergency Application to access the available information.\n\n"
+                + "🔗 Connect with me directly on ResQTap:\n"
+                + appLink + "\n\n"
+                + "📲 Don't have the app yet? Download ResQTap here:\n"
+                + downloadLink + "\n\n"
+                + "Thank you for being one of my trusted contacts. Please keep this information private and only use it when necessary.\n\n"
+                + "❤️ ResQTap: Stay Connected, Stay Safe.";
+    }
 }
