@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Modern iOS/Lucide Speech Bubble Outline -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M7.9,20A9,9 0 1,0 4,16.1L2,22Z"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="1.85" />
+    <!-- Three conversation dots -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M8,12m-1,0a1,1 0 1,0 2,0a1,1 0 1,0 -2,0" />
+
+</vector>
