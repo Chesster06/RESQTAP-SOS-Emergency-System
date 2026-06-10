@@ -1244,4 +1244,1026 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
     }
 
     /** Paparkan semula borang input Make a Report. */
+    private void showFormMode() {
+        if (currentReportStatus != null && !"resolved".equalsIgnoreCase(currentReportStatus)) {
+            Toast.makeText(this, R.string.report_active_pending_resolution, Toast.LENGTH_SHORT).show();
+            showProgressMode();
+            return;
+        }
+        isShowingProgress = false;
+        if (btnNewReportTop != null) {
+            btnNewReportTop.setVisibility(View.GONE);
+        }
+        if (btnTopChatAdmin != null) {
+            btnTopChatAdmin.setVisibility(View.GONE);
+        }
+        if (btnTopCallAdmin != null) {
+            btnTopCallAdmin.setVisibility(View.GONE);
+        }
+        if (reportProgressScroll != null) reportProgressScroll.setVisibility(View.GONE);
+        if (reportScroll != null) reportScroll.setVisibility(View.VISIBLE);
+        if (submitContainer != null) submitContainer.setVisibility(View.VISIBLE);
+        if (reportTitleView != null) {
+            reportTitleView.setText(R.string.report_title);
+        }
+        if (currentReportId != null && cardActiveReportBanner != null) {
+            cardActiveReportBanner.setVisibility(View.VISIBLE);
+        }
+    }
+
+    /** Mulakan laporan baharu dan reset borang. */
+    private void startNewReport() {
+        if (currentReportStatus != null && !"resolved".equalsIgnoreCase(currentReportStatus)) {
+            Toast.makeText(this, R.string.report_active_pending_resolution, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (detailsInput != null) detailsInput.setText("");
+        attachments.clear();
+        updateAttachmentSummary();
+        submitting = false;
+        reportSubmitted = false;
+        if (submitButton != null) {
+            submitButton.setEnabled(true);
+            submitButton.setText(R.string.report_continue);
+        }
+        showFormMode();
+    }
+
+    /** Render data kemajuan laporan ke dalam UI. */
+    private void renderProgressData(String reportId, Map<String, Object> data) {
+        if (data == null) return;
+        currentReportId = reportId;
+
+        if (tvProgressReportId != null) {
+            String shortId = reportId != null && reportId.length() > 8
+                    ? reportId.substring(Math.max(0, reportId.length() - 8))
+                    : reportId;
+            tvProgressReportId.setText("#" + shortId);
+        }
+
+        String status = String.valueOf(data.get("status"));
+        currentReportStatus = status;
+        updateStatusAndStepperUI(status);
+        boolean isResolved = "resolved".equalsIgnoreCase(status);
+        if (btnNewReportTop != null) {
+            btnNewReportTop.setVisibility(isShowingProgress && isResolved ? View.VISIBLE : View.GONE);
+        }
+
+        Object createdAtObj = data.get("createdAt");
+        long timestamp = 0L;
+        if (createdAtObj instanceof Number) {
+            timestamp = ((Number) createdAtObj).longValue();
+        }
+        if (timestamp > 0L && tvProgressTime != null) {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault());
+            tvProgressTime.setText(sdf.format(new Date(timestamp)));
+        } else if (tvProgressTime != null) {
+            tvProgressTime.setText(R.string.report_status_new);
+        }
+
+        String category = String.valueOf(data.get("category"));
+        String categoryLabel = String.valueOf(data.get("categoryLabel"));
+        if (categoryLabel == null || categoryLabel.equals("null") || categoryLabel.isEmpty()) {
+            categoryLabel = categoryLabel(category);
+        }
+        if (tvProgressCategory != null) {
+            tvProgressCategory.setText(categoryLabel);
+        }
+        updateCategoryIcon(category);
+
+        String address = String.valueOf(data.get("address"));
+        if (tvProgressAddress != null) {
+            if (address != null && !address.equals("null") && !address.trim().isEmpty()) {
+                tvProgressAddress.setText(address);
+            } else {
+                tvProgressAddress.setText(R.string.report_location_unavailable);
+            }
+        }
+
+        String details = String.valueOf(data.get("details"));
+        if (tvProgressDetails != null) {
+            if (details != null && !details.equals("null") && !details.trim().isEmpty()) {
+                tvProgressDetails.setText(details);
+                tvProgressDetails.setVisibility(View.VISIBLE);
+            } else {
+                tvProgressDetails.setVisibility(View.GONE);
+            }
+        }
+
+        renderProgressAttachments(data.get("attachments"));
+    }
+
+    /** Kemas kini stepper timeline dan status badge. */
+    private void updateStatusAndStepperUI(String status) {
+        if (status == null) status = "new";
+        status = status.toLowerCase(Locale.ROOT);
+
+        int colorDone = 0xFF10B981;
+        int colorActive = 0xFFE60067;
+        int colorPending = 0xFFCBD5E1;
+
+        if ("resolved".equals(status) || "closed".equals(status) || "completed".equals(status)) {
+            if (tvProgressStatusBadge != null) {
+                tvProgressStatusBadge.setText(R.string.report_status_resolved);
+                tvProgressStatusBadge.setTextColor(0xFF059669);
+                tvProgressStatusBadge.setBackgroundColor(0xFFD1FAE5);
+            }
+            if (tvProgressMessage != null) {
+                tvProgressMessage.setText(R.string.report_step_4_desc);
+            }
+
+            setStepCircle(step1Circle, step1Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
+            if (stepLine12 != null) stepLine12.setBackgroundColor(colorDone);
+
+            setStepCircle(step2Circle, step2Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
+            if (stepLine23 != null) stepLine23.setBackgroundColor(colorDone);
+
+            setStepCircle(step3Circle, step3Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
+            if (stepLine34 != null) stepLine34.setBackgroundColor(colorDone);
+
+            setStepCircle(step4Circle, step4Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
+
+            if (tvStep2Title != null) tvStep2Title.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+            if (tvStep3Title != null) tvStep3Title.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+            if (tvStep4Title != null) tvStep4Title.setTextColor(0xFF059669);
+
+        } else if ("in_progress".equals(status) || "action_in_progress".equals(status)) {
+            if (tvProgressStatusBadge != null) {
+                tvProgressStatusBadge.setText(R.string.report_step_3_title);
+                tvProgressStatusBadge.setTextColor(0xFFE60067);
+                tvProgressStatusBadge.setBackgroundColor(0xFFFFE4EE);
+            }
+            if (tvProgressMessage != null) {
+                tvProgressMessage.setText(R.string.report_step_3_desc);
+            }
+
+            setStepCircle(step1Circle, step1Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
+            if (stepLine12 != null) stepLine12.setBackgroundColor(colorDone);
+
+            setStepCircle(step2Circle, step2Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
+            if (stepLine23 != null) stepLine23.setBackgroundColor(colorDone);
+
+            setStepCircle(step3Circle, step3Icon, R.drawable.bg_step_circle_active, R.drawable.ic_ios_security, 0xFFFFFFFF);
+            if (stepLine34 != null) stepLine34.setBackgroundColor(colorPending);
+
+            setStepCircle(step4Circle, step4Icon, R.drawable.bg_step_circle_pending, R.drawable.ic_verified_user_24, 0xFF64748B);
+
+            if (tvStep1Title != null) tvStep1Title.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+            if (tvStep2Title != null) tvStep2Title.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+            if (tvStep3Title != null) tvStep3Title.setTextColor(colorActive);
+            if (tvStep4Title != null) tvStep4Title.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+
+        } else if ("reviewing".equals(status) || "investigating".equals(status)) {
+            if (tvProgressStatusBadge != null) {
+                tvProgressStatusBadge.setText(R.string.report_status_reviewing);
+                tvProgressStatusBadge.setTextColor(0xFFD97706);
+                tvProgressStatusBadge.setBackgroundColor(0xFFFEF3C7);
+            }
+            if (tvProgressMessage != null) {
+                tvProgressMessage.setText(R.string.report_step_2_desc);
+            }
+
+            setStepCircle(step1Circle, step1Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
+            if (stepLine12 != null) stepLine12.setBackgroundColor(colorActive);
+
+            setStepCircle(step2Circle, step2Icon, R.drawable.bg_step_circle_active, R.drawable.ic_clock_24, 0xFFFFFFFF);
+            if (stepLine23 != null) stepLine23.setBackgroundColor(colorPending);
+
+            setStepCircle(step3Circle, step3Icon, R.drawable.bg_step_circle_pending, R.drawable.ic_ios_security, 0xFF64748B);
+            if (stepLine34 != null) stepLine34.setBackgroundColor(colorPending);
+
+            setStepCircle(step4Circle, step4Icon, R.drawable.bg_step_circle_pending, R.drawable.ic_verified_user_24, 0xFF64748B);
+
+            if (tvStep1Title != null) tvStep1Title.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+            if (tvStep2Title != null) tvStep2Title.setTextColor(colorActive);
+            if (tvStep3Title != null) tvStep3Title.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+            if (tvStep4Title != null) tvStep4Title.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+
+        } else if ("rejected".equals(status) || "cancelled".equals(status)) {
+            if (tvProgressStatusBadge != null) {
+                tvProgressStatusBadge.setText(R.string.report_status_rejected);
+                tvProgressStatusBadge.setTextColor(0xFFE11D48);
+                tvProgressStatusBadge.setBackgroundColor(0xFFFFE4EE);
+            }
+            if (tvProgressMessage != null) {
+                tvProgressMessage.setText(R.string.report_status_rejected);
+            }
+            setStepCircle(step1Circle, step1Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
+            if (stepLine12 != null) stepLine12.setBackgroundColor(0xFFE11D48);
+            setStepCircle(step2Circle, step2Icon, R.drawable.bg_step_circle_pending, R.drawable.ic_close_24, 0xFFE11D48);
+
+        } else {
+            // "new" / "submitted" status
+            if (tvProgressStatusBadge != null) {
+                tvProgressStatusBadge.setText(R.string.report_status_new);
+                tvProgressStatusBadge.setTextColor(0xFF0284C7);
+                tvProgressStatusBadge.setBackgroundColor(0xFFE0F2FE);
+            }
+            if (tvProgressMessage != null) {
+                tvProgressMessage.setText(R.string.report_step_1_desc);
+            }
+
+            setStepCircle(step1Circle, step1Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
+            if (stepLine12 != null) stepLine12.setBackgroundColor(colorPending);
+
+            setStepCircle(step2Circle, step2Icon, R.drawable.bg_step_circle_pending, R.drawable.ic_clock_24, 0xFF64748B);
+            if (stepLine23 != null) stepLine23.setBackgroundColor(colorPending);
+
+            setStepCircle(step3Circle, step3Icon, R.drawable.bg_step_circle_pending, R.drawable.ic_ios_security, 0xFF64748B);
+            if (stepLine34 != null) stepLine34.setBackgroundColor(colorPending);
+
+            setStepCircle(step4Circle, step4Icon, R.drawable.bg_step_circle_pending, R.drawable.ic_verified_user_24, 0xFF64748B);
+
+            if (tvStep1Title != null) tvStep1Title.setTextColor(0xFF0284C7);
+            if (tvStep2Title != null) tvStep2Title.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+            if (tvStep3Title != null) tvStep3Title.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+            if (tvStep4Title != null) tvStep4Title.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+        }
+    }
+
+    private void setStepCircle(FrameLayout circle, ImageView icon, int bgRes, int iconRes, int iconTint) {
+        if (circle != null) circle.setBackgroundResource(bgRes);
+        if (icon != null) {
+            icon.setImageResource(iconRes);
+            icon.setColorFilter(iconTint);
+        }
+    }
+
+    private String getStatusLabel(String status) {
+        if ("reviewing".equalsIgnoreCase(status) || "investigating".equalsIgnoreCase(status)) return getString(R.string.report_status_reviewing);
+        if ("in_progress".equalsIgnoreCase(status) || "action_in_progress".equalsIgnoreCase(status)) return getString(R.string.report_step_3_title);
+        if ("resolved".equalsIgnoreCase(status) || "closed".equalsIgnoreCase(status)) return getString(R.string.report_status_resolved);
+        if ("rejected".equalsIgnoreCase(status) || "cancelled".equalsIgnoreCase(status)) return getString(R.string.report_status_rejected);
+        return getString(R.string.report_status_new);
+    }
+
+    private void updateCategoryIcon(String category) {
+        if (imgProgressCategoryIcon != null) {
+            imgProgressCategoryIcon.setVisibility(View.GONE);
+        }
+    }
+
+    private void copyReportIdToClipboard() {
+        if (currentReportId == null || currentReportId.isEmpty()) return;
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clipboard != null) {
+            ClipData clip = ClipData.newPlainText("Report ID", currentReportId);
+            clipboard.setPrimaryClip(clip);
+            Toast.makeText(this, R.string.report_copied_id, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void refreshProgress() {
+        if (currentReportId == null || currentReportId.trim().isEmpty()) {
+            String savedId = UserPrefs.getLastIncidentReportId(this);
+            if (savedId != null && !savedId.trim().isEmpty()) {
+                currentReportId = savedId.trim();
+            } else {
+                Toast.makeText(this, "Tiada laporan aktif untuk disemak.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+        if (ivRefreshIcon != null) {
+            ivRefreshIcon.animate()
+                    .rotationBy(360f)
+                    .setDuration(600)
+                    .setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator())
+                    .start();
+        }
+
+        // Semak segera secara realtime dari Firebase RTDB
+        try {
+            FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL)
+                    .getReference("incidentReports")
+                    .child(currentReportId.trim())
+                    .get()
+                    .addOnSuccessListener(snapshot -> {
+                        if (snapshot != null && snapshot.exists()) {
+                            runOnUiThread(() -> {
+                                Map<String, Object> data = snapshotToReportMap(snapshot);
+                                String status = String.valueOf(data.get("status"));
+                                currentReportStatus = status;
+                                UserPrefs.setLastIncidentReportStatus(ReportActivity.this, status);
+                                renderProgressData(currentReportId, data);
+                            });
+                        }
+                    });
+        } catch (Exception ignored) {}
+
+        // Semak dari Supabase
+        com.example.resqtap.supabase.SupabaseManager.getInstance().getReport(currentReportId.trim(),
+                new com.example.resqtap.supabase.SupabaseManager.Callback<org.json.JSONObject>() {
+                    @Override
+                    public void onSuccess(org.json.JSONObject snapshot) {
+                        runOnUiThread(() -> {
+                            if (snapshot != null) {
+                                Map<String, Object> data = jsonToReportMap(snapshot);
+                                String status = String.valueOf(data.get("status"));
+                                currentReportStatus = status;
+                                UserPrefs.setLastIncidentReportStatus(ReportActivity.this, status);
+                                renderProgressData(currentReportId, data);
+                                Toast.makeText(ReportActivity.this, "Status: " + getStatusLabel(status), Toast.LENGTH_SHORT).show();
+                            } else {
+                                handleReportDeleted();
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        runOnUiThread(() -> {
+                            Toast.makeText(ReportActivity.this, "Gagal menyemak status terkini.", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                });
+    }
+
+    private Map<String, Object> jsonToReportMap(org.json.JSONObject obj) {
+        Map<String, Object> map = new HashMap<>();
+        if (obj == null) return map;
+        map.put("status", obj.optString("status", "new"));
+        map.put("title", obj.optString("title", ""));
+        map.put("category", obj.optString("category", ""));
+        map.put("categoryLabel", categoryLabel(obj.optString("category", "")));
+        map.put("details", obj.optString("description", ""));
+        map.put("description", obj.optString("description", ""));
+        map.put("address", obj.optString("address", ""));
+        map.put("latitude", obj.optDouble("latitude", 0.0));
+        map.put("longitude", obj.optDouble("longitude", 0.0));
+        map.put("senderName", obj.optString("user_name", ""));
+        map.put("senderUid", obj.optString("user_id", ""));
+
+        String createdStr = obj.optString("created_at", "");
+        long createdMs = System.currentTimeMillis();
+        if (!createdStr.isEmpty()) {
+            try {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.US);
+                sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                String cleanStr = createdStr.split("\\.")[0];
+                java.util.Date parsed = sdf.parse(cleanStr);
+                if (parsed != null) createdMs = parsed.getTime();
+            } catch (Exception ignored) {}
+        }
+        map.put("createdAt", createdMs);
+
+        String imgUrl = obj.optString("image_url", "");
+        if (!imgUrl.isEmpty()) {
+            ArrayList<Map<String, Object>> attList = new ArrayList<>();
+            Map<String, Object> att = new HashMap<>();
+            att.put("downloadUrl", imgUrl);
+            att.put("name", "attachment");
+            attList.add(att);
+            map.put("attachments", attList);
+        }
+        return map;
+    }
+
+    private void renderProgressAttachments(Object attachmentsObj) {
+        if (progressAttachmentsContainer == null || progressAttachmentsScroll == null) return;
+        progressAttachmentsContainer.removeAllViews();
+
+        if (attachmentsObj instanceof List) {
+            List<?> list = (List<?>) attachmentsObj;
+            if (list.isEmpty()) {
+                progressAttachmentsScroll.setVisibility(View.GONE);
+                return;
+            }
+            progressAttachmentsScroll.setVisibility(View.VISIBLE);
+            for (Object item : list) {
+                if (item instanceof Map) {
+                    Map<?, ?> map = (Map<?, ?>) item;
+                    String name = String.valueOf(map.get("name"));
+                    String url = null;
+                    if (map.containsKey("downloadUrl") && map.get("downloadUrl") != null) {
+                        url = String.valueOf(map.get("downloadUrl"));
+                    } else if (map.containsKey("url") && map.get("url") != null) {
+                        url = String.valueOf(map.get("url"));
+                    } else if (map.containsKey("inlineDataUrl") && map.get("inlineDataUrl") != null) {
+                        url = String.valueOf(map.get("inlineDataUrl"));
+                    }
+                    if ("null".equals(url)) url = null;
+
+                    MaterialCardView card = new MaterialCardView(this);
+                    card.setRadius(dp(14));
+                    card.setCardElevation(0f);
+                    card.setStrokeWidth(dp(1));
+                    card.setStrokeColor(ContextCompat.getColor(this, R.color.divider));
+                    card.setCardBackgroundColor(ContextCompat.getColor(this, R.color.panel));
+                    card.setClickable(true);
+                    card.setFocusable(true);
+                    card.setRippleColor(ColorStateList.valueOf(0x1F000000));
+                    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(96), ViewGroup.LayoutParams.WRAP_CONTENT);
+                    lp.setMarginEnd(dp(10));
+                    card.setLayoutParams(lp);
+
+                    LinearLayout content = new LinearLayout(this);
+                    content.setOrientation(LinearLayout.VERTICAL);
+                    content.setPadding(dp(6), dp(6), dp(6), dp(6));
+
+                    ImageView iv = new ImageView(this);
+                    iv.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                    iv.setBackgroundColor(ContextCompat.getColor(this, R.color.report_tile_bg));
+                    content.addView(iv, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(80)));
+
+                    TextView tv = new TextView(this);
+                    tv.setText(name != null && !name.equals("null") && !name.isEmpty() ? name : "Attachment");
+                    tv.setTextSize(11f);
+                    tv.setMaxLines(1);
+                    tv.setEllipsize(TextUtils.TruncateAt.END);
+                    tv.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+                    tv.setPadding(dp(2), dp(4), dp(2), dp(2));
+                    content.addView(tv);
+
+                    card.addView(content);
+
+                    Bitmap bmp = null;
+                    if (url != null && url.startsWith("data:image")) {
+                        try {
+                            int comma = url.indexOf(',');
+                            if (comma != -1) {
+                                byte[] bytes = Base64.decode(url.substring(comma + 1), Base64.DEFAULT);
+                                bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                            }
+                        } catch (Exception ignored) {
+                        }
+                    }
+
+                    final String finalName = (name != null && !name.equals("null") && !name.trim().isEmpty()) ? name : "Image";
+                    final String finalUrl = url;
+
+                    if (bmp != null) {
+                        iv.setImageBitmap(bmp);
+                        iv.setPadding(0, 0, 0, 0);
+                        iv.clearColorFilter();
+                        final Bitmap previewBmp = bmp;
+                        card.setOnClickListener(v -> showAttachmentViewer(finalName, previewBmp, finalUrl));
+                    } else if (url != null && (url.startsWith("http://") || url.startsWith("https://"))) {
+                        iv.setImageResource(R.drawable.ic_livechat_photo);
+                        iv.setColorFilter(ContextCompat.getColor(this, R.color.report_tile_content));
+                        iv.setPadding(dp(20), dp(20), dp(20), dp(20));
+
+                        new Thread(() -> {
+                            try {
+                                URL u = new URL(finalUrl);
+                                HttpURLConnection conn = (HttpURLConnection) u.openConnection();
+                                conn.setConnectTimeout(8000);
+                                conn.setReadTimeout(8000);
+                                if (conn.getResponseCode() == 200) {
+                                    InputStream is = conn.getInputStream();
+                                    Bitmap netBmp = BitmapFactory.decodeStream(is);
+                                    is.close();
+                                    conn.disconnect();
+                                    if (netBmp != null) {
+                                        runOnUiThread(() -> {
+                                            iv.setPadding(0, 0, 0, 0);
+                                            iv.clearColorFilter();
+                                            iv.setImageBitmap(netBmp);
+                                            card.setOnClickListener(v -> showAttachmentViewer(finalName, netBmp, finalUrl));
+                                        });
+                                    }
+                                }
+                            } catch (Exception ignored) {
+                            }
+                        }).start();
+
+                        card.setOnClickListener(v -> showAttachmentViewer(finalName, null, finalUrl));
+                    } else {
+                        iv.setImageResource(R.drawable.ic_livechat_photo);
+                        iv.setColorFilter(ContextCompat.getColor(this, R.color.report_tile_content));
+                        iv.setPadding(dp(20), dp(20), dp(20), dp(20));
+                    }
+
+                    progressAttachmentsContainer.addView(card);
+                }
+            }
+        } else {
+            progressAttachmentsScroll.setVisibility(View.GONE);
+        }
+    }
+
+    /** Paparkan gambar attachment dalam kad dialog kompak yang kemas. */
+    private void showAttachmentViewer(String fileName, Bitmap bitmap, String fileUrl) {
+        try {
+            Dialog dialog = new Dialog(this);
+            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+            dialog.setContentView(R.layout.dialog_attachment_preview);
+            dialog.setCancelable(true);
+            dialog.setCanceledOnTouchOutside(true);
+
+            Window window = dialog.getWindow();
+            if (window != null) {
+                window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                window.setGravity(Gravity.CENTER);
+                window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+                window.setDimAmount(0.60f);
+            }
+
+            TextView tvTitle = dialog.findViewById(R.id.tv_preview_title);
+            ImageButton btnClose = dialog.findViewById(R.id.btn_close_preview);
+            ImageView ivPreview = dialog.findViewById(R.id.iv_preview_image);
+            ProgressBar pbLoading = dialog.findViewById(R.id.pb_preview_loading);
+
+            if (tvTitle != null) {
+                tvTitle.setText(fileName != null && !fileName.isEmpty() ? fileName : "Attachment");
+            }
+            if (btnClose != null) {
+                btnClose.setOnClickListener(v -> dialog.dismiss());
+            }
+
+            if (bitmap != null) {
+                if (ivPreview != null) ivPreview.setImageBitmap(bitmap);
+            } else if (fileUrl != null && !fileUrl.isEmpty()) {
+                if (fileUrl.startsWith("data:image")) {
+                    try {
+                        int comma = fileUrl.indexOf(',');
+                        if (comma != -1) {
+                            byte[] bytes = Base64.decode(fileUrl.substring(comma + 1), Base64.DEFAULT);
+                            Bitmap b = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                            if (b != null && ivPreview != null) ivPreview.setImageBitmap(b);
+                        }
+                    } catch (Exception ignored) {
+                    }
+                } else if (fileUrl.startsWith("http://") || fileUrl.startsWith("https://")) {
+                    if (pbLoading != null) pbLoading.setVisibility(View.VISIBLE);
+                    new Thread(() -> {
+                        try {
+                            URL u = new URL(fileUrl);
+                            HttpURLConnection conn = (HttpURLConnection) u.openConnection();
+                            conn.setConnectTimeout(8000);
+                            conn.setReadTimeout(8000);
+                            if (conn.getResponseCode() == 200) {
+                                InputStream is = conn.getInputStream();
+                                Bitmap netBmp = BitmapFactory.decodeStream(is);
+                                is.close();
+                                conn.disconnect();
+                                if (netBmp != null) {
+                                    runOnUiThread(() -> {
+                                        if (pbLoading != null) pbLoading.setVisibility(View.GONE);
+                                        if (ivPreview != null) ivPreview.setImageBitmap(netBmp);
+                                    });
+                                }
+                            }
+                        } catch (Exception e) {
+                            runOnUiThread(() -> {
+                                if (pbLoading != null) pbLoading.setVisibility(View.GONE);
+                            });
+                        }
+                    }).start();
+                }
+            }
+
+            dialog.show();
+        } catch (Exception ignored) {
+        }
+    }
+
+    /** Paparkan SuccessSheet. */
+    private void showSuccessSheet() {
+        if (successOverlay == null) {
+            Toast.makeText(this, R.string.report_submitted, Toast.LENGTH_SHORT).show();
+            goToMainPage();
+            return;
+        }
+        if (submitContainer != null) submitContainer.setVisibility(View.GONE);
+        successOverlay.bringToFront();
+        successOverlay.setAlpha(0f);
+        successOverlay.setVisibility(View.VISIBLE);
+        successOverlay.animate().alpha(1f).setDuration(180).start();
+
+        if (successSheet != null) {
+            successSheet.post(() -> {
+                successSheet.setTranslationY(successSheet.getHeight());
+                successSheet.animate()
+                        .translationY(0f)
+                        .setDuration(280)
+                        .setInterpolator(new android.view.animation.DecelerateInterpolator())
+                        .start();
+            });
+        }
+    }
+
+    /** Simpan atau hantar data AttachmentSummary. */
+    private void updateAttachmentSummary() {
+        if (attachmentSummaryView == null) return;
+        if (attachments.isEmpty()) {
+            attachmentSummaryView.setText(R.string.report_no_attachments);
+        } else {
+            attachmentSummaryView.setText(getString(R.string.report_attachment_count, attachments.size()));
+        }
+        renderAttachmentPreviews();
+    }
+
+    private void renderAttachmentPreviews() {
+        if (attachmentPreviews == null || attachmentPreviewScroll == null) return;
+        attachmentPreviews.removeAllViews();
+        attachmentPreviewScroll.setVisibility(attachments.isEmpty() ? View.GONE : View.VISIBLE);
+        for (int i = 0; i < attachments.size(); i++) {
+            attachmentPreviews.addView(createPreviewTile(attachments.get(i), i));
+        }
+    }
+
+    private View createPreviewTile(AttachmentInfo attachment, int index) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(dp(8), dp(8), dp(8), dp(8));
+        card.setBackgroundResource(R.drawable.bg_report_preview_tile);
+
+        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(dp(108), ViewGroup.LayoutParams.WRAP_CONTENT);
+        cardParams.setMarginEnd(dp(10));
+        card.setLayoutParams(cardParams);
+
+        ImageView preview = new ImageView(this);
+        preview.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        preview.setBackgroundColor(ContextCompat.getColor(this, R.color.report_tile_bg));
+        Bitmap bitmap = isImageAttachment(attachment) ? previewBitmap(attachment, 220) : null;
+        if (bitmap != null) {
+            preview.setImageBitmap(bitmap);
+        } else {
+            preview.setImageResource(R.drawable.ic_livechat_document);
+            preview.setColorFilter(ContextCompat.getColor(this, R.color.report_tile_content));
+            preview.setPadding(dp(26), dp(26), dp(26), dp(26));
+        }
+        card.addView(preview, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(78)
+        ));
+
+        TextView name = new TextView(this);
+        name.setText(attachment.name.isEmpty() ? "Attachment " + (index + 1) : attachment.name);
+        name.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+        name.setTextSize(11);
+        name.setMaxLines(1);
+        name.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        nameParams.topMargin = dp(6);
+        card.addView(name, nameParams);
+        return card;
+    }
+
+    private Map<String, Object> inlineImageAttachmentMap(AttachmentInfo attachment) {
+        Map<String, Object> data = new HashMap<>();
+        String mimeType = safe(attachment.mimeType);
+        if (mimeType.isEmpty() || !mimeType.startsWith("image/")) mimeType = "image/jpeg";
+        String b64 = encodeImageToBase64(attachment, 1024, 74);
+        if (b64.isEmpty()) return data;
+        data.put("name", attachment.name);
+        data.put("mimeType", "image/jpeg");
+        data.put("size", attachment.size);
+        data.put("downloadUrl", "data:image/jpeg;base64," + b64);
+        data.put("inline", true);
+        return data;
+    }
+
+    /** Semak dan sahkan ImageAttachment. */
+    private boolean isImageAttachment(AttachmentInfo attachment) {
+        String mimeType = safe(attachment.mimeType).toLowerCase(Locale.ROOT);
+        if (mimeType.startsWith("image/")) return true;
+        String name = safe(attachment.name).toLowerCase(Locale.ROOT);
+        return name.endsWith(".jpg")
+                || name.endsWith(".jpeg")
+                || name.endsWith(".png")
+                || name.endsWith(".webp");
+    }
+
+    private String encodeImageToBase64(AttachmentInfo attachment, int maxDim, int jpegQuality) {
+        Bitmap bitmap = decodeAttachmentBitmap(attachment, maxDim);
+        if (bitmap == null) return "";
+        try {
+            int largest = Math.max(bitmap.getWidth(), bitmap.getHeight());
+            if (largest > maxDim) {
+                float scale = maxDim / (float) largest;
+                int width = Math.max(1, Math.round(bitmap.getWidth() * scale));
+                int height = Math.max(1, Math.round(bitmap.getHeight() * scale));
+                Bitmap scaled = Bitmap.createScaledBitmap(bitmap, width, height, true);
+                bitmap.recycle();
+                bitmap = scaled;
+            }
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, Math.max(45, Math.min(jpegQuality, 90)), out);
+            return Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP);
+        } catch (Exception ignored) {
+            return "";
+        } finally {
+            bitmap.recycle();
+        }
+    }
+
+    private Bitmap previewBitmap(AttachmentInfo attachment, int maxDim) {
+        Bitmap bitmap = decodeAttachmentBitmap(attachment, maxDim);
+        if (bitmap == null) return null;
+        int largest = Math.max(bitmap.getWidth(), bitmap.getHeight());
+        if (largest <= maxDim) return bitmap;
+        float scale = maxDim / (float) largest;
+        int width = Math.max(1, Math.round(bitmap.getWidth() * scale));
+        int height = Math.max(1, Math.round(bitmap.getHeight() * scale));
+        Bitmap scaled = Bitmap.createScaledBitmap(bitmap, width, height, true);
+        bitmap.recycle();
+        return scaled;
+    }
+
+    private Bitmap decodeAttachmentBitmap(AttachmentInfo attachment, int maxDim) {
+        try {
+            if (attachment.bytes != null && attachment.bytes.length > 0) {
+                BitmapFactory.Options bounds = new BitmapFactory.Options();
+                bounds.inJustDecodeBounds = true;
+                BitmapFactory.decodeByteArray(attachment.bytes, 0, attachment.bytes.length, bounds);
+                BitmapFactory.Options opts = new BitmapFactory.Options();
+                opts.inSampleSize = sampleSize(bounds.outWidth, bounds.outHeight, maxDim);
+                opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
+                return BitmapFactory.decodeByteArray(attachment.bytes, 0, attachment.bytes.length, opts);
+            }
+            if (attachment.uri == null) return null;
+            BitmapFactory.Options bounds = new BitmapFactory.Options();
+            bounds.inJustDecodeBounds = true;
+            try (java.io.InputStream in = getContentResolver().openInputStream(attachment.uri)) {
+                if (in == null) return null;
+                BitmapFactory.decodeStream(in, null, bounds);
+            }
+            BitmapFactory.Options opts = new BitmapFactory.Options();
+            opts.inSampleSize = sampleSize(bounds.outWidth, bounds.outHeight, maxDim);
+            opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            try (java.io.InputStream in = getContentResolver().openInputStream(attachment.uri)) {
+                if (in == null) return null;
+                return BitmapFactory.decodeStream(in, null, opts);
+            }
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private int sampleSize(int width, int height, int maxDim) {
+        int sample = 1;
+        int largest = Math.max(Math.max(1, width), Math.max(1, height));
+        while (largest / sample > maxDim * 2) sample *= 2;
+        return sample;
+    }
+
+    private String queryDisplayName(Uri uri) {
+        try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                int index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                if (index >= 0) return safe(cursor.getString(index));
+            }
+        } catch (Exception ignored) {
+        }
+        return safe(uri.getLastPathSegment());
+    }
+
+    private long querySize(Uri uri) {
+        try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                int index = cursor.getColumnIndex(OpenableColumns.SIZE);
+                if (index >= 0) return cursor.getLong(index);
+            }
+        } catch (Exception ignored) {
+        }
+        return 0L;
+    }
+
+    private String sanitizeFileName(String name) {
+        String clean = safe(name).replaceAll("[\\\\/:*?\"<>|#\\[\\]$]", "_");
+        if (clean.isEmpty()) clean = "attachment";
+        return clean;
+    }
+
+    private String formatLatLng(LatLng latLng) {
+        return String.format(Locale.US, "%.6f, %.6f", latLng.latitude, latLng.longitude);
+    }
+
+    private String safe(Object value) {
+        return String.valueOf(value == null ? "" : value).trim();
+    }
+
+    private int dp(int value) {
+        return Math.round(value * getResources().getDisplayMetrics().density);
+    }
+
+    // SEKSYEN: DIRECT RESPONDER COMMUNICATION (CALL & CHAT)
+    private void openAdminChatForReport() {
+        String cleanReportId = currentReportId != null ? currentReportId.trim() : "";
+        String cat = tvProgressCategory != null ? tvProgressCategory.getText().toString().trim() : "";
+        Intent intent = new Intent(this, com.example.resqtap.chat.LivechatActivity.class);
+        intent.putExtra("reportId", cleanReportId);
+        intent.putExtra("reportCategory", cat);
+        startActivity(intent);
+    }
+
+    private void showCallOptionsBottomSheet() {
+        BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_ResQTap_BottomSheetDialog);
+        dialog.setCanceledOnTouchOutside(false);
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_sos_call_options, null);
+        dialog.setContentView(view);
+
+        View optVideo = view.findViewById(R.id.option_call_video);
+        View optVoice = view.findViewById(R.id.option_call_voice);
+        View btnClose = view.findViewById(R.id.btn_close_call_options);
+
+        if (optVideo != null) {
+            optVideo.setOnClickListener(v -> {
+                dialog.dismiss();
+                initiateAdminCall("video");
+            });
+        }
+
+        if (optVoice != null) {
+            optVoice.setOnClickListener(v -> {
+                dialog.dismiss();
+                initiateAdminCall("voice");
+            });
+        }
+
+        if (btnClose != null) {
+            btnClose.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        dialog.show();
+    }
+
+    private void initiateAdminCall(String callType) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            Toast.makeText(this, "Sila log masuk untuk membuat panggilan.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String myUid = user.getUid();
+        String myName = UserPrefs.getName(this);
+        if (myName.isEmpty()) myName = user.getDisplayName() != null ? user.getDisplayName() : "User";
+
+        CallSignalingClient.setAwaitingSosResponse(true);
+
+        DatabaseReference rtdb = FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL).getReference();
+
+        Map<String, Object> callReq = new HashMap<>();
+        callReq.put("status", "ringing");
+        callReq.put("callType", callType);
+        callReq.put("reportId", currentReportId != null ? currentReportId : "");
+        callReq.put("alertId", "");
+        callReq.put("roomId", "");
+        callReq.put("isReportCall", true);
+        callReq.put("callerUid", myUid);
+        callReq.put("callerName", myName);
+        callReq.put("timestamp", ServerValue.TIMESTAMP);
+
+        rtdb.child("adminCalls").child("incoming").setValue(callReq);
+
+        showCallWaitBottomSheet(callType, myUid);
+    }
+
+    private void showCallWaitBottomSheet(String callType, String myUid) {
+        stopCallListening();
+
+        callWaitDialog = new BottomSheetDialog(this, R.style.Theme_ResQTap_BottomSheetDialog);
+        callWaitDialog.setCanceledOnTouchOutside(false);
+        callWaitDialog.setCancelable(false);
+        BottomSheetBehavior<?> waitBehavior = callWaitDialog.getBehavior();
+        if (waitBehavior != null) {
+            waitBehavior.setHideable(false);
+        }
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_sos_call_options, null);
+        callWaitDialog.setContentView(view);
+
+        TextView tvTitle = view.findViewById(R.id.tv_call_options_title);
+        TextView tvSub = view.findViewById(R.id.tv_call_options_subtitle);
+        View optVideo = view.findViewById(R.id.option_call_video);
+        View optVoice = view.findViewById(R.id.option_call_voice);
+        View btnClose = view.findViewById(R.id.btn_close_call_options);
+
+        if (tvTitle != null) {
+            tvTitle.setText(R.string.sos_call_connecting_title);
+        }
+        if (tvSub != null) {
+            tvSub.setText("voice".equals(callType) ? R.string.sos_call_connecting_wait_voice : R.string.sos_call_connecting_wait_video);
+        }
+        if (optVideo != null) optVideo.setVisibility(View.GONE);
+        if (optVoice != null) optVoice.setVisibility(View.GONE);
+
+        if (btnClose != null) {
+            btnClose.setOnClickListener(v -> {
+                cancelCallRequest();
+                if (callWaitDialog != null) callWaitDialog.dismiss();
+            });
+        }
+
+        callWaitDialog.setOnDismissListener(d -> {
+            CallSignalingClient.setAwaitingSosResponse(false);
+            stopCallListening();
+        });
+        callWaitDialog.show();
+
+        DatabaseReference rtdb = FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL).getReference();
+
+        adminCallIncomingRef = rtdb.child("adminCalls").child("incoming");
+        adminCallIncomingListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!snapshot.exists()) return;
+                String status = snapshot.child("status").getValue(String.class);
+                if ("declined".equalsIgnoreCase(status)) {
+                    stopCallListening();
+                    CallSignalingClient.setAwaitingSosResponse(false);
+                    if (callWaitDialog != null && callWaitDialog.isShowing()) {
+                        callWaitDialog.dismiss();
+                    }
+                    Toast.makeText(ReportActivity.this, R.string.sos_call_admin_busy, Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        };
+        adminCallIncomingRef.addValueEventListener(adminCallIncomingListener);
+
+        if (myUid != null && !myUid.isEmpty()) {
+            userCallRef = rtdb.child("userCalls").child(myUid).child("currentCall");
+
+            userCallListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (!snapshot.exists()) return;
+                    String status = snapshot.child("status").getValue(String.class);
+                    String callId = snapshot.child("callId").getValue(String.class);
+                    String serverCallType = snapshot.child("callType").getValue(String.class);
+                    if (serverCallType == null || serverCallType.isEmpty()) serverCallType = callType;
+
+                    if ("ringing".equalsIgnoreCase(status) && callId != null && !callId.isEmpty()) {
+                        CallSignalingClient.setAwaitingSosResponse(false);
+                        stopCallListening();
+                        if (callWaitDialog != null && callWaitDialog.isShowing()) {
+                            callWaitDialog.dismiss();
+                        }
+
+                        CallSignalingClient.getInstance().acceptCall(myUid, callId);
+
+                        Intent intent = new Intent(ReportActivity.this, "voice".equalsIgnoreCase(serverCallType) ? VoiceCallActivity.class : VideoCallActivity.class);
+                        intent.putExtra("callId", callId);
+                        intent.putExtra("callerName", "Admin Responder");
+                        intent.putExtra("callType", serverCallType);
+                        startActivity(intent);
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {}
+            };
+            userCallRef.addValueEventListener(userCallListener);
+        }
+    }
+
+    private void cancelCallRequest() {
+        stopCallListening();
+        CallSignalingClient.setAwaitingSosResponse(false);
+        try {
+            FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL).getReference()
+                    .child("adminCalls").child("incoming").removeValue();
+        } catch (Exception ignored) {}
+    }
+
+    private void stopCallListening() {
+        if (userCallRef != null && userCallListener != null) {
+            userCallRef.removeEventListener(userCallListener);
+            userCallListener = null;
+            userCallRef = null;
+        }
+        if (adminCallIncomingRef != null && adminCallIncomingListener != null) {
+            adminCallIncomingRef.removeEventListener(adminCallIncomingListener);
+            adminCallIncomingListener = null;
+            adminCallIncomingRef = null;
+        }
+    }
+
+    private static final class AttachmentInfo {
+        final Uri uri;
+        final byte[] bytes;
+        final String name;
+        final String mimeType;
+        final long size;
+
+        private AttachmentInfo(Uri uri, byte[] bytes, String name, String mimeType, long size) {
+            this.uri = uri;
+            this.bytes = bytes;
+            this.name = name == null ? "" : name;
+            this.mimeType = mimeType == null || mimeType.trim().isEmpty() ? "application/octet-stream" : mimeType;
+            this.size = size;
+        }
+
+        static AttachmentInfo fromUri(Uri uri, String name, String mimeType, long size) {
+            return new AttachmentInfo(uri, null, name, mimeType, size);
+        }
+
+        static AttachmentInfo fromBytes(byte[] bytes, String name, String mimeType) {
+            return new AttachmentInfo(null, bytes, name, mimeType, bytes == null ? 0L : bytes.length);
+        }
+    }
+
+    private interface AttachmentUploadDone {
+        void onDone(ArrayList<Map<String, Object>> uploaded);
+    }
+
+    private interface AttachmentUploadFailed {
+        void onFailed(Exception error);
+    }
 }
