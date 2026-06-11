@@ -53,4 +53,34 @@ public final class BatteryOptimizationHelper {
                             UserPrefs.setBatteryOptPrompted(activity, true);
                         } catch (Exception ignored) {
                         }
+                        openDisableBatteryOptimization(activity);
+                    })
+                    .setNegativeButton(R.string.battery_optimization_later, (d, w) -> {
+                        try {
+                            UserPrefs.setBatteryOptPrompted(activity, true);
+                        } catch (Exception ignored) {
+                        }
+                    })
+                    .show();
+        } catch (Exception ignored) {
+        }
+    }
+
+    public static void openDisableBatteryOptimization(Activity activity) {
+        if (activity == null) return;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return;
+        try {
+            Intent i = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+            i.setData(Uri.parse("package:" + activity.getPackageName()));
+            activity.startActivity(i);
+            return;
+        } catch (Exception ignored) {
+        }
+
+        try {
+            Intent i = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+            activity.startActivity(i);
+        } catch (Exception ignored) {
+        }
+    }
 }
