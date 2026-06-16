@@ -62,4 +62,36 @@ public class HighlightItem {
     public void setActionUrl(String actionUrl) {
         this.actionUrl = actionUrl;
     }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public long getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(long createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public int getOrder() {
+        return order;
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
+    }
+
+    public int getFallbackDrawable() {
+        return fallbackDrawable;
+    }
+
+    public void setFallbackDrawable(int fallbackDrawable) {
+        this.fallbackDrawable = fallbackDrawable;
+    }
 }
