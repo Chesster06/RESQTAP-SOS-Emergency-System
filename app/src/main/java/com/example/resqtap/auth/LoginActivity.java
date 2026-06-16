@@ -710,4 +710,473 @@ public class LoginActivity extends BaseActivity {
      * Toggles UI loading states during the Google Sign-In process.
      * Hides standard button content and displays the animated GoogleDotsLoadingView while disabling inputs.
      */
+    private void setGoogleLoading(boolean loading) {
+        if (isFinishing() || isDestroyed()) return;
+        if (layoutGoogleBtnContent != null) {
+            layoutGoogleBtnContent.setVisibility(loading ? View.GONE : View.VISIBLE);
+        }
+        if (layoutGoogleLoading != null) {
+            layoutGoogleLoading.setVisibility(loading ? View.VISIBLE : View.GONE);
+            if (layoutGoogleLoading instanceof GoogleDotsLoadingView) {
+                if (loading) {
+                    ((GoogleDotsLoadingView) layoutGoogleLoading).start();
+                } else {
+                    ((GoogleDotsLoadingView) layoutGoogleLoading).stop();
+                }
+            }
+        }
+        if (btnSocialGoogle != null) {
+            btnSocialGoogle.setEnabled(!loading);
+            btnSocialGoogle.setAlpha(loading ? 0.75f : 1.0f);
+        }
+        MaterialButton btnLogin = findViewById(R.id.btn_login);
+        if (btnLogin != null) {
+            btnLogin.setEnabled(!loading);
+        }
+    }
+
+    /**
+     * Processes Google Sign-In intent result task.
+     * Extracts GoogleSignInAccount and proceeds to Firebase credential authentication.
+     */
+    private void handleGoogleSignInResult(Task<GoogleSignInAccount> completedTask) {
+        try {
+            GoogleSignInAccount account = completedTask.getResult(ApiException.class);
+            if (account != null && account.getIdToken() != null) {
+                firebaseAuthWithGoogle(account);
+            } else {
+                setGoogleLoading(false);
+                Toast.makeText(this, R.string.toast_google_sign_in_failed, Toast.LENGTH_SHORT).show();
+            }
+        } catch (ApiException e) {
+            setGoogleLoading(false);
+            Log.e(TAG, "Google sign in failed with code: " + e.getStatusCode(), e);
+            Toast.makeText(this, getString(R.string.toast_google_sign_in_failed) + " (" + e.getStatusCode() + ")", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Bridges Google ID token credential into Firebase Authentication.
+     */
+    private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
+        AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
+        FirebaseAuth.getInstance().signInWithCredential(credential)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        FirebaseUser user = task.getResult().getUser();
+                        if (user != null) {
+                            handlePostGoogleSignIn(user, acct);
+                        } else {
+                            setGoogleLoading(false);
+                            Toast.makeText(this, R.string.toast_login_failed, Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        setGoogleLoading(false);
+                        Exception e = task.getException();
+                        Log.e(TAG, "FirebaseAuthWithGoogle failed", e);
+                        String errMsg = e != null && e.getMessage() != null ? e.getMessage() : getString(R.string.toast_login_failed);
+                        Toast.makeText(this, errMsg, Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    /**
+     * Verifies user profile state in Realtime Database post Google authentication.
+     * If user profile does not exist or personal info (IC/Phone) is incomplete,
+     * deletes temporary Auth record and routes user to RegisterActivity with pre-filled Google claims.
+     */
+    private void handlePostGoogleSignIn(FirebaseUser user, GoogleSignInAccount acct) {
+        String uid = user.getUid();
+        String email = user.getEmail() != null ? user.getEmail() : (acct.getEmail() != null ? acct.getEmail() : "");
+        UserPrefs.setUid(this, uid);
+        if (!email.isEmpty()) {
+            UserPrefs.setEmail(this, email);
+        }
+
+        com.example.resqtap.supabase.SupabaseManager.getInstance().getProfile(uid, new com.example.resqtap.supabase.SupabaseManager.Callback<org.json.JSONObject>() {
+            @Override
+            public void onSuccess(org.json.JSONObject profile) {
+                if (profile != null) {
+                    applySupabaseProfile(profile);
+                    final String googlePhoto = acct.getPhotoUrl() != null ? AvatarUtils.getHighResUrl(acct.getPhotoUrl().toString()) : "";
+                    if (!UserPrefs.isPersonalInfoComplete(LoginActivity.this)) {
+                        final String googleToken = acct.getIdToken();
+                        Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+                        intent.putExtra("complete_profile", true);
+                        intent.putExtra("from_google_sign_in", true);
+                        intent.putExtra("google_id_token", googleToken);
+                        intent.putExtra("google_photo_url", googlePhoto);
+                        intent.putExtra("uid", uid);
+                        intent.putExtra("email", email);
+                        startActivity(intent);
+                        finish();
+                        return;
+                    }
+
+                    ensureNotificationsPermissionBestEffort();
+
+                    // Sinkronkan profil Google ke Supabase
+                    try {
+                        String uName = UserPrefs.getName(LoginActivity.this);
+                        if (uName.isEmpty()) uName = acct.getDisplayName() != null ? acct.getDisplayName() : "User";
+                        String uPhone = UserPrefs.getPhoneNumber(LoginActivity.this);
+                        String uPhoto = acct.getPhotoUrl() != null ? acct.getPhotoUrl().toString() : UserPrefs.getPhotoUrl(LoginActivity.this);
+                        com.example.resqtap.supabase.SupabaseManager.getInstance().upsertProfile(uid, email, uName, uPhone, uPhoto, null);
+                    } catch (Exception ignored) {}
+
+                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                    finish();
+                } else {
+                    // Populate display name and split names for new Google registration
+                    String displayName = acct.getDisplayName();
+                    if (displayName != null && !displayName.trim().isEmpty()) {
+                        String cleanName = displayName.trim();
+                        int spaceIdx = cleanName.indexOf(' ');
+                        if (spaceIdx > 0) {
+                            UserPrefs.setFirstName(LoginActivity.this, cleanName.substring(0, spaceIdx).trim());
+                            UserPrefs.setLastName(LoginActivity.this, cleanName.substring(spaceIdx + 1).trim());
+                        } else {
+                            UserPrefs.setFirstName(LoginActivity.this, cleanName);
+                            UserPrefs.setLastName(LoginActivity.this, "");
+                        }
+                        UserPrefs.setName(LoginActivity.this, cleanName);
+                    }
+
+                    // Forward new Google user to registration flow to complete IC, phone, and emergency contacts
+                    final String googleToken = acct.getIdToken();
+                    final String googlePhoto = acct.getPhotoUrl() != null ? AvatarUtils.getHighResUrl(acct.getPhotoUrl().toString()) : "";
+                    Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+                    intent.putExtra("complete_profile", true);
+                    intent.putExtra("from_google_sign_in", true);
+                    intent.putExtra("google_id_token", googleToken);
+                    intent.putExtra("google_photo_url", googlePhoto);
+                    intent.putExtra("uid", uid);
+                    intent.putExtra("email", email);
+                    startActivity(intent);
+                    finish();
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Log.e(TAG, "Failed to fetch user from Supabase after Google sign-in", e);
+                final String googleToken = acct.getIdToken();
+                final String googlePhoto = acct.getPhotoUrl() != null ? AvatarUtils.getHighResUrl(acct.getPhotoUrl().toString()) : "";
+                Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+                intent.putExtra("complete_profile", true);
+                intent.putExtra("from_google_sign_in", true);
+                intent.putExtra("google_id_token", googleToken);
+                intent.putExtra("google_photo_url", googlePhoto);
+                intent.putExtra("uid", uid);
+                intent.putExtra("email", email);
+                startActivity(intent);
+                finish();
+            }
+        });
+    }
+
+    /**
+     * Parses Firebase authentication exceptions and displays user-friendly toast messages.
+     * Categorizes rate limits, non-existent accounts, and invalid credentials accurately.
+     */
+    private void showAuthError(Exception e, MaterialButton btnLogin, String emailValue) {
+        if (e instanceof FirebaseAuthException) {
+            String code = ((FirebaseAuthException) e).getErrorCode();
+            if ("ERROR_TOO_MANY_REQUESTS".equalsIgnoreCase(code)) {
+                btnLogin.setEnabled(true);
+                Toast.makeText(this, R.string.toast_too_many_requests, Toast.LENGTH_LONG).show();
+                return;
+            }
+            if ("ERROR_USER_NOT_FOUND".equalsIgnoreCase(code)) {
+                btnLogin.setEnabled(true);
+                Toast.makeText(this, R.string.toast_account_not_exist, Toast.LENGTH_LONG).show();
+                return;
+            }
+            if ("ERROR_WRONG_PASSWORD".equalsIgnoreCase(code)
+                    || "ERROR_INVALID_CREDENTIAL".equalsIgnoreCase(code)
+                    || "ERROR_INVALID_LOGIN_CREDENTIALS".equalsIgnoreCase(code)) {
+                btnLogin.setEnabled(true);
+                checkRegisteredEmail(emailValue, registered -> {
+                    if (registered) {
+                        Toast.makeText(this, R.string.toast_wrong_password_google_hint, Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(this, R.string.toast_account_not_exist, Toast.LENGTH_LONG).show();
+                    }
+                });
+                return;
+            }
+        }
+        if (e instanceof com.google.firebase.auth.FirebaseAuthInvalidUserException) {
+            btnLogin.setEnabled(true);
+            Toast.makeText(this, R.string.toast_account_not_exist, Toast.LENGTH_LONG).show();
+            return;
+        }
+        if (e instanceof FirebaseAuthInvalidCredentialsException) {
+            btnLogin.setEnabled(true);
+            checkRegisteredEmail(emailValue, registered -> {
+                if (registered) {
+                    Toast.makeText(this, R.string.toast_wrong_password_google_hint, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(this, R.string.toast_account_not_exist, Toast.LENGTH_LONG).show();
+                }
+            });
+            return;
+        }
+        String detail = e.getMessage() == null ? "" : e.getMessage().trim();
+        btnLogin.setEnabled(true);
+        if (!detail.isEmpty()) {
+            Toast.makeText(this, getString(R.string.toast_login_failed) + " (" + detail + ")", Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(this, R.string.toast_login_failed, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Best-effort check and request for POST_NOTIFICATIONS runtime permission on Android 13+ (API 33+).
+     */
+    private void ensureNotificationsPermissionBestEffort() {
+        if (android.os.Build.VERSION.SDK_INT < 33) return;
+        try {
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
+                    == android.content.pm.PackageManager.PERMISSION_GRANTED) return;
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 9901);
+        } catch (Exception ignored) {
+        }
+    }
+
+    private interface BoolCallback {
+        void onResult(boolean value);
+    }
+
+    private interface VoidCallback {
+        void run();
+    }
+
+    /**
+     * Checks if the given email exists in Supabase, registeredEmails, or FirebaseAuth.
+     * Invokes callback with true if registered, otherwise false.
+     */
+    private void checkRegisteredEmail(String email, BoolCallback callback) {
+        String query = String.valueOf(email == null ? "" : email).trim().toLowerCase(java.util.Locale.ROOT);
+        verifyLoginEmailRegisteredAsync(query, callback);
+    }
+
+    /**
+     * Semak kewujudan akaun e-mel melalui FirebaseAuth.
+     */
+    private void checkEmailExistsInDb(String emailLower, BoolCallback onSuccess, VoidCallback onFailure) {
+        checkRegisteredEmail(emailLower, exists -> {
+            if (onSuccess != null) onSuccess.onResult(exists);
+        });
+    }
+
+    /**
+     * Hydrates local SharedPreferences (UserPrefs) from a remote Firebase Realtime Database DataSnapshot.
+     * Parses personal identity details, medical metadata (blood type, allergies, conditions),
+     * profile photo assets, and ensures a valid 4-digit public identifier is populated.
+     */
+    private void applyUserSnapshot(DataSnapshot snapshot) {
+        if (snapshot == null || !snapshot.exists()) return;
+        Object nameObj = snapshot.child("name").getValue();
+        if (nameObj != null) UserPrefs.setName(this, String.valueOf(nameObj));
+        Object bloodObj = snapshot.child("bloodType").getValue();
+        if (bloodObj != null) UserPrefs.setBloodType(this, String.valueOf(bloodObj));
+        Object allergiesObj = snapshot.child("allergies").getValue();
+        if (allergiesObj != null) UserPrefs.setAllergies(this, String.valueOf(allergiesObj));
+        Object weightObj = snapshot.child("weight").getValue();
+        UserPrefs.setWeight(this, weightObj == null ? "" : String.valueOf(weightObj));
+        Object heightObj = snapshot.child("height").getValue();
+        UserPrefs.setHeight(this, heightObj == null ? "" : String.valueOf(heightObj));
+        Object genderObj = snapshot.child("gender").getValue();
+        if (genderObj != null) UserPrefs.setGender(this, String.valueOf(genderObj));
+        Object icObj = snapshot.child("icNumber").getValue();
+        if (icObj != null) UserPrefs.setIcNumber(this, String.valueOf(icObj));
+
+        Object medObj = snapshot.child("medications").getValue();
+        String medications = medObj == null ? "" : String.valueOf(medObj).trim();
+        Object condObj = snapshot.child("existingConditions").getValue();
+        String conditions = condObj == null ? "" : String.valueOf(condObj).trim();
+        if (conditions.isEmpty() && !medications.isEmpty()) {
+            conditions = medications;
+        }
+        UserPrefs.setExistingConditions(this, conditions);
+        UserPrefs.setMedications(this, medications);
+
+        Object organObj = snapshot.child("organDonor").getValue();
+        if (organObj != null) UserPrefs.setOrganDonor(this, String.valueOf(organObj));
+        Object emailObj = snapshot.child("email").getValue();
+        if (emailObj != null) UserPrefs.setEmail(this, String.valueOf(emailObj));
+        Object publicIdObj = snapshot.child("publicId").getValue();
+        String pubId = publicIdObj == null ? "" : String.valueOf(publicIdObj).trim();
+        if (pubId.isEmpty()) {
+            pubId = com.example.resqtap.friend.FirebaseFriendClient.format4DigitId(snapshot.getKey(), "");
+        } else {
+            pubId = com.example.resqtap.friend.FirebaseFriendClient.format4DigitId(snapshot.getKey(), pubId);
+        }
+        UserPrefs.setPublicId(this, pubId);
+
+        Object photoUrlObj = snapshot.child("photoUrl").getValue();
+        String photoUrl = photoUrlObj == null ? "" : String.valueOf(photoUrlObj);
+        if (photoUrl == null) photoUrl = "";
+        photoUrl = photoUrl.trim();
+        if (photoUrl.isEmpty()) {
+            Object photoUriObj = snapshot.child("photoUri").getValue();
+            photoUrl = photoUriObj == null ? "" : String.valueOf(photoUriObj);
+            if (photoUrl == null) photoUrl = "";
+            photoUrl = photoUrl.trim();
+        }
+        if (!photoUrl.isEmpty()) UserPrefs.setPhotoUrl(this, photoUrl);
+
+        Object photoB64Obj = snapshot.child("photoB64").getValue();
+        if (photoB64Obj != null) {
+            String b64 = String.valueOf(photoB64Obj);
+            if (b64 != null && !b64.trim().isEmpty()) UserPrefs.setPhotoB64(this, b64.trim());
+        }
+
+        String pendingPhotoUri = String.valueOf(UserPrefs.getPendingPhotoUri(this) == null ? "" : UserPrefs.getPendingPhotoUri(this)).trim();
+        if (!pendingPhotoUri.isEmpty()) {
+            retryPendingPhotoSaveToDb(currentUidFromAuth(), pendingPhotoUri);
+        }
+
+        Object addrObj = snapshot.child("address").getValue();
+        if (addrObj != null) UserPrefs.setAddress(this, String.valueOf(addrObj));
+        Object relObj = snapshot.child("religion").getValue();
+        if (relObj != null) UserPrefs.setReligion(this, String.valueOf(relObj));
+        Object phoneObj = snapshot.child("phoneNumber").getValue();
+        if (phoneObj != null) UserPrefs.setPhoneNumber(this, String.valueOf(phoneObj));
+        Object dobObj = snapshot.child("dateOfBirth").getValue();
+        if (dobObj != null) UserPrefs.setDateOfBirth(this, String.valueOf(dobObj));
+        Object ethObj = snapshot.child("ethnicity").getValue();
+        if (ethObj != null) UserPrefs.setEthnicity(this, String.valueOf(ethObj));
+
+        try {
+            DataSnapshot contactsSnap = snapshot.child("emergencyContacts");
+            if (contactsSnap != null && contactsSnap.exists()) {
+                java.util.ArrayList<EmergencyContact> contacts = new java.util.ArrayList<>();
+                for (DataSnapshot child : contactsSnap.getChildren()) {
+                    if (child == null) continue;
+                    String id = child.child("id").getValue() == null ? "" : String.valueOf(child.child("id").getValue());
+                    if (id.trim().isEmpty()) id = child.getKey() == null ? "" : child.getKey();
+                    String name = child.child("name").getValue() == null ? "" : String.valueOf(child.child("name").getValue());
+                    String rel = child.child("relationship").getValue() == null ? "" : String.valueOf(child.child("relationship").getValue());
+                    String phone = child.child("phone").getValue() == null ? "" : String.valueOf(child.child("phone").getValue());
+                    if (id == null) id = "";
+                    if (name == null) name = "";
+                    if (rel == null) rel = "";
+                    if (phone == null) phone = "";
+                    if (id.trim().isEmpty()) continue;
+                    contacts.add(new EmergencyContact(id.trim(), name, rel, phone));
+                }
+                UserPrefs.setEmergencyContacts(this, contacts);
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void applySupabaseProfile(org.json.JSONObject profile) {
+        if (profile == null) return;
+        try {
+            String name = profile.optString("full_name", "");
+            if (!name.isEmpty()) UserPrefs.setName(this, name);
+            String phone = profile.optString("phone", "");
+            if (phone.isEmpty()) phone = profile.optString("phone_number", "");
+            if (!phone.isEmpty()) UserPrefs.setPhoneNumber(this, phone);
+            String ic = profile.optString("ic_number", "");
+            if (!ic.isEmpty()) UserPrefs.setIcNumber(this, ic);
+            String gender = profile.optString("gender", "");
+            if (!gender.isEmpty()) UserPrefs.setGender(this, gender);
+            String dob = profile.optString("dob", "");
+            if (!dob.isEmpty()) UserPrefs.setDateOfBirth(this, dob);
+            String address = profile.optString("address", "");
+            if (!address.isEmpty()) UserPrefs.setAddress(this, address);
+            String photo = profile.optString("photo_url", "");
+            if (photo.isEmpty()) photo = profile.optString("avatar_url", "");
+            if (!photo.isEmpty()) UserPrefs.setPhotoUrl(this, photo);
+
+            String uid = profile.optString("id", "");
+            String pubId = com.example.resqtap.friend.FirebaseFriendClient.format4DigitId(uid, "");
+            UserPrefs.setPublicId(this, pubId);
+        } catch (Exception ignored) {}
+    }
+
+    /**
+     * Extracts the current Firebase authenticated user's unique identifier (UID).
+     */
+    private String currentUidFromAuth() {
+        try {
+            com.google.firebase.auth.FirebaseUser u = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+            return u == null ? "" : String.valueOf(u.getUid() == null ? "" : u.getUid()).trim();
+        } catch (Exception ignored) {
+            return "";
+        }
+    }
+
+    /**
+     * Retries uploading any pending local avatar URI to the Realtime Database as Base64.
+     * Compresses the bitmap to 256px max dimension at 72% JPEG quality.
+     */
+    private void retryPendingPhotoSaveToDb(String uid, String localUri) {
+        try {
+            String u = String.valueOf(uid == null ? "" : uid).trim();
+            String uriStr = String.valueOf(localUri == null ? "" : localUri).trim();
+            if (u.isEmpty() || uriStr.isEmpty()) return;
+            android.net.Uri uri = android.net.Uri.parse(uriStr);
+            String b64 = encodeAvatarToBase64(uri, 256, 72);
+            if (b64 == null || b64.trim().isEmpty()) return;
+            UserPrefs.setPhotoB64(this, b64.trim());
+            UserPrefs.setPendingPhotoUri(this, "");
+            FirebaseRoomClient.updateUserPhotoB64Queued(u, b64.trim());
+        } catch (Exception ignored) {
+        }
+    }
+
+    /**
+     * Encodes a local image URI to a Base64-encoded JPEG string with memory-safe downsampling.
+     * Uses inJustDecodeBounds to determine aspect ratio before allocation, downsamples to maxDim,
+     * and compresses with the specified JPEG quality to prevent OutOfMemory errors.
+     */
+    private String encodeAvatarToBase64(android.net.Uri localUri, int maxDim, int jpegQuality) {
+        try {
+            android.graphics.BitmapFactory.Options bounds = new android.graphics.BitmapFactory.Options();
+            bounds.inJustDecodeBounds = true;
+            try (java.io.InputStream in = getContentResolver().openInputStream(localUri)) {
+                if (in == null) return "";
+                android.graphics.BitmapFactory.decodeStream(in, null, bounds);
+            }
+            int w = Math.max(1, bounds.outWidth);
+            int h = Math.max(1, bounds.outHeight);
+            int sample = 1;
+            int m = Math.max(w, h);
+            while (m / sample > maxDim * 2) sample *= 2;
+
+            android.graphics.BitmapFactory.Options opts = new android.graphics.BitmapFactory.Options();
+            opts.inSampleSize = sample;
+            opts.inPreferredConfig = android.graphics.Bitmap.Config.ARGB_8888;
+            android.graphics.Bitmap b;
+            try (java.io.InputStream in2 = getContentResolver().openInputStream(localUri)) {
+                if (in2 == null) return "";
+                b = android.graphics.BitmapFactory.decodeStream(in2, null, opts);
+            }
+            if (b == null) return "";
+            int bw = b.getWidth();
+            int bh = b.getHeight();
+            int mm = Math.max(bw, bh);
+            if (mm > maxDim) {
+                float s = maxDim / (float) mm;
+                int nw = Math.max(1, Math.round(bw * s));
+                int nh = Math.max(1, Math.round(bh * s));
+                android.graphics.Bitmap scaled = android.graphics.Bitmap.createScaledBitmap(b, nw, nh, true);
+                b.recycle();
+                b = scaled;
+            }
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            b.compress(android.graphics.Bitmap.CompressFormat.JPEG, Math.max(10, Math.min(jpegQuality, 95)), baos);
+            b.recycle();
+            byte[] bytes = baos.toByteArray();
+            return android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP);
+        } catch (Exception ignored) {
+            return "";
+        }
+    }
 }
+
