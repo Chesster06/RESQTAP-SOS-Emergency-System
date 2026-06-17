@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+    <application
+        android:name=".app.ResQTapApp"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:localeConfig="@xml/locales_config"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:usesCleartextTraffic="false"
+        android:hardwareAccelerated="true"
+        android:theme="@style/Theme.ResQTap">
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="bell_alerts_v4_custom" />
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
+
+        <!-- Authentication -->
+        <activity
+            android:name=".app.SplashActivity"
+            android:theme="@style/Theme.ResQTap.Splash"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- App Links & Deep Links for QR Connect -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="resqtap.web.app"
+                    android:pathPrefix="/connect" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="resqtap"
+                    android:host="connect" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".auth.GetStartedActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".auth.LoginActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".auth.ForgotPasswordActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".auth.RegisterActivity"
+            android:exported="false" />
+
+        <!-- Main dashboard and emergency utilities -->
+        <activity
+            android:name=".home.MainActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustNothing" />
+
+        <activity
+            android:name=".chat.QuickMessageActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustNothing" />
+
+        <activity
+            android:name=".map.NearbyHospitalActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".contacts.EmergencyContactsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ResQTap.BottomSheetActivity"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".contacts.EmergencyContactsListActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustNothing" />
+
+        <activity
+            android:name=".news.MedicalNewsActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustNothing" />
+
+        <activity
+            android:name=".notification.NotificationsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".report.SupportActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".report.ReportActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Contacts and QR connect -->
+        <activity
+            android:name=".friend.FriendsActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".friend.FriendRequestsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".friend.MyQrActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".friend.ScanQrActivity"
+            android:exported="false" />
+
+        <!-- Rooms and location tracking -->
+        <activity
+            android:name=".room.RoomHubActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustNothing" />
+
+        <activity
+            android:name=".room.RoomListActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustNothing" />
+
+        <activity
+            android:name=".room.RoomMapActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".room.RoomChatActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <service
+            android:name=".room.LiveRoomTrackingService"
+            android:exported="false"
+            android:foregroundServiceType="location|dataSync" />
+
+        <!-- SOS dispatch and alerts -->
+        <activity
+            android:name=".sos.SendingAlarmActivity"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTop"
+            android:exported="false" />
+
+        <activity
+            android:name=".sos.SosAlarmActivity"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTop"
+            android:exported="false" />
+
+        <activity
+            android:name=".sos.SosProgressActivity"
+            android:exported="false"
+            android:launchMode="singleTop" />
+
+        <activity
+            android:name=".sos.SosLivechatActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize"
+            android:launchMode="singleTop" />
+
+        <receiver
+            android:name=".sos.SosSnoozeReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.example.resqtap.ACTION_SNOOZE_SOS" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Calling and messaging -->
+        <activity
+            android:name=".call.IncomingCallActivity"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
+            android:excludeFromRecents="true"
+            android:exported="false" />
+
+        <activity
+            android:name=".call.VideoCallActivity"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
+            android:exported="false" />
+
+        <activity
+            android:name=".call.VoiceCallActivity"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
+            android:exported="false" />
+
+        <service
+            android:name=".call.CallService"
+            android:exported="false"
+            android:foregroundServiceType="mediaProjection|camera|microphone" />
+
+        <activity
+            android:name=".chat.ChatActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".chat.LivechatActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".chat.FullscreenMessageActivity"
+            android:exported="false" />
+
+        <service
+            android:name=".notification.ResQTapMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- App security and biometric lock -->
+        <activity
+            android:name=".security.AppLockActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustNothing" />
+
+        <activity
+            android:name=".security.SetPinActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustNothing" />
+
+        <!-- User profile and settings -->
+        <activity
+            android:name=".profile.ProfileActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustNothing" />
+
+        <activity
+            android:name=".profile.EditProfileActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".profile.SettingsActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustNothing" />
+
+        <activity
+            android:name=".profile.SecuritySettingsActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustNothing" />
+
+        <activity
+            android:name=".profile.LanguageActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".profile.AboutResQTapActivity"
+            android:exported="false" />
+
+        <!-- Secure FileProvider for encrypted/safe sharing of photo and avatar files -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+    </application>
+
+</manifest>
