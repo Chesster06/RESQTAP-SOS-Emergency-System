@@ -26,4 +26,23 @@ public class TouchableFrameLayout extends FrameLayout {
     public TouchableFrameLayout(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        switch (ev.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_MOVE:
+                if (getParent() != null) {
+                    getParent().requestDisallowInterceptTouchEvent(true);
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                if (getParent() != null) {
+                    getParent().requestDisallowInterceptTouchEvent(false);
+                }
+                break;
+        }
+        return super.dispatchTouchEvent(ev);
+    }
 }
