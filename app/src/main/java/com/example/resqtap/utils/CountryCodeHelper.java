@@ -156,4 +156,95 @@ public class CountryCodeHelper {
 
         return list;
     }
+
+    /** Cari maklumat Country mengikut kod panggilan (dialCode). Lalai kepada Malaysia. */
+    public static Country getCountryOrDefault(String dialCode) {
+        if (dialCode != null) {
+            String target = dialCode.trim();
+            if (!target.startsWith("+")) target = "+" + target;
+            for (Country c : getAllCountries()) {
+                if (c.dialCode.equals(target)) {
+                    return c;
+                }
+            }
+        }
+        return new Country("MY", "Malaysia", "+60");
+    }
+
+    /**
+     * Memaparkan popup dropdown pemilihan negara yang berlabuh terus di bawah butang picker.
+     */
+    public static void showCountryPicker(Context context, View anchorView, OnCountrySelectedListener listener) {
+        if (context == null || anchorView == null) return;
+
+        View popupView = LayoutInflater.from(context).inflate(R.layout.popup_country_picker, null);
+        EditText etSearch = popupView.findViewById(R.id.et_search_country);
+        ListView listCountries = popupView.findViewById(R.id.list_countries);
+
+        List<Country> all = getAllCountries();
+        List<Country> displayed = new ArrayList<>(all);
+
+        ArrayAdapter<Country> adapter = new ArrayAdapter<Country>(context, R.layout.item_country_dropdown, displayed) {
+            @NonNull
+            @Override
+            public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+                View row = convertView;
+                if (row == null) {
+                    row = LayoutInflater.from(getContext()).inflate(R.layout.item_country_dropdown, parent, false);
+                }
+                Country country = getItem(position);
+                if (country != null) {
+                    TextView tvFlag = row.findViewById(R.id.tv_item_flag);
+                    TextView tvNameCode = row.findViewById(R.id.tv_item_name_code);
+                    if (tvFlag != null) tvFlag.setText(country.flag);
+                    if (tvNameCode != null) tvNameCode.setText(country.getDisplayName());
+                }
+                return row;
+            }
+        };
+
+        listCountries.setAdapter(adapter);
+
+        float density = context.getResources().getDisplayMetrics().density;
+        int popupWidth = (int) (275 * density);
+        int popupHeight = (int) (320 * density);
+
+        PopupWindow popupWindow = new PopupWindow(popupView, popupWidth, popupHeight, true);
+        popupWindow.setElevation(14 * density);
+        popupWindow.setOutsideTouchable(true);
+        popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+        listCountries.setOnItemClickListener((parent, view, position, id) -> {
+            Country selected = displayed.get(position);
+            if (listener != null) {
+                listener.onCountrySelected(selected);
+            }
+            popupWindow.dismiss();
+        });
+
+        if (etSearch != null) {
+            etSearch.addTextChangedListener(new TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+                @Override public void afterTextChanged(Editable s) {
+                    String query = s == null ? "" : s.toString().trim().toLowerCase(Locale.ROOT);
+                    displayed.clear();
+                    if (query.isEmpty()) {
+                        displayed.addAll(all);
+                    } else {
+                        for (Country c : all) {
+                            if (c.name.toLowerCase(Locale.ROOT).contains(query)
+                                    || c.dialCode.contains(query)
+                                    || c.iso.toLowerCase(Locale.ROOT).contains(query)) {
+                                displayed.add(c);
+                            }
+                        }
+                    }
+                    adapter.notifyDataSetChanged();
+                }
+            });
+        }
+
+        popupWindow.showAsDropDown(anchorView, 0, (int) (4 * density));
+    }
 }
