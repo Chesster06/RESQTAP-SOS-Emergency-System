@@ -89,4 +89,62 @@ public class GoogleDotsLoadingView extends View {
     }
 
     @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        float density = getResources().getDisplayMetrics().density;
+        int desiredWidth = Math.round((DOT_COUNT - 1) * dotSpacing + dotRadius * 2 + 16 * density);
+        int desiredHeight = Math.round(36 * density);
+
+        int width = resolveSize(desiredWidth, widthMeasureSpec);
+        int height = resolveSize(desiredHeight, heightMeasureSpec);
+        setMeasuredDimension(width, height);
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+
+        float totalWidth = (DOT_COUNT - 1) * dotSpacing + (dotRadius * 2);
+        float startX = (getWidth() - totalWidth) / 2f + dotRadius;
+        float baseCenterY = getHeight() / 2f + (maxBouncePx * 0.35f);
+
+        for (int i = 0; i < DOT_COUNT; i++) {
+            float x = startX + (i * dotSpacing);
+
+            // Pengiraan gelombang lompat sinusoidal mengikut urutan titik (left to right)
+            double phase = (animatedFraction * 2.0 * Math.PI) - (i * 0.65);
+            double sin = Math.sin(phase);
+
+            // Hanya melompat ke atas apabila fasa sin > 0, berada di paras dasar apabila negatif
+            float bounce = sin > 0 ? (float) Math.pow(sin, 1.8) : 0f;
+            float currentY = baseCenterY - (bounce * maxBouncePx);
+            float currentRadius = dotRadius * (1f + (bounce * 0.12f));
+
+            paint.setColor(DOT_COLORS[i]);
+            canvas.drawCircle(x, currentY, currentRadius, paint);
+        }
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (getVisibility() == VISIBLE) {
+            start();
+        }
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        stop();
+    }
+
+    @Override
+    protected void onVisibilityChanged(View changedView, int visibility) {
+        super.onVisibilityChanged(changedView, visibility);
+        if (visibility == VISIBLE) {
+            start();
+        } else {
+            stop();
+        }
+    }
 }
