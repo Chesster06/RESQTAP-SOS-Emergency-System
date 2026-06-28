@@ -90,4 +90,83 @@ public class MedicalNewsAdapter extends RecyclerView.Adapter<MedicalNewsAdapter.
     }
 
     @Override
+    public int getItemCount() {
+        return items.size();
+    }
+
+    private void openNewsUrl(String urlStr) {
+        try {
+            CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+            builder.setShowTitle(true);
+            builder.setToolbarColor(ContextCompat.getColor(context, R.color.brand_primary));
+            CustomTabsIntent customTabsIntent = builder.build();
+            customTabsIntent.launchUrl(context, Uri.parse(urlStr));
+        } catch (Exception e) {
+            try {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(urlStr));
+                context.startActivity(intent);
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    private void loadImageAsync(String urlStr, ImageView targetView) {
+        Bitmap cached = imageCache.get(urlStr);
+        if (cached != null) {
+            targetView.setImageBitmap(cached);
+            return;
+        }
+
+        targetView.setTag(urlStr);
+
+        imageExecutor.execute(() -> {
+            HttpURLConnection conn = null;
+            InputStream is = null;
+            try {
+                URL url = new URL(urlStr);
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setConnectTimeout(8000);
+                conn.setReadTimeout(8000);
+                conn.setInstanceFollowRedirects(true);
+                conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+                conn.setRequestProperty("Accept", "image/webp,image/apng,image/*,*/*;q=0.8");
+
+                if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    is = conn.getInputStream();
+                    BitmapFactory.Options opt = new BitmapFactory.Options();
+                    opt.inPreferredConfig = Bitmap.Config.RGB_565;
+                    Bitmap bitmap = BitmapFactory.decodeStream(is, null, opt);
+                    if (bitmap != null) {
+                        imageCache.put(urlStr, bitmap);
+                        mainHandler.post(() -> {
+                            if (urlStr.equals(targetView.getTag())) {
+                                targetView.setImageBitmap(bitmap);
+                            }
+                        });
+                    }
+                }
+            } catch (Exception ignored) {
+            } finally {
+                if (is != null) {
+                    try { is.close(); } catch (Exception ignored) {}
+                }
+                if (conn != null) {
+                    conn.disconnect();
+                }
+            }
+        });
+    }
+
+    static class NewsViewHolder extends RecyclerView.ViewHolder {
+        TextView tvTitle, tvSnippet, tvMeta;
+        ImageView imgThumb;
+
+        public NewsViewHolder(@NonNull View itemView) {
+            super(itemView);
+            tvTitle = itemView.findViewById(R.id.tv_news_title);
+            tvSnippet = itemView.findViewById(R.id.tv_news_snippet);
+            tvMeta = itemView.findViewById(R.id.tv_news_meta);
+            imgThumb = itemView.findViewById(R.id.img_news_thumb);
+        }
+    }
 }
