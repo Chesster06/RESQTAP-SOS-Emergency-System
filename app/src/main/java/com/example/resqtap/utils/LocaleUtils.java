@@ -54,4 +54,48 @@ public final class LocaleUtils {
             AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag));
         } catch (Exception ignored) {
         }
+    }
+
+    public static void setLocaleAndPersist(Context context, String tag) {
+        if (context == null) return;
+        String normalized = String.valueOf(tag == null ? "" : tag).trim().toLowerCase(java.util.Locale.ROOT);
+        if (normalized.startsWith("ms")) normalized = "ms";
+        else if (normalized.startsWith("zh")) normalized = "zh";
+        else if (normalized.startsWith("ta")) normalized = "ta";
+        else normalized = "en";
+        try {
+            UserPrefs.setLanguage(context, normalized);
+        } catch (Exception ignored) {
+        }
+        try {
+            applyDefaultLocale(localeForTag(normalized));
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(normalized));
+        } catch (Exception ignored) {
+        }
+    }
+
+    public static void restartApp(Activity activity) {
+        if (activity == null) return;
+        try {
+            Intent i = new Intent(activity, SplashActivity.class);
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            activity.startActivity(i);
+            activity.finish();
+        } catch (Exception ignored) {
+        }
+    }
+
+    private static Locale localeForTag(String tag) {
+        String normalized = String.valueOf(tag == null ? "" : tag).trim().toLowerCase(Locale.ROOT);
+        if (normalized.startsWith("ms")) return new Locale("ms");
+        if (normalized.startsWith("zh")) return Locale.CHINESE;
+        if (normalized.startsWith("ta")) return new Locale("ta");
+        return Locale.ENGLISH;
+    }
+
+    private static void applyDefaultLocale(Locale locale) {
+        if (locale == null) return;
+        Locale.setDefault(locale);
+        LocaleList.setDefault(new LocaleList(locale));
+    }
 }
