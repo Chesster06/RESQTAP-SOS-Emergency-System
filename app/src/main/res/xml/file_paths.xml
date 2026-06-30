@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- SEC-05 FIX: Scoped to specific subdirectories only, NOT root "." -->
+    <cache-path name="shared_images" path="images/" />
+    <external-cache-path name="external_shared_images" path="images/" />
+    <external-files-path name="external_files" path="shared/" />
+</paths>
