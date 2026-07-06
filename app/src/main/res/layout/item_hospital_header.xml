@@ -29,4 +29,22 @@
             android:contentDescription="@null" />
     </com.google.android.material.card.MaterialCardView>
 
+    <TextView
+        android:id="@+id/header_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_weight="1"
+        android:fontFamily="sans-serif-bold"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/header_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp" />
+
 </LinearLayout>
