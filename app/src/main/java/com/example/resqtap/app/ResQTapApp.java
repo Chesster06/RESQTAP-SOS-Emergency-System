@@ -39,4 +39,76 @@ public class ResQTapApp extends Application {
     // SEKSYEN: ONCREATE
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
+    public void onCreate() {
+        super.onCreate();
+        instance = this;
+        LocaleUtils.applySavedLocale(this);
+
+        ThemeUtils.applySavedNightMode(this);
+        com.example.resqtap.security.AppLockManager.init(this);
+        com.example.resqtap.security.AccountSessionWatcher.init(this);
+        try {
+
+
+            FirebaseDatabase db = FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL);
+            db.setPersistenceEnabled(true);
+
+            // Pre-sync hot paths supaya data sedia bila diperlukan
+            db.getReference("registeredEmails").keepSynced(true);
+            FirebaseUser preUser = FirebaseAuth.getInstance().getCurrentUser();
+            if (preUser != null) {
+                String preUid = preUser.getUid();
+                db.getReference("users").child(preUid).keepSynced(true);
+                db.getReference("userRooms").child(preUid).keepSynced(true);
+                db.getReference("userFriends").child(preUid).keepSynced(true);
+            }
+        } catch (Exception ignored) {
+
+        }
+
+        try {
+            NotificationUtils.ensureBellChannel(this);
+        } catch (Exception ignored) {
+        }
+        try {
+            NotificationUtils.ensureAdminChannel(this);
+        } catch (Exception ignored) {
+        }
+        try {
+            NotificationHelper.ensureSosChannel(this);
+        } catch (Exception ignored) {
+        }
+        try {
+            ResQTapMessagingService.syncCurrentToken(this);
+        } catch (Exception ignored) {
+        }
+        try {
+            com.example.resqtap.chat.RateServiceManager.init(this);
+        } catch (Exception ignored) {
+        }
+        try {
+            com.example.resqtap.call.IncomingCallManager.init(this);
+        } catch (Exception ignored) {
+        }
+
+        try {
+            FirebaseUser u = FirebaseAuth.getInstance().getCurrentUser();
+            if (u != null) {
+                String code = String.valueOf(UserPrefs.getActiveRoomCode(this) == null ? "" : UserPrefs.getActiveRoomCode(this)).trim();
+                if (!code.isEmpty()) {
+                    FirebaseRoomClient.verifyUserInRoom(u.getUid(), code, isInRoom -> {
+                        if (isInRoom) {
+                            com.example.resqtap.sos.SosServiceStarter.start(ResQTapApp.this, code);
+                        } else {
+                            UserPrefs.setActiveRoomCode(ResQTapApp.this, "");
+                            com.example.resqtap.sos.SosServiceStarter.start(ResQTapApp.this, "");
+                        }
+                    });
+                } else {
+                    com.example.resqtap.sos.SosServiceStarter.start(ResQTapApp.this, "");
+                }
+            }
+        } catch (Exception ignored) {
+        }
+    }
 }
