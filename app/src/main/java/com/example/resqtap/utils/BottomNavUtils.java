@@ -116,4 +116,92 @@ public final class BottomNavUtils {
         });
         ViewCompat.requestApplyInsets(nav);
     }
+
+    private static void tuneItemSpacing(BottomNavigationView nav) {
+        nav.setClipChildren(false);
+        nav.setClipToPadding(false);
+        nav.post(() -> {
+            int iconContainerId = com.google.android.material.R.id.navigation_bar_item_icon_container;
+            int labelsGroupId = com.google.android.material.R.id.navigation_bar_item_labels_group;
+            int largeLabelId = com.google.android.material.R.id.navigation_bar_item_large_label_view;
+            int smallLabelId = com.google.android.material.R.id.navigation_bar_item_small_label_view;
+
+            setClipOff(nav);
+
+            for (View iconContainer : findDescendantsById(nav, iconContainerId)) {
+                iconContainer.setTranslationY(dp(nav, 3));
+            }
+            for (View labelsGroup : findDescendantsById(nav, labelsGroupId)) {
+                labelsGroup.setTranslationY(dp(nav, 5));
+            }
+            for (View label : findDescendantsById(nav, largeLabelId)) {
+                TextView textView = asTextView(label);
+                if (textView != null) {
+                    textView.setIncludeFontPadding(false);
+                    textView.setSingleLine(true);
+                    textView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 11);
+                    textView.setLineSpacing(0f, 1f);
+                }
+            }
+            for (View label : findDescendantsById(nav, smallLabelId)) {
+                TextView textView = asTextView(label);
+                if (textView != null) {
+                    textView.setIncludeFontPadding(false);
+                    textView.setSingleLine(true);
+                    textView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 11);
+                    textView.setLineSpacing(0f, 1f);
+                }
+            }
+        });
+    }
+
+    private static void setClipOff(View root) {
+        if (!(root instanceof ViewGroup)) return;
+        ViewGroup group = (ViewGroup) root;
+        group.setClipChildren(false);
+        group.setClipToPadding(false);
+        for (int i = 0; i < group.getChildCount(); i++) {
+            setClipOff(group.getChildAt(i));
+        }
+    }
+
+    private static List<View> findDescendantsById(View root, int id) {
+        List<View> views = new ArrayList<>();
+        collectDescendantsById(root, id, views);
+        return views;
+    }
+
+    private static void collectDescendantsById(View root, int id, List<View> views) {
+        if (root == null) return;
+        if (root.getId() == id) views.add(root);
+        if (!(root instanceof ViewGroup)) return;
+        ViewGroup group = (ViewGroup) root;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            collectDescendantsById(group.getChildAt(i), id, views);
+        }
+    }
+
+    private static TextView asTextView(View view) {
+        return view instanceof TextView ? (TextView) view : null;
+    }
+
+    private static int dp(View view, int value) {
+        return Math.round(value * view.getResources().getDisplayMetrics().density);
+    }
+
+    private static float dp(View view, float value) {
+        return value * view.getResources().getDisplayMetrics().density;
+    }
+
+    private static void switchTo(Activity from, Class<?> to) {
+        if (from.getClass().equals(to)) return;
+        Intent intent = new Intent(from, to);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        from.startActivity(intent);
+        from.finish();
+        try {
+            from.overridePendingTransition(0, 0);
+        } catch (Exception ignored) {
+        }
+    }
 }
