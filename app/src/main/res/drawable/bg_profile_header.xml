@@ -16,5 +16,12 @@
         android:pathData="M0,175 C90,210 180,170 270,205 C310,220 340,215 360,220 L360,240 L0,240 Z" />
 
     <!-- Wave Layer 2 -->
+    <path
+        android:fillColor="#55FFFFFF"
+        android:pathData="M0,195 C80,228 160,192 240,222 C290,240 330,228 360,235 L360,240 L0,240 Z" />
 
+    <!-- Bottom Wave Layer 3 -->
+    <path
+        android:fillColor="#F6F7FB"
+        android:pathData="M0,215 C70,238 150,210 230,232 C285,246 330,235 360,240 L360,240 L0,240 Z" />
 </vector>
