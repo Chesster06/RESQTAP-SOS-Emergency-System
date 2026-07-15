@@ -1,0 +1,100 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <style name="Base.Theme.ResQTap" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/brand_primary</item>
+        <item name="colorPrimaryContainer">@color/brand_primary_light</item>
+        <item name="colorSecondary">@color/brand_gradient_end</item>
+        <item name="colorSurface">@color/panel</item>
+        <item name="colorSurfaceContainer">@color/panel</item>
+        <item name="colorSurfaceContainerHigh">@color/panel</item>
+        <item name="colorSurfaceContainerHighest">@color/panel</item>
+        <item name="colorSurfaceContainerLow">@color/panel</item>
+        <item name="colorSurfaceContainerLowest">@color/panel</item>
+        <item name="colorSurfaceBright">@color/panel</item>
+        <item name="colorSurfaceDim">@color/panel</item>
+        <item name="elevationOverlayEnabled">false</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.ResQTap.AlertDialog</item>
+        <item name="android:colorAccent">@color/brand_primary</item>
+        <item name="android:fontFamily">@font/sfuitext_regular</item>
+        <item name="fontFamily">@font/sfuitext_regular</item>
+        <item name="android:statusBarColor">@color/bg</item>
+        <item name="android:navigationBarColor">@color/bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:windowAnimationStyle">@style/Animation.ResQTap.Slide</item>
+
+        <item name="textInputStyle">@style/Widget.ResQTap.TextInputLayout</item>
+        <item name="editTextStyle">@style/Widget.ResQTap.TextInputEditText</item>
+        <item name="android:windowBackground">@color/bg</item>
+    </style>
+
+    <style name="Widget.ResQTap.TextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/text_input_box_stroke</item>
+        <item name="boxStrokeWidth">1.5dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="hintTextColor">@color/text_input_hint_color</item>
+        <item name="android:textColorHint">@color/input_unfocused_hint</item>
+        <item name="cursorColor">@color/input_focused_stroke</item>
+        <item name="cursorErrorColor">@color/danger_red</item>
+        <item name="boxCornerRadiusTopStart">14dp</item>
+        <item name="boxCornerRadiusTopEnd">14dp</item>
+        <item name="boxCornerRadiusBottomStart">14dp</item>
+        <item name="boxCornerRadiusBottomEnd">14dp</item>
+    </style>
+
+    <style name="Widget.ResQTap.TextInputEditText" parent="Widget.Material3.TextInputEditText.OutlinedBox">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColorHint">@color/text_secondary</item>
+        <item name="android:textColorHighlight">@color/brand_primary_light</item>
+    </style>
+
+    <style name="ShapeAppearance.ResQTap.TopRoundedSheet" parent="">
+        <item name="cornerSizeTopLeft">32dp</item>
+        <item name="cornerSizeTopRight">32dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+
+    <style name="Theme.ResQTap" parent="Base.Theme.ResQTap" />
+
+    <style name="Theme.ResQTap.Splash" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="android:statusBarColor">@color/bg</item>
+        <item name="android:navigationBarColor">@color/bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:fontFamily">@font/sfuitext_regular</item>
+        <item name="fontFamily">@font/sfuitext_regular</item>
+    </style>
+
+    <style name="Animation.ResQTap.Slide" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/resqtap_enter</item>
+        <item name="android:activityOpenExitAnimation">@anim/resqtap_exit</item>
+        <item name="android:activityCloseEnterAnimation">@anim/resqtap_pop_enter</item>
+        <item name="android:activityCloseExitAnimation">@anim/resqtap_pop_exit</item>
+    </style>
+
+    <style name="Animation.ResQTap.Fade" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/fade_in</item>
+        <item name="android:activityOpenExitAnimation">@anim/fade_out</item>
+        <item name="android:activityCloseEnterAnimation">@anim/fade_in</item>
+        <item name="android:activityCloseExitAnimation">@anim/fade_out</item>
+    </style>
+
+    <style name="Animation.ResQTap.BottomSheet" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/slide_in_bottom</item>
+        <item name="android:activityOpenExitAnimation">@anim/fade_out</item>
+        <item name="android:activityCloseEnterAnimation">@anim/fade_in</item>
+        <item name="android:activityCloseExitAnimation">@anim/slide_out_bottom</item>
+    </style>
+
+    <style name="Theme.ResQTap.BottomSheetActivity" parent="Theme.ResQTap">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowAnimationStyle">@style/Animation.ResQTap.BottomSheet</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>
+
