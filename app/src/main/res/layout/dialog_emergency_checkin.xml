@@ -65,5 +65,42 @@
         android:background="@color/divider" />
 
     <!-- Button 1: I'm Safe (False Alarm) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_checkin_safe"
+        style="@style/Widget.Material3.Button.TonalButton"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:backgroundTint="#E8F8F0"
+        android:text="@string/checkin_status_safe"
+        android:textColor="#27AE60"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:cornerRadius="16dp"
+        app:icon="@drawable/ic_check_bold"
+        app:iconGravity="textStart"
+        app:iconPadding="8dp"
+        app:iconSize="18dp"
+        app:iconTint="#27AE60"
+        app:strokeColor="#27AE60"
+        app:strokeWidth="1dp" />
+
+    <!-- Button 2: I need help immediately -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_checkin_danger"
+        style="@style/Widget.Material3.Button"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="12dp"
+        android:backgroundTint="@color/brand_red"
+        android:text="@string/checkin_status_danger"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:cornerRadius="16dp"
+        app:icon="@drawable/ic_sos_alert"
+        app:iconGravity="textStart"
+        app:iconPadding="8dp"
+        app:iconSize="18dp"
+        app:iconTint="@color/white" />
 
 </LinearLayout>
