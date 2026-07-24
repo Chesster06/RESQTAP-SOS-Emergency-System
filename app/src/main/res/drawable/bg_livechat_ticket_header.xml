@@ -16,5 +16,12 @@
         android:pathData="M0,75 C90,110 180,70 270,105 C310,120 340,115 360,120 L360,140 L0,140 Z" />
 
     <!-- Soft Wave Layer 2 -->
+    <path
+        android:fillColor="#55FFFFFF"
+        android:pathData="M0,95 C80,128 160,92 240,122 C290,140 330,128 360,135 L360,140 L0,140 Z" />
 
+    <!-- Bottom Organic Wave matching Background -->
+    <path
+        android:fillColor="#F6F7FB"
+        android:pathData="M0,115 C70,138 150,110 230,132 C285,146 330,135 360,140 L360,140 L0,140 Z" />
 </vector>
