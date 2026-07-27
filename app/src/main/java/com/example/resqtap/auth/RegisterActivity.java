@@ -1963,4 +1963,765 @@ public class RegisterActivity extends BaseActivity {
                 .setNeutralButton(R.string.cancel, (d, w) -> d.dismiss())
                 .show();
     }
+
+    private void finishToLogin() {
+        finishToLogin(registeredEmail);
+    }
+
+    private void finishToLogin(String emailToPass) {
+        Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        if (emailToPass != null && !emailToPass.trim().isEmpty()) {
+            intent.putExtra("email", emailToPass.trim().toLowerCase(java.util.Locale.ROOT));
+        }
+        startActivity(intent);
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+        finish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (!isRegistrationCompleted && isFinishing()) {
+            try {
+                // Jangan padam akaun Google atau sesi pengguna jika tidak sengaja keluar
+                FirebaseAuth.getInstance().signOut();
+            } catch (Exception ignored) {}
+        }
+    }
+
+    /** Buka kamera hadapan sahaja secara langsung untuk swafoto profil. */
+    private void launchFrontCamera() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            requestCameraPermission.launch(Manifest.permission.CAMERA);
+            return;
+        }
+
+        try {
+            java.io.File cacheDir = new java.io.File(getCacheDir(), "camera");
+            if (!cacheDir.exists()) cacheDir.mkdirs();
+            java.io.File photoFile = new java.io.File(cacheDir, "selfie_" + System.currentTimeMillis() + ".jpg");
+            tempCameraUri = androidx.core.content.FileProvider.getUriForFile(
+                    this,
+                    getPackageName() + ".fileprovider",
+                    photoFile
+            );
+
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, tempCameraUri);
+            // Meminta kamera depan secara eksplisit merentasi pelbagai pengeluar peranti Android
+            intent.putExtra("android.intent.extras.CAMERA_FACING", 1); // 1 = Front Camera
+            intent.putExtra("android.intent.extras.LENS_FACING_FRONT", 1);
+            intent.putExtra("android.intent.extra.USE_FRONT_CAMERA", true);
+            intent.putExtra("camerafacing", "front");
+            intent.putExtra("previous_mode", "front");
+            intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            takePhotoLauncher.launch(intent);
+        } catch (Exception e) {
+            Log.w(TAG, "FileProvider camera launch failed, fallback to basic intent", e);
+            Intent fallbackIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            fallbackIntent.putExtra("android.intent.extras.CAMERA_FACING", 1);
+            fallbackIntent.putExtra("android.intent.extras.LENS_FACING_FRONT", 1);
+            fallbackIntent.putExtra("android.intent.extra.USE_FRONT_CAMERA", true);
+            fallbackIntent.putExtra("camerafacing", "front");
+            fallbackIntent.putExtra("previous_mode", "front");
+            try {
+                takePhotoLauncher.launch(fallbackIntent);
+            } catch (Exception ex) {
+                Toast.makeText(this, "Could not launch camera: " + ex.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    /** Muat turun gambar profil Google dan tetapkan pada avatar serta tukar ke photoB64 secara automatik. */
+    private void loadAndSetGoogleProfilePhoto(String photoUrl) {
+        if (photoUrl == null || photoUrl.trim().isEmpty()) return;
+        final String rawUrl = photoUrl.trim();
+        final String highResUrl = AvatarUtils.getHighResUrl(rawUrl);
+        java.util.concurrent.Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                Bitmap bitmap = downloadBitmapFromUrl(highResUrl);
+                if (bitmap == null && !highResUrl.equals(rawUrl)) {
+                    bitmap = downloadBitmapFromUrl(rawUrl);
+                }
+                if (bitmap != null) {
+                    highResAvatarBitmap = bitmap;
+                    Bitmap b64Bitmap = bitmap;
+                    if (b64Bitmap.getWidth() > 512 || b64Bitmap.getHeight() > 512) {
+                        float ratio = Math.min(512f / b64Bitmap.getWidth(), 512f / b64Bitmap.getHeight());
+                        int w = Math.round(b64Bitmap.getWidth() * ratio);
+                        int h = Math.round(b64Bitmap.getHeight() * ratio);
+                        b64Bitmap = Bitmap.createScaledBitmap(b64Bitmap, w, h, true);
+                    }
+                    final Bitmap finalBmp = bitmap;
+                    final String b64 = bitmapToBase64(b64Bitmap);
+                    handler.post(() -> {
+                        if (isFinishing() || isDestroyed()) return;
+                        photoB64 = b64;
+                        UserPrefs.setPhotoB64(RegisterActivity.this, b64);
+                        if (imgAvatar != null) {
+                            imgAvatar.setImageBitmap(finalBmp);
+                            imgAvatar.setImageTintList(null);
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to download Google profile photo", e);
+            }
+        });
+    }
+
+    private Bitmap downloadBitmapFromUrl(String endpoint) {
+        if (endpoint == null || endpoint.trim().isEmpty()) return null;
+        java.io.InputStream in = null;
+        java.net.HttpURLConnection conn = null;
+        try {
+            java.net.URL url = new java.net.URL(endpoint.trim());
+            conn = (java.net.HttpURLConnection) url.openConnection();
+            conn.setDoInput(true);
+            conn.setConnectTimeout(8000);
+            conn.setReadTimeout(10000);
+            conn.setInstanceFollowRedirects(true);
+            conn.connect();
+            if (conn.getResponseCode() == java.net.HttpURLConnection.HTTP_OK) {
+                in = conn.getInputStream();
+                return BitmapFactory.decodeStream(in);
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to download bitmap from: " + endpoint, e);
+        } finally {
+            try { if (in != null) in.close(); } catch (Exception ignored) {}
+            try { if (conn != null) conn.disconnect(); } catch (Exception ignored) {}
+        }
+        return null;
+    }
+
+    /** Paparkan dialog pratonton foto profil bersaiz besar dalam bentuk bulatan kemas di tengah skrin dengan background blur dan animasi zoom lancar. */
+    private void showAvatarPreviewDialog() {
+        if (isFinishing() || isDestroyed()) return;
+
+        android.app.Dialog dialog = new android.app.Dialog(this, android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
+        dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE);
+
+        android.view.View dialogView = getLayoutInflater().inflate(R.layout.dialog_circle_avatar_preview, null);
+        dialog.setContentView(dialogView);
+        dialog.setCancelable(true);
+        dialog.setCanceledOnTouchOutside(true);
+
+        android.widget.ImageView imgBlurBg = dialogView.findViewById(R.id.img_dialog_blur_bg);
+        com.google.android.material.imageview.ShapeableImageView previewImg = dialogView.findViewById(R.id.img_preview_circle);
+        View btnClose = dialogView.findViewById(R.id.btn_close_avatar_preview);
+        View root = dialogView.findViewById(R.id.dialog_avatar_root);
+        View previewContent = dialogView.findViewById(R.id.layout_preview_content);
+        View frostedScrim = dialogView.findViewById(R.id.view_frosted_scrim);
+
+        // Koordinat dan dimensi asal imgAvatar untuk animasi zoom masuk/keluar
+        final int[] startLoc = new int[2];
+        final int startWidth = imgAvatar != null ? imgAvatar.getWidth() : 0;
+        final int startHeight = imgAvatar != null ? imgAvatar.getHeight() : 0;
+        if (imgAvatar != null) {
+            imgAvatar.getLocationOnScreen(startLoc);
+        }
+
+        // 1. Tangkap skrin latar belakang dan kaburkan (blur effect) dengan avatar dipastikan bulat
+        if (imgBlurBg != null) {
+            try {
+                View decorView = getWindow().getDecorView();
+                int w = Math.max(1, decorView.getWidth() / 2);
+                int h = Math.max(1, decorView.getHeight() / 2);
+                if (w > 0 && h > 0) {
+                    Bitmap screenshot = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+                    android.graphics.Canvas canvas = new android.graphics.Canvas(screenshot);
+                    canvas.scale(0.5f, 0.5f);
+                    decorView.draw(canvas);
+
+                    // Pastikan kawasan avatar di belakang dilukis semula dalam bentuk bulatan sempurna (tiada petak kabur)
+                    if (imgAvatar != null && startWidth > 0 && startHeight > 0) {
+                        int[] decorLoc = new int[2];
+                        decorView.getLocationOnScreen(decorLoc);
+                        float relX = startLoc[0] - decorLoc[0];
+                        float relY = startLoc[1] - decorLoc[1];
+
+                        android.graphics.drawable.Drawable avDrawable = imgAvatar.getDrawable();
+                        if (avDrawable != null) {
+                            Bitmap avBitmap = null;
+                            if (highResAvatarBitmap != null && !highResAvatarBitmap.isRecycled()) {
+                                avBitmap = highResAvatarBitmap;
+                            } else if (avDrawable instanceof android.graphics.drawable.BitmapDrawable) {
+                                avBitmap = ((android.graphics.drawable.BitmapDrawable) avDrawable).getBitmap();
+                            }
+                            if (avBitmap != null) {
+                                Bitmap circularAv = AvatarUtils.getCircularBitmap(avBitmap);
+                                if (circularAv != null) {
+                                    android.graphics.RectF dst = new android.graphics.RectF(
+                                            relX,
+                                            relY,
+                                            relX + startWidth,
+                                            relY + startHeight
+                                    );
+                                    android.graphics.Paint p = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG | android.graphics.Paint.FILTER_BITMAP_FLAG);
+                                    canvas.drawBitmap(circularAv, null, dst, p);
+
+                                    // Lukis stroke putih kemas bulat
+                                    android.graphics.Paint strokePaint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+                                    strokePaint.setStyle(android.graphics.Paint.Style.STROKE);
+                                    strokePaint.setColor(0xFFFFFFFF);
+                                    strokePaint.setStrokeWidth(getResources().getDisplayMetrics().density * 2.5f);
+                                    canvas.drawCircle(dst.centerX(), dst.centerY(), dst.width() / 2f, strokePaint);
+                                }
+                            }
+                        }
+                    }
+
+                    imgBlurBg.setImageBitmap(screenshot);
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                        imgBlurBg.setRenderEffect(android.graphics.RenderEffect.createBlurEffect(
+                                30f, 30f, android.graphics.Shader.TileMode.CLAMP));
+                    }
+                    imgBlurBg.setVisibility(android.view.View.VISIBLE);
+                }
+            } catch (Exception e) {
+                Log.w(TAG, "Failed to capture background for blur", e);
+            }
+        }
+
+        // 2. Pasang gambar resolusi tinggi pada lingkaran pratonton
+        if (previewImg != null) {
+            if (highResAvatarBitmap != null && !highResAvatarBitmap.isRecycled()) {
+                previewImg.setImageBitmap(highResAvatarBitmap);
+                previewImg.setImageTintList(null);
+            } else if (imgAvatar != null && imgAvatar.getDrawable() != null) {
+                android.graphics.drawable.Drawable.ConstantState cs = imgAvatar.getDrawable().getConstantState();
+                if (cs != null) {
+                    previewImg.setImageDrawable(cs.newDrawable().mutate());
+                } else {
+                    previewImg.setImageDrawable(imgAvatar.getDrawable());
+                }
+                previewImg.setImageTintList(null);
+            } else if (!photoB64.isEmpty() || (googlePhotoUrl != null && !googlePhotoUrl.isEmpty())) {
+                AvatarUtils.applyAvatar(previewImg, photoB64, AvatarUtils.getHighResUrl(googlePhotoUrl), R.drawable.ic_avatar);
+            } else {
+                previewImg.setImageResource(R.drawable.ic_avatar);
+            }
+        }
+
+        android.view.Window window = dialog.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+            window.setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT);
+            window.setGravity(android.view.Gravity.CENTER);
+            window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+            window.setDimAmount(0f);
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                window.addFlags(android.view.WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
+                window.getAttributes().setBlurBehindRadius(35);
+            }
+        }
+
+        // 3. Animasi Smooth Transition Zoom Masuk & Keluar (Expand from thumbnail into center dialog)
+        final View animTarget = previewContent != null ? previewContent : previewImg;
+        if (animTarget != null) {
+            animTarget.setAlpha(0f);
+            animTarget.setScaleX(0.35f);
+            animTarget.setScaleY(0.35f);
+            if (startWidth > 0 && startHeight > 0) {
+                animTarget.post(() -> {
+                    int[] targetLoc = new int[2];
+                    animTarget.getLocationOnScreen(targetLoc);
+                    float targetCenterX = targetLoc[0] + animTarget.getWidth() / 2f;
+                    float targetCenterY = targetLoc[1] + (previewImg != null ? previewImg.getHeight() / 2f : animTarget.getHeight() / 2f);
+                    float startCenterX = startLoc[0] + startWidth / 2f;
+                    float startCenterY = startLoc[1] + startHeight / 2f;
+
+                    float deltaX = startCenterX - targetCenterX;
+                    float deltaY = startCenterY - targetCenterY;
+
+                    animTarget.setTranslationX(deltaX);
+                    animTarget.setTranslationY(deltaY);
+                    float initialScale = Math.max(0.25f, (float) startWidth / Math.max(1, previewImg != null ? previewImg.getWidth() : animTarget.getWidth()));
+                    animTarget.setScaleX(initialScale);
+                    animTarget.setScaleY(initialScale);
+                    animTarget.setAlpha(0f);
+
+                    if (frostedScrim != null) {
+                        frostedScrim.setAlpha(0f);
+                        frostedScrim.animate().alpha(1f).setDuration(280).start();
+                    }
+                    if (imgBlurBg != null) {
+                        imgBlurBg.setAlpha(0f);
+                        imgBlurBg.animate().alpha(1f).setDuration(280).start();
+                    }
+
+                    animTarget.animate()
+                            .translationX(0f)
+                            .translationY(0f)
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .alpha(1f)
+                            .setDuration(320)
+                            .setInterpolator(new android.view.animation.DecelerateInterpolator(1.8f))
+                            .start();
+                });
+            } else {
+                animTarget.post(() -> {
+                    animTarget.animate()
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .alpha(1f)
+                            .setDuration(280)
+                            .setInterpolator(new android.view.animation.DecelerateInterpolator(1.8f))
+                            .start();
+                });
+            }
+        }
+
+        final Runnable dismissWithAnimation = () -> {
+            if (animTarget != null && startWidth > 0 && startHeight > 0) {
+                int[] targetLoc = new int[2];
+                animTarget.getLocationOnScreen(targetLoc);
+                float targetCenterX = targetLoc[0] + animTarget.getWidth() / 2f;
+                float targetCenterY = targetLoc[1] + (previewImg != null ? previewImg.getHeight() / 2f : animTarget.getHeight() / 2f);
+                float startCenterX = startLoc[0] + startWidth / 2f;
+                float startCenterY = startLoc[1] + startHeight / 2f;
+
+                float deltaX = startCenterX - targetCenterX;
+                float deltaY = startCenterY - targetCenterY;
+                float endScale = Math.max(0.25f, (float) startWidth / Math.max(1, previewImg != null ? previewImg.getWidth() : animTarget.getWidth()));
+
+                if (frostedScrim != null) {
+                    frostedScrim.animate().alpha(0f).setDuration(220).start();
+                }
+                if (imgBlurBg != null) {
+                    imgBlurBg.animate().alpha(0f).setDuration(220).start();
+                }
+
+                animTarget.animate()
+                        .translationX(deltaX)
+                        .translationY(deltaY)
+                        .scaleX(endScale)
+                        .scaleY(endScale)
+                        .alpha(0f)
+                        .setDuration(240)
+                        .setInterpolator(new android.view.animation.AccelerateInterpolator(1.6f))
+                        .withEndAction(() -> {
+                            try { dialog.dismiss(); } catch (Exception ignored) {}
+                        })
+                        .start();
+            } else {
+                try { dialog.dismiss(); } catch (Exception ignored) {}
+            }
+        };
+
+        if (root != null) root.setOnClickListener(v -> dismissWithAnimation.run());
+        if (btnClose != null) btnClose.setOnClickListener(v -> dismissWithAnimation.run());
+        if (previewImg != null) previewImg.setOnClickListener(v -> dismissWithAnimation.run());
+
+        dialog.show();
+    }
+
+    /** Tukar Bitmap foto kamera kepada format Base64. */
+    private String bitmapToBase64(Bitmap bitmap) {
+        if (bitmap == null) return "";
+        try {
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 88, outputStream);
+            byte[] byteArray = outputStream.toByteArray();
+            return Base64.encodeToString(byteArray, Base64.NO_WRAP);
+        } catch (Exception e) {
+            Log.e(TAG, "failed to convert bitmap to base64", e);
+            return "";
+        }
+    }
+
+    /** Semak ketetapan SOP Kata Laluan (Min 8 aksara, huruf besar, huruf kecil, nombor, & simbol khas). */
+    public static String getPasswordSopError(String password) {
+        if (password == null || password.length() < 8) {
+            return "Password must be at least 8 characters long.";
+        }
+        if (!password.matches(".*[A-Z].*")) {
+            return "Password must contain at least one uppercase letter (A-Z).";
+        }
+        if (!password.matches(".*[a-z].*")) {
+            return "Password must contain at least one lowercase letter (a-z).";
+        }
+        if (!password.matches(".*[0-9].*")) {
+            return "Password must contain at least one digit (0-9).";
+        }
+        if (!password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?~`].*")) {
+            return "Password must contain at least one special symbol (!@#$%^&*...).";
+        }
+        return null;
+    }
+
+    private boolean isOtherSelected(String text) {
+        if (text == null) return false;
+        String t = text.trim().toLowerCase(java.util.Locale.ROOT);
+        if (t.equals("others") || t.equals("other") || t.equals("lain-lain") || t.equals("其他") || t.equals("மற்றவை")) {
+            return true;
+        }
+        if (t.contains(",")) {
+            for (String part : t.split(",")) {
+                String p = part.trim();
+                if (p.equals("others") || p.equals("other") || p.equals("lain-lain") || p.equals("其他") || p.equals("மற்றவை")) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private String buildMultiSelectValue(String selection, String otherText) {
+        if (selection == null || selection.trim().isEmpty()) return "";
+        if (!isOtherSelected(selection)) return selection.trim();
+        String[] parts = selection.split(",");
+        java.util.List<String> list = new java.util.ArrayList<>();
+        for (String p : parts) {
+            String item = p.trim();
+            if (isOtherSelected(item)) {
+                if (otherText != null && !otherText.trim().isEmpty()) {
+                    list.add(otherText.trim());
+                }
+            } else if (!item.isEmpty()) {
+                list.add(item);
+            }
+        }
+        return android.text.TextUtils.join(", ", list);
+    }
+
+    private void showMultiSelectRegisterDialog(String title, String[] options,
+                                               MaterialAutoCompleteTextView targetInput,
+                                               TextInputLayout targetLayout,
+                                               TextInputLayout otherLayout,
+                                               TextInputEditText otherInput) {
+        if (options == null || options.length == 0 || targetInput == null) return;
+        boolean[] checkedItems = new boolean[options.length];
+        String currentText = targetInput.getText() == null ? "" : targetInput.getText().toString().trim();
+        java.util.Set<String> selectedSet = new java.util.HashSet<>();
+        if (!currentText.isEmpty()) {
+            for (String part : currentText.split(",")) {
+                String t = part.trim();
+                if (!t.isEmpty()) selectedSet.add(t.toLowerCase(java.util.Locale.ROOT));
+            }
+        }
+        for (int i = 0; i < options.length; i++) {
+            if (selectedSet.contains(options[i].toLowerCase(java.util.Locale.ROOT))) {
+                checkedItems[i] = true;
+            }
+        }
+
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_ResQTap_AlertDialog);
+        builder.setTitle(title);
+        builder.setBackground(androidx.core.content.ContextCompat.getDrawable(this, R.drawable.bg_dialog_rounded));
+        builder.setMultiChoiceItems(options, checkedItems, (dialog, which, isChecked) -> {
+            checkedItems[which] = isChecked;
+            androidx.appcompat.app.AlertDialog alertDialog = (androidx.appcompat.app.AlertDialog) dialog;
+            android.widget.ListView listView = alertDialog.getListView();
+            if (which == 0) { // "None"
+                if (isChecked) {
+                    for (int i = 1; i < options.length; i++) {
+                        checkedItems[i] = false;
+                        if (listView != null) listView.setItemChecked(i, false);
+                    }
+                }
+            } else {
+                if (isChecked) {
+                    checkedItems[0] = false;
+                    if (listView != null) listView.setItemChecked(0, false);
+                }
+            }
+        });
+
+        builder.setPositiveButton(android.R.string.ok, (dialog, which) -> {
+            java.util.List<String> chosen = new java.util.ArrayList<>();
+            boolean hasOther = false;
+            for (int i = 0; i < options.length; i++) {
+                if (checkedItems[i]) {
+                    chosen.add(options[i]);
+                    if (isOtherSelected(options[i])) {
+                        hasOther = true;
+                    }
+                }
+            }
+            if (chosen.isEmpty()) {
+                chosen.add(options[0]);
+            }
+            String result = android.text.TextUtils.join(", ", chosen);
+            targetInput.setText(result);
+            if (targetLayout != null) {
+                targetLayout.setError(null);
+                targetLayout.setErrorEnabled(false);
+            }
+            if (hasOther) {
+                if (otherLayout != null) otherLayout.setVisibility(View.VISIBLE);
+                if (otherInput != null) otherInput.requestFocus();
+            } else {
+                if (otherLayout != null) otherLayout.setVisibility(View.GONE);
+                if (otherInput != null) otherInput.setText("");
+            }
+        });
+
+        builder.setNegativeButton(android.R.string.cancel, null);
+        builder.show();
+    }
+
+    /** Kawal paparan progress loading pada butang Sign in with Google semasa proses pengesahan berjalan. */
+    private void setGoogleLoading(boolean loading) {
+        if (isFinishing() || isDestroyed()) return;
+        if (layoutGoogleBtnContent != null) {
+            layoutGoogleBtnContent.setVisibility(loading ? View.GONE : View.VISIBLE);
+        }
+        if (layoutGoogleLoading != null) {
+            layoutGoogleLoading.setVisibility(loading ? View.VISIBLE : View.GONE);
+            if (layoutGoogleLoading instanceof GoogleDotsLoadingView) {
+                if (loading) {
+                    ((GoogleDotsLoadingView) layoutGoogleLoading).start();
+                } else {
+                    ((GoogleDotsLoadingView) layoutGoogleLoading).stop();
+                }
+            }
+        }
+        if (btnSocialGoogle != null) {
+            btnSocialGoogle.setEnabled(!loading);
+            btnSocialGoogle.setAlpha(loading ? 0.75f : 1.0f);
+        }
+        if (btnCreateAccount != null) {
+            btnCreateAccount.setEnabled(!loading);
+        }
+    }
+
+    /** Mengendalikan hasil daripada Google Sign-In Intent. */
+    private void handleGoogleSignInResult(Task<GoogleSignInAccount> completedTask) {
+        try {
+            GoogleSignInAccount account = completedTask.getResult(ApiException.class);
+            if (account != null && account.getIdToken() != null) {
+                firebaseAuthWithGoogle(account);
+            } else {
+                setGoogleLoading(false);
+                Toast.makeText(this, R.string.toast_google_sign_in_failed, Toast.LENGTH_SHORT).show();
+            }
+        } catch (ApiException e) {
+            setGoogleLoading(false);
+            Log.e(TAG, "Google sign in failed with code: " + e.getStatusCode(), e);
+            Toast.makeText(this, getString(R.string.toast_google_sign_in_failed) + " (" + e.getStatusCode() + ")", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /** Sambungkan akaun Google dengan Firebase Auth. */
+    private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
+        AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
+        FirebaseAuth.getInstance().signInWithCredential(credential)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        FirebaseUser user = task.getResult().getUser();
+                        if (user != null) {
+                            handlePostGoogleSignIn(user, acct);
+                        } else {
+                            setGoogleLoading(false);
+                            Toast.makeText(this, R.string.toast_login_failed, Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        setGoogleLoading(false);
+                        Exception e = task.getException();
+                        Log.e(TAG, "FirebaseAuthWithGoogle failed", e);
+                        String errMsg = e != null && e.getMessage() != null ? e.getMessage() : getString(R.string.toast_login_failed);
+                        Toast.makeText(this, errMsg, Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    /** Kendalikan semakan profil pengguna dan navigasi selepas log masuk Google di skrin pendaftaran. */
+    private void handlePostGoogleSignIn(FirebaseUser user, GoogleSignInAccount acct) {
+        String uid = user.getUid();
+        String email = user.getEmail() != null ? user.getEmail() : (acct.getEmail() != null ? acct.getEmail() : "");
+        UserPrefs.setUid(this, uid);
+        if (!email.isEmpty()) {
+            UserPrefs.setEmail(this, email);
+        }
+
+        final String googlePhoto = acct.getPhotoUrl() != null ? AvatarUtils.getHighResUrl(acct.getPhotoUrl().toString()) : "";
+        fromGoogleSignIn = true;
+        googleIdToken = acct.getIdToken() != null ? acct.getIdToken() : "";
+        googlePhotoUrl = googlePhoto;
+        registeredUid = uid;
+        registeredEmail = email;
+
+        // Semak profil dari Supabase terlebih dahulu
+        com.example.resqtap.supabase.SupabaseManager.getInstance().getProfile(uid, new com.example.resqtap.supabase.SupabaseManager.Callback<org.json.JSONObject>() {
+            @Override
+            public void onSuccess(org.json.JSONObject profile) {
+                if (profile != null) {
+                    applySupabaseProfile(profile);
+                    if (UserPrefs.isPersonalInfoComplete(RegisterActivity.this)) {
+                        setGoogleLoading(false);
+                        startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+                        finish();
+                        return;
+                    }
+                }
+                setupGoogleProfileStep2(acct, googlePhoto);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                // Fallback: semak RTDB jika ada rekod lama
+                FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL)
+                        .getReference("users")
+                        .child(uid)
+                        .get()
+                        .addOnSuccessListener(snapshot -> {
+                            if (snapshot != null && snapshot.exists()) {
+                                applyExistingGoogleUserSnapshot(snapshot);
+                                if (UserPrefs.isPersonalInfoComplete(RegisterActivity.this)) {
+                                    setGoogleLoading(false);
+                                    startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+                                    finish();
+                                    return;
+                                }
+                            }
+                            setupGoogleProfileStep2(acct, googlePhoto);
+                        })
+                        .addOnFailureListener(err -> setupGoogleProfileStep2(acct, googlePhoto));
+            }
+        });
+    }
+
+    private void applySupabaseProfile(org.json.JSONObject profile) {
+        if (profile == null) return;
+        try {
+            String name = profile.optString("full_name", "");
+            if (!name.isEmpty()) UserPrefs.setName(this, name);
+            String phone = profile.optString("phone", "");
+            if (phone.isEmpty()) phone = profile.optString("phone_number", "");
+            if (!phone.isEmpty()) UserPrefs.setPhoneNumber(this, phone);
+            String ic = profile.optString("ic_number", "");
+            if (!ic.isEmpty()) UserPrefs.setIcNumber(this, ic);
+            String gender = profile.optString("gender", "");
+            if (!gender.isEmpty()) UserPrefs.setGender(this, gender);
+            String dob = profile.optString("dob", "");
+            if (!dob.isEmpty()) UserPrefs.setDateOfBirth(this, dob);
+            String address = profile.optString("address", "");
+            if (!address.isEmpty()) UserPrefs.setAddress(this, address);
+            String photo = profile.optString("photo_url", "");
+            if (photo.isEmpty()) photo = profile.optString("avatar_url", "");
+            if (!photo.isEmpty()) UserPrefs.setPhotoUrl(this, photo);
+
+            String uid = profile.optString("id", "");
+            String pubId = com.example.resqtap.friend.FirebaseFriendClient.format4DigitId(uid, "");
+            UserPrefs.setPublicId(this, pubId);
+        } catch (Exception ignored) {}
+    }
+
+    private void setupGoogleProfileStep2(GoogleSignInAccount acct, String googlePhoto) {
+        setGoogleLoading(false);
+
+        String displayName = acct.getDisplayName();
+        String firstName = "";
+        String lastName = "";
+        if (displayName != null && !displayName.trim().isEmpty()) {
+            String cleanName = displayName.trim();
+            int spaceIdx = cleanName.indexOf(' ');
+            if (spaceIdx > 0) {
+                firstName = cleanName.substring(0, spaceIdx).trim();
+                lastName = cleanName.substring(spaceIdx + 1).trim();
+            } else {
+                firstName = cleanName;
+            }
+            UserPrefs.setName(RegisterActivity.this, cleanName);
+        }
+        UserPrefs.setFirstName(RegisterActivity.this, firstName);
+        UserPrefs.setLastName(RegisterActivity.this, lastName);
+        UserPrefs.setIcNumber(RegisterActivity.this, "");
+        UserPrefs.setPhoneNumber(RegisterActivity.this, "");
+
+        TextInputEditText firstNameInput = findViewById(R.id.input_first_name);
+        TextInputEditText lastNameInput = findViewById(R.id.input_last_name);
+        TextInputEditText icInput = findViewById(R.id.input_ic);
+        TextInputEditText phoneInput = findViewById(R.id.input_phone);
+        TextInputEditText emergencyNameInput = findViewById(R.id.input_emergency_name);
+        TextInputEditText emergencyPhoneInput = findViewById(R.id.input_emergency_phone);
+
+        if (firstNameInput != null && !firstName.isEmpty()) firstNameInput.setText(firstName);
+        if (lastNameInput != null && !lastName.isEmpty()) lastNameInput.setText(lastName);
+        if (icInput != null) icInput.setText("");
+        if (phoneInput != null) phoneInput.setText("");
+        if (emergencyNameInput != null) emergencyNameInput.setText("");
+        if (emergencyPhoneInput != null) emergencyPhoneInput.setText("");
+
+        if (googlePhoto != null && !googlePhoto.trim().isEmpty() && imgAvatar != null) {
+            loadAndSetGoogleProfilePhoto(googlePhoto.trim());
+        }
+
+        showStep2PersonalInfo();
+    }
+
+    private void applyExistingGoogleUserSnapshot(DataSnapshot snapshot) {
+        if (snapshot == null || !snapshot.exists()) return;
+        Object nameObj = snapshot.child("name").getValue();
+        if (nameObj != null) UserPrefs.setName(this, String.valueOf(nameObj));
+        Object bloodObj = snapshot.child("bloodType").getValue();
+        if (bloodObj != null) UserPrefs.setBloodType(this, String.valueOf(bloodObj));
+        Object allergiesObj = snapshot.child("allergies").getValue();
+        if (allergiesObj != null) UserPrefs.setAllergies(this, String.valueOf(allergiesObj));
+        Object weightObj = snapshot.child("weight").getValue();
+        UserPrefs.setWeight(this, weightObj == null ? "" : String.valueOf(weightObj));
+        Object heightObj = snapshot.child("height").getValue();
+        UserPrefs.setHeight(this, heightObj == null ? "" : String.valueOf(heightObj));
+        Object genderObj = snapshot.child("gender").getValue();
+        if (genderObj != null) UserPrefs.setGender(this, String.valueOf(genderObj));
+        Object icObj = snapshot.child("icNumber").getValue();
+        if (icObj != null) UserPrefs.setIcNumber(this, String.valueOf(icObj));
+
+        Object medObj = snapshot.child("medications").getValue();
+        String medications = medObj == null ? "" : String.valueOf(medObj).trim();
+        Object condObj = snapshot.child("existingConditions").getValue();
+        String conditions = condObj == null ? "" : String.valueOf(condObj).trim();
+        if (conditions.isEmpty() && !medications.isEmpty()) {
+            conditions = medications;
+        }
+        UserPrefs.setExistingConditions(this, conditions);
+        UserPrefs.setMedications(this, medications);
+
+        Object organObj = snapshot.child("organDonor").getValue();
+        if (organObj != null) UserPrefs.setOrganDonor(this, String.valueOf(organObj));
+        Object emailObj = snapshot.child("email").getValue();
+        if (emailObj != null) UserPrefs.setEmail(this, String.valueOf(emailObj));
+        Object publicIdObj = snapshot.child("publicId").getValue();
+        String pubId = publicIdObj == null ? "" : String.valueOf(publicIdObj).trim();
+        if (pubId.isEmpty()) {
+            pubId = com.example.resqtap.friend.FirebaseFriendClient.format4DigitId(snapshot.getKey(), "");
+        } else {
+            pubId = com.example.resqtap.friend.FirebaseFriendClient.format4DigitId(snapshot.getKey(), pubId);
+        }
+        UserPrefs.setPublicId(this, pubId);
+
+        Object photoUrlObj = snapshot.child("photoUrl").getValue();
+        String photoUrl = photoUrlObj == null ? "" : String.valueOf(photoUrlObj);
+        if (photoUrl == null) photoUrl = "";
+        photoUrl = photoUrl.trim();
+        if (photoUrl.isEmpty()) {
+            Object photoUriObj = snapshot.child("photoUri").getValue();
+            photoUrl = photoUriObj == null ? "" : String.valueOf(photoUriObj);
+            if (photoUrl == null) photoUrl = "";
+            photoUrl = photoUrl.trim();
+        }
+        if (!photoUrl.isEmpty()) UserPrefs.setPhotoUrl(this, photoUrl);
+
+        Object photoB64Obj = snapshot.child("photoB64").getValue();
+        if (photoB64Obj != null) {
+            String b64 = String.valueOf(photoB64Obj);
+            if (b64 != null && !b64.trim().isEmpty()) UserPrefs.setPhotoB64(this, b64.trim());
+        }
+
+        Object addrObj = snapshot.child("address").getValue();
+        if (addrObj != null) UserPrefs.setAddress(this, String.valueOf(addrObj));
+        Object relObj = snapshot.child("religion").getValue();
+        if (relObj != null) UserPrefs.setReligion(this, String.valueOf(relObj));
+        Object phoneObj = snapshot.child("phoneNumber").getValue();
+        if (phoneObj != null) UserPrefs.setPhoneNumber(this, String.valueOf(phoneObj));
+        Object dobObj = snapshot.child("dateOfBirth").getValue();
+        if (dobObj != null) UserPrefs.setDateOfBirth(this, String.valueOf(dobObj));
+        Object ethObj = snapshot.child("ethnicity").getValue();
+        if (ethObj != null) UserPrefs.setEthnicity(this, String.valueOf(ethObj));
+    }
 }
+
