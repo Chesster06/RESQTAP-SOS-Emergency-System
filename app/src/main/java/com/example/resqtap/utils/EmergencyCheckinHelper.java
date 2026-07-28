@@ -63,4 +63,50 @@ public final class EmergencyCheckinHelper {
                 } else {
                     handleDefaultSafe(activity);
                 }
+            });
+        }
+
+        if (btnDanger != null) {
+            btnDanger.setOnClickListener(v -> {
+                dialog.dismiss();
+                Toast.makeText(activity, R.string.toast_checkin_danger, Toast.LENGTH_LONG).show();
+                if (callback != null) {
+                    callback.onDangerSelected();
+                } else {
+                    handleDefaultDanger(activity);
+                }
+            });
+        }
+
+        dialog.setCancelable(true);
+        dialog.setCanceledOnTouchOutside(true);
+        dialog.show();
+    }
+
+    /**
+     * Paparan lalai yang terus membatalkan atau mencetuskan SOS Bilik aktif pengguna.
+     */
+    public static void showCheckInDialog(Activity activity) {
+        showCheckInDialog(activity, null);
+    }
+
+    private static void handleDefaultSafe(Activity activity) {
+        String dev = UserPrefs.getOrCreateDeviceId(activity);
+        FirebaseUser cu = FirebaseAuth.getInstance().getCurrentUser();
+        if (cu != null) {
+            FirebaseRoomClient.cancelAllActiveSosForUser(cu.getUid(), dev);
+        }
+    }
+
+    private static void handleDefaultDanger(Activity activity) {
+        String code = UserPrefs.getActiveRoomCode(activity);
+        FirebaseUser u = FirebaseAuth.getInstance().getCurrentUser();
+        if (u != null) {
+            String dev = UserPrefs.getOrCreateDeviceId(activity);
+            String name = UserPrefs.getName(activity);
+            if (name == null || name.trim().isEmpty()) name = "User";
+            String targetRoom = (code != null && !code.trim().isEmpty()) ? code.trim() : "DIRECT";
+            FirebaseRoomClient.sendRoomSosQueued(targetRoom, u.getUid(), dev, name, null);
+        }
+    }
 }
