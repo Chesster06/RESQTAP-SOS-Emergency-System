@@ -44,5 +44,63 @@
         android:fontFamily="sans-serif-bold" />
 
     <!-- Dialog Description -->
+    <TextView
+        android:id="@+id/tv_confirm_safe_desc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:lineSpacingExtra="3dp"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp"
+        android:text="@string/sending_alarm_confirm_safe_desc"
+        android:textColor="#FF6B7280"
+        android:textSize="14sp" />
+
+    <!-- Action Buttons Row (Side by side like reference image) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <!-- Negative / Keep Sending Button (Outline pill) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_confirm_safe_cancel"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="6dp"
+            android:layout_weight="1"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:letterSpacing="0"
+            android:text="@string/sending_alarm_dialog_continue_sos"
+            android:textColor="#FF374151"
+            android:textSize="13.5sp"
+            android:fontFamily="sans-serif-medium"
+            app:cornerRadius="12dp"
+            app:strokeColor="#FFE5E7EB"
+            app:strokeWidth="1.5dp" />
+
+        <!-- Positive / Confirm Stop SOS Button (Vibrant red/pink pill) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_confirm_safe_stop"
+            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:letterSpacing="0"
+            android:text="@string/sending_alarm_dialog_stop_sos"
+            android:textColor="#FFFFFFFF"
+            android:textSize="13.5sp"
+            android:fontFamily="sans-serif-bold"
+            app:backgroundTint="#FFF43F5E"
+            app:cornerRadius="12dp" />
+    </LinearLayout>
 
 </LinearLayout>
