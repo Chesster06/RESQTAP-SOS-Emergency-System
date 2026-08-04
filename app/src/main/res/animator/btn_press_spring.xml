@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Pressed state: smooth scale down to 0.96 with hardware acceleration -->
+    <item android:state_pressed="true">
+        <set>
+            <objectAnimator
+                android:duration="100"
+                android:propertyName="scaleX"
+                android:toDegrees="0"
+                android:valueTo="0.96"
+                android:valueType="floatType"
+                android:interpolator="@android:anim/decelerate_interpolator" />
+            <objectAnimator
+                android:duration="100"
+                android:propertyName="scaleY"
+                android:valueTo="0.96"
+                android:valueType="floatType"
+                android:interpolator="@android:anim/decelerate_interpolator" />
+            <objectAnimator
+                android:duration="100"
+                android:propertyName="translationZ"
+                android:valueTo="2dp"
+                android:valueType="floatType" />
+        </set>
+    </item>
+    <!-- Default state: smooth rebound back to 1.0 -->
+
+</selector>
