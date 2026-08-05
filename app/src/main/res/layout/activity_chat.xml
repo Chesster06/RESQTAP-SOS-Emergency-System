@@ -177,5 +177,571 @@
     </LinearLayout>
 
     <!-- Scrollable Conversation & Hero Area -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/chat_scroll"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:overScrollMode="never"
+        android:paddingStart="18dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="18dp"
+        android:paddingBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@id/bottom_composer_container"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/banner_live_msg_alert">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Hero Greeting Layout (Light Mode) -->
+            <LinearLayout
+                android:id="@+id/hero_greeting_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tv_hero_greeting"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:text="Hi there 👋"
+                    android:textColor="@color/text_primary"
+                    android:textSize="28sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_hero_subtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="sans-serif"
+                    android:lineSpacingExtra="4dp"
+                    android:text="I'm here to help you stay safe and guide you with ResQTap emergency features."
+                    android:textColor="@color/text_secondary"
+                    android:textSize="15sp" />
+
+                <!-- Suggestion Cards Horizontal Scroll with 3D Overlap -->
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:overScrollMode="never"
+                    android:paddingTop="36dp"
+                    android:paddingBottom="8dp"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clipChildren="false"
+                        android:clipToPadding="false"
+                        android:orientation="horizontal">
+
+                        <!-- Item 1 (3D Popping Mascot Card) -->
+                        <FrameLayout
+                            android:layout_width="168dp"
+                            android:layout_height="215dp"
+                            android:layout_marginEnd="14dp"
+                            android:clipChildren="false"
+                            android:clipToPadding="false">
+
+                            <!-- Base Card -->
+                            <LinearLayout
+                                android:id="@+id/card_prompt_1"
+                                android:layout_width="match_parent"
+                                android:layout_height="172dp"
+                                android:layout_gravity="bottom"
+                                android:background="@drawable/bg_ai_card_light"
+                                android:elevation="3dp"
+                                android:gravity="center_horizontal"
+                                android:orientation="vertical"
+                                android:paddingStart="12dp"
+                                android:paddingTop="38dp"
+                                android:paddingEnd="12dp"
+                                android:paddingBottom="12dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="0dp"
+                                    android:layout_weight="1"
+                                    android:ellipsize="end"
+                                    android:fontFamily="sans-serif-bold"
+                                    android:gravity="center"
+                                    android:maxLines="2"
+                                    android:text="What to do in an emergency?"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/btn_prompt_1"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="34dp"
+                                    android:layout_marginTop="6dp"
+                                    android:background="@drawable/bg_ai_card_btn_light"
+                                    android:fontFamily="sans-serif-bold"
+                                    android:gravity="center"
+                                    android:text="View"
+                                    android:textColor="@color/brand_primary"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                            <!-- Protruding 3D Mascot Character -->
+                            <ImageView
+                                android:layout_width="94dp"
+                                android:layout_height="94dp"
+                                android:layout_gravity="top|center_horizontal"
+                                android:adjustViewBounds="true"
+                                android:contentDescription="ResQTap Assistant Search"
+                                android:elevation="8dp"
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/img_ai_card_binoculars" />
+                        </FrameLayout>
+
+                        <!-- Item 2 (3D Popping Mascot Card) -->
+                        <FrameLayout
+                            android:layout_width="168dp"
+                            android:layout_height="215dp"
+                            android:layout_marginEnd="14dp"
+                            android:clipChildren="false"
+                            android:clipToPadding="false">
+
+                            <!-- Base Card -->
+                            <LinearLayout
+                                android:id="@+id/card_prompt_2"
+                                android:layout_width="match_parent"
+                                android:layout_height="172dp"
+                                android:layout_gravity="bottom"
+                                android:background="@drawable/bg_ai_card_light"
+                                android:elevation="3dp"
+                                android:gravity="center_horizontal"
+                                android:orientation="vertical"
+                                android:paddingStart="12dp"
+                                android:paddingTop="38dp"
+                                android:paddingEnd="12dp"
+                                android:paddingBottom="12dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="0dp"
+                                    android:layout_weight="1"
+                                    android:ellipsize="end"
+                                    android:fontFamily="sans-serif-bold"
+                                    android:gravity="center"
+                                    android:maxLines="2"
+                                    android:text="How does SOS beacon work?"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/btn_prompt_2"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="34dp"
+                                    android:layout_marginTop="6dp"
+                                    android:background="@drawable/bg_ai_card_btn_light"
+                                    android:fontFamily="sans-serif-bold"
+                                    android:gravity="center"
+                                    android:text="View"
+                                    android:textColor="@color/brand_primary"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                            <!-- Protruding 3D Mascot Character -->
+                            <ImageView
+                                android:layout_width="96dp"
+                                android:layout_height="96dp"
+                                android:layout_gravity="top|center_horizontal"
+                                android:adjustViewBounds="true"
+                                android:contentDescription="ResQTap SOS Beacon"
+                                android:elevation="8dp"
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/img_ai_card_beacon" />
+                        </FrameLayout>
+
+                        <!-- Item 3 (3D Popping Mascot Card) -->
+                        <FrameLayout
+                            android:layout_width="168dp"
+                            android:layout_height="215dp"
+                            android:layout_marginEnd="14dp"
+                            android:clipChildren="false"
+                            android:clipToPadding="false">
+
+                            <!-- Base Card -->
+                            <LinearLayout
+                                android:id="@+id/card_prompt_3"
+                                android:layout_width="match_parent"
+                                android:layout_height="172dp"
+                                android:layout_gravity="bottom"
+                                android:background="@drawable/bg_ai_card_light"
+                                android:elevation="3dp"
+                                android:gravity="center_horizontal"
+                                android:orientation="vertical"
+                                android:paddingStart="12dp"
+                                android:paddingTop="38dp"
+                                android:paddingEnd="12dp"
+                                android:paddingBottom="12dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="0dp"
+                                    android:layout_weight="1"
+                                    android:ellipsize="end"
+                                    android:fontFamily="sans-serif-bold"
+                                    android:gravity="center"
+                                    android:maxLines="2"
+                                    android:text="Emergency contacts guide?"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/btn_prompt_3"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="34dp"
+                                    android:layout_marginTop="6dp"
+                                    android:background="@drawable/bg_ai_card_btn_light"
+                                    android:fontFamily="sans-serif-bold"
+                                    android:gravity="center"
+                                    android:text="View"
+                                    android:textColor="@color/brand_primary"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                            <!-- Protruding 3D Mascot Character -->
+                            <ImageView
+                                android:layout_width="94dp"
+                                android:layout_height="94dp"
+                                android:layout_gravity="top|center_horizontal"
+                                android:adjustViewBounds="true"
+                                android:contentDescription="ResQTap Emergency Contacts"
+                                android:elevation="8dp"
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/img_ai_card_friends" />
+                        </FrameLayout>
+
+                        <!-- Item 4 (3D Livechat Support Card) -->
+                        <FrameLayout
+                            android:layout_width="168dp"
+                            android:layout_height="215dp"
+                            android:layout_marginEnd="14dp"
+                            android:clipChildren="false"
+                            android:clipToPadding="false">
+
+                            <!-- Base Card -->
+                            <LinearLayout
+                                android:id="@+id/card_prompt_livechat"
+                                android:layout_width="match_parent"
+                                android:layout_height="172dp"
+                                android:layout_gravity="bottom"
+                                android:background="@drawable/bg_ai_card_light"
+                                android:elevation="3dp"
+                                android:gravity="center_horizontal"
+                                android:orientation="vertical"
+                                android:paddingStart="12dp"
+                                android:paddingTop="38dp"
+                                android:paddingEnd="12dp"
+                                android:paddingBottom="12dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="0dp"
+                                    android:layout_weight="1"
+                                    android:ellipsize="end"
+                                    android:fontFamily="sans-serif-bold"
+                                    android:gravity="center"
+                                    android:maxLines="2"
+                                    android:text="@string/prompt_card_livechat_title"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/btn_prompt_livechat"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="34dp"
+                                    android:layout_marginTop="6dp"
+                                    android:background="@drawable/bg_ai_card_btn_light"
+                                    android:fontFamily="sans-serif-bold"
+                                    android:gravity="center"
+                                    android:text="@string/prompt_card_livechat_btn"
+                                    android:textColor="@color/brand_primary"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                            <!-- Protruding 3D Mascot Character -->
+                            <ImageView
+                                android:layout_width="96dp"
+                                android:layout_height="96dp"
+                                android:layout_gravity="top|center_horizontal"
+                                android:adjustViewBounds="true"
+                                android:contentDescription="ResQTap Live Support Agent"
+                                android:elevation="8dp"
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/img_ai_card_livechat" />
+                        </FrameLayout>
+
+                    </LinearLayout>
+                </HorizontalScrollView>
+            </LinearLayout>
+
+            <!-- Dynamic Chat Messages Container -->
+            <LinearLayout
+                android:id="@+id/chat_messages"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Bottom Composer Container (Floating Light Capsule) -->
+    <LinearLayout
+        android:id="@+id/bottom_composer_container"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingStart="16dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <!-- Quick Chat Suggestion Pills Horizontal Scroll -->
+        <HorizontalScrollView
+            android:id="@+id/bottom_suggestions_scroll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/bottom_suggestions_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <!-- Suggestion 1: SOS Beacon -->
+                <TextView
+                    android:id="@+id/chip_prompt_beacon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/bg_bottom_chip_suggestion"
+                    android:fontFamily="sans-serif-medium"
+                    android:paddingStart="14dp"
+                    android:paddingTop="7dp"
+                    android:paddingEnd="14dp"
+                    android:paddingBottom="7dp"
+                    android:text="How does SOS Beacon work?"
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp" />
+
+                <!-- Suggestion 2: Geofencing -->
+                <TextView
+                    android:id="@+id/chip_prompt_geofence"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/bg_bottom_chip_suggestion"
+                    android:fontFamily="sans-serif-medium"
+                    android:paddingStart="14dp"
+                    android:paddingTop="7dp"
+                    android:paddingEnd="14dp"
+                    android:paddingBottom="7dp"
+                    android:text="How to set Safe Zones?"
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp" />
+
+                <!-- Suggestion 3: Safety Rooms -->
+                <TextView
+                    android:id="@+id/chip_prompt_room"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/bg_bottom_chip_suggestion"
+                    android:fontFamily="sans-serif-medium"
+                    android:paddingStart="14dp"
+                    android:paddingTop="7dp"
+                    android:paddingEnd="14dp"
+                    android:paddingBottom="7dp"
+                    android:text="How to join a Room?"
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp" />
+
+                <!-- Suggestion 4: Hospitals -->
+                <TextView
+                    android:id="@+id/chip_prompt_hospital"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/bg_bottom_chip_suggestion"
+                    android:fontFamily="sans-serif-medium"
+                    android:paddingStart="14dp"
+                    android:paddingTop="7dp"
+                    android:paddingEnd="14dp"
+                    android:paddingBottom="7dp"
+                    android:text="Find nearby hospitals"
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp" />
+
+                <!-- Suggestion: Talk to Human Agent -->
+                <TextView
+                    android:id="@+id/chip_switch_to_livechat"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/bg_bottom_chip_suggestion"
+                    android:fontFamily="sans-serif-medium"
+                    android:paddingStart="14dp"
+                    android:paddingTop="7dp"
+                    android:paddingEnd="14dp"
+                    android:paddingBottom="7dp"
+                    android:text="@string/chip_switch_to_livechat"
+                    android:textColor="@color/brand_primary"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <!-- Attachment Selected Strip (When sending photo/file in livechat) -->
+        <LinearLayout
+            android:id="@+id/composer_attachment_strip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="6dp"
+            android:background="@drawable/bg_notification_banner_accent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_livechat_photo"
+                app:tint="@color/brand_primary" />
+
+            <TextView
+                android:id="@+id/composer_attachment_label"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:ellipsize="middle"
+                android:fontFamily="sans-serif-medium"
+                android:maxLines="1"
+                android:text="image.jpg"
+                android:textColor="@color/brand_primary"
+                android:textSize="12sp" />
+
+            <ImageButton
+                android:id="@+id/btn_clear_attachment"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="4dp"
+                android:src="@drawable/ic_close_24"
+                app:tint="@color/brand_primary" />
+        </LinearLayout>
+
+        <!-- Input Capsule (Smooth Material Shadow) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/chat_composer_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="@color/panel"
+            app:cardCornerRadius="28dp"
+            app:cardElevation="2dp"
+            app:cardMaxElevation="4dp"
+            app:cardPreventCornerOverlap="false"
+            app:cardUseCompatPadding="false"
+            app:strokeColor="@color/divider"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:id="@+id/chat_composer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:minHeight="54dp"
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingTop="6dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="6dp">
+
+                <EditText
+                    android:id="@+id/chat_input"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:hint="@string/chat_input_hint_ai"
+                    android:imeOptions="actionSend"
+                    android:inputType="textCapSentences|textMultiLine"
+                    android:maxLength="1000"
+                    android:maxLines="4"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary"
+                    android:textSize="15sp" />
+
+                <ImageButton
+                    android:id="@+id/btn_attach_camera"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:layout_marginStart="4dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Camera"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_camera_white"
+                    app:tint="@color/text_secondary" />
+
+                <ImageButton
+                    android:id="@+id/chat_send"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_chat_send_pink_circle"
+                    android:contentDescription="@string/ai_chat_send"
+                    android:padding="9dp"
+                    android:src="@drawable/ic_send_24"
+                    app:tint="@color/white" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Disclaimer Caption -->
+        <TextView
+            android:id="@+id/tv_chat_disclaimer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="sans-serif"
+            android:text="@string/chat_disclaimer_unified"
+            android:textColor="@color/text_secondary"
+            android:textSize="11sp" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

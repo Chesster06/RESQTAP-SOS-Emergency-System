@@ -1,0 +1,81 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+
+    <!-- Perfectly centered: dome top (34+1.5=35.5) and plinth bottom (83+1.5=84.5) have identical 35.5 unit margin to viewport boundaries (120) -->
+    <group android:translateY="1.5">
+        <!-- Fan of 9 radiating bright red rays -->
+
+        <!-- Ray 1 (Far Left, slightly angled up) -->
+        <path
+            android:fillColor="#FFE11D48"
+            android:pathData="M24,52 h10 v2.8 h-10 z" />
+
+        <!-- Ray 2 (Left-Low ~155 deg) -->
+        <path
+            android:fillColor="#FFE11D48"
+            android:pathData="M28,40 l9,3.8 l-1,2.4 l-9,-3.8 z" />
+
+        <!-- Ray 3 (Left-Mid ~135 deg) -->
+        <path
+            android:fillColor="#FFE11D48"
+            android:pathData="M35,29 l7.5,6.5 l-1.8,2.1 l-7.5,-6.5 z" />
+
+        <!-- Ray 4 (Top-Left ~112 deg) -->
+        <path
+            android:fillColor="#FFE11D48"
+            android:pathData="M46,21 l4,8.5 l-2.4,1.1 l-4,-8.5 z" />
+
+        <!-- Ray 5 (Center Top Vertical) -->
+        <path
+            android:fillColor="#FFE11D48"
+            android:pathData="M58.6,18 h2.8 v9.5 h-2.8 z" />
+
+        <!-- Ray 6 (Top-Right ~68 deg) -->
+        <path
+            android:fillColor="#FFE11D48"
+            android:pathData="M74,21 l-4,8.5 l2.4,1.1 l4,-8.5 z" />
+
+        <!-- Ray 7 (Right-Mid ~45 deg) -->
+        <path
+            android:fillColor="#FFE11D48"
+            android:pathData="M85,29 l-7.5,6.5 l1.8,2.1 l7.5,-6.5 z" />
+
+        <!-- Ray 8 (Right-Low ~25 deg) -->
+        <path
+            android:fillColor="#FFE11D48"
+            android:pathData="M92,40 l-9,3.8 l1,2.4 l9,-3.8 z" />
+
+        <!-- Ray 9 (Far Right, slightly angled up) -->
+        <path
+            android:fillColor="#FFE11D48"
+            android:pathData="M96,52 h-10 v2.8 h10 z" />
+
+        <!-- Siren Bell Dome: vibrant bright red rounded dome with flared bottom -->
+        <path
+            android:fillColor="#FFE11D48"
+            android:pathData="M60,34 C47,34 41,47 39,70 L81,70 C79,47 73,34 60,34 Z" />
+
+        <!-- Left glossy light sheen on bell dome -->
+        <path
+            android:fillColor="#FFFF4D6D"
+            android:pathData="M49,38 C45,41 43,47 42,57 L45,57 C46,48 47.5,42 51,40 Z" />
+
+        <!-- Inner dark circular indentation / core notch in center of dome -->
+        <path
+            android:fillColor="#FFB91C1C"
+            android:pathData="M57,62 C57,60.3 58.3,59 60,59 C61.7,59 63,60.3 63,62 L63,70 L57,70 Z" />
+
+        <!-- Siren Collar / Lower Lip -->
+        <path
+            android:fillColor="#FFBE123C"
+            android:pathData="M37,70 h46 v3 h-46 z" />
+
+        <!-- Siren Base Plinth (Dark Charcoal with rounded corners) -->
+        <path
+            android:fillColor="#FF1E293B"
+            android:pathData="M34,73 h52 c1.2,0 2,0.8 2,2 L88,81 c0,1.2 -0.8,2 -2,2 H34 c-1.2,0 -2,-0.8 -2,-2 L32,75 c0,-1.2 0.8,-2 2,-2 Z" />
+    </group>
+</vector>
