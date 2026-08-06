@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Main Brand Accent: Vibrant Pink / Magenta -->
+    <color name="brand_primary">#E60067</color>
+    <color name="brand_primary_dark">#C2185B</color>
+    <color name="brand_primary_light">#FFE4EE</color>
+    <color name="brand_gradient_end">#D81B60</color>
+
+    <color name="input_focused_stroke">#E60067</color>
+    <color name="input_unfocused_stroke">#E2E5EB</color>
+    <color name="input_focused_hint">#E60067</color>
+    <color name="input_unfocused_hint">#8E95A2</color>
+    <color name="input_field_bg">#F3F4F6</color>
+    <color name="input_field_stroke">#E5E7EB</color>
+    <color name="chat_chip_bg">#FFF0F5</color>
+    <color name="chat_chip_stroke">#FFD1E0</color>
+    <color name="badge_default_bg">#F3F4F6</color>
+    <color name="badge_default_stroke">#E5E7EB</color>
+    <color name="badge_user_tag_bg">#FFF0F5</color>
+    <color name="badge_user_tag_stroke">#FFD1E0</color>
+    <color name="badge_user_tag_text">#E60067</color>
+
+    <!-- Medical Summary Cards -->
+    <color name="med_card_blood_bg">#FFEBF2</color>
+    <color name="med_card_blood_stroke">#FFD1E3</color>
+    <color name="med_card_allergy_bg">#FFF4DE</color>
+    <color name="med_card_allergy_stroke">#FFE8B2</color>
+    <color name="med_card_conditions_bg">#EBF3FF</color>
+    <color name="med_card_conditions_stroke">#D0E1FD</color>
+    <color name="med_card_label">#2D3748</color>
+
+    <color name="brand_red">#E60067</color>
+    <color name="brand_red_dark">#C2185B</color>
+    <color name="brand_red_soft">#FFFFFF</color>
+    <color name="member_card_bg">#FFFFFF</color>
+    <color name="member_card_stroke">#EEF0F4</color>
+    <color name="member_name_text">#1C1E21</color>
+    <color name="member_subtext">#8E95A2</color>
+    <color name="member_pill_bg">#FFE4EE</color>
+    <color name="member_pill_tint">#E60067</color>
+    <color name="danger_red">#FF4D5E</color>
+    <color name="brand_danger">#FF4D5E</color>
+    <color name="delete_account_button_bg">#00FFFFFF</color>
+    <color name="brand_red_ring">#33E60067</color>
+    <color name="brand_red_ring2">#18E60067</color>
+    <color name="sos_red">#FFFFFF</color>
+
+    <color name="feature_hospital">@color/panel</color>
+    <color name="feature_hospital_bg">#E60067</color>
+    <color name="feature_contacts">@color/panel</color>
+    <color name="feature_contacts_bg">#E60067</color>
+    <color name="feature_support">@color/panel</color>
+    <color name="feature_support_bg">#E60067</color>
+    <color name="feature_language">@color/panel</color>
+    <color name="feature_language_bg">#E60067</color>
+    <color name="feature_card_text">@color/text_primary</color>
+    <color name="feature_card_subtext">@color/text_secondary</color>
+    <color name="room_soft_surface">#F6F7FB</color>
+    <color name="room_chip_text">@color/brand_primary</color>
+    <color name="room_icon_tint">@color/brand_primary</color>
+    <color name="room_card_stroke">#EEF0F4</color>
+    <color name="room_search_stroke">#E2E5EB</color>
+    <color name="room_search_action_tint">#E60067</color>
+
+    <color name="success_green">#22C55E</color>
+    <color name="voice_green">#20C786</color>
+    <color name="voice_green_dark">#11A870</color>
+    <color name="voice_green_light">#50DCA8</color>
+    <color name="voice_green_ring_mid">#4420C786</color>
+    <color name="voice_green_ring_outer">#1F20C786</color>
+    <color name="tts_page_bg">@color/bg</color>
+    <color name="tts_card_stroke">@color/divider</color>
+    <color name="tts_header">#E60067</color>
+    <color name="tts_panel_soft">#FFFFFF</color>
+    <color name="tts_panel_soft_stroke">#EEF0F4</color>
+    <color name="tts_muted_surface">#F6F7FB</color>
+    <color name="tts_icon_soft">#FFE4EE</color>
+    <color name="tts_disabled_text">#8E95A2</color>
+    <color name="tts_wave_bg">#F6F7FB</color>
+    <color name="tts_hero_surface">#FFFFFF</color>
+    <color name="tts_hero_surface_2">#F6F7FB</color>
+    <color name="tts_wave_accent">#E60067</color>
+    <color name="tts_action_surface">#F6F7FB</color>
+    <color name="tts_play_core">#E60067</color>
+    <color name="tts_play_ring_inner">#44E60067</color>
+    <color name="tts_play_ring_mid">#28E60067</color>
+    <color name="tts_play_ring_outer">#18E60067</color>
+    <color name="stt_status_bg">#F6F7FB</color>
+    <color name="stt_status_stroke">#EEF0F4</color>
+    <color name="stt_status_text">#E60067</color>
+    <color name="stt_record_core">#E60067</color>
+    <color name="stt_record_ring">#44E60067</color>
+
+    <color name="settings_header_start">#E60067</color>
+    <color name="settings_header_end">#C2185B</color>
+    <color name="settings_card_bg">#FFFFFF</color>
+    <color name="settings_card_stroke">#EEF0F4</color>
+    <color name="settings_row_bg">#FFFFFF</color>
+    <color name="settings_icon_bg">#F6F7FB</color>
+    <color name="settings_icon_tint">#E60067</color>
+    <color name="settings_helper_text">#8E95A2</color>
+    <color name="settings_section_text">#E60067</color>
+    <color name="settings_divider">#EEF0F4</color>
+
+    <!-- Clean Crisp Backgrounds -->
+    <color name="bg">#F6F7FB</color>
+    <color name="panel">#FFFFFF</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="on_surface">#1C1E21</color>
+
+    <!-- Crisp Typography -->
+    <color name="text_primary">#1C1E21</color>
+    <color name="text_secondary">#8E95A2</color>
+    <color name="text_on_brand">#FFFFFF</color>
+    <color name="dialog_button_text">@color/brand_primary</color>
+    <color name="dialog_button_border">@color/brand_primary</color>
+
+    <!-- Bottom Navigation: Pure Crisp White -->
+    <color name="bottom_nav_icon_active">#E60067</color>
+    <color name="bottom_nav_icon_inactive">#9EA4B0</color>
+    <color name="bottom_nav_text_active">#E60067</color>
+    <color name="bottom_nav_active_indicator">#FFE4EE</color>
+    <color name="bottom_nav_glass">#FFFFFF</color>
+    <color name="bottom_nav_glass_stroke">#EEF0F4</color>
+    <color name="bottom_nav_glass_highlight">#FFFFFF</color>
+
+    <color name="ios_list_icon">@color/brand_primary</color>
+    <color name="ios_list_chevron">#C5CAD3</color>
+    <color name="about_accent">@color/brand_primary</color>
+
+    <color name="divider">#EEF0F4</color>
+    <color name="outline_stroke">#EEF0F4</color>
+    <color name="bg_home_start">#FFFFFF</color>
+    <color name="bg_home_center">#F6F7FB</color>
+    <color name="bg_home_end">#F6F7FB</color>
+    <color name="bg_home_glow_start">#15E60067</color>
+    <color name="bg_home_glow_center">#08E60067</color>
+    <color name="bg_home_glow_end">#00FFFFFF</color>
+
+    <color name="auth_top_bg">#E60067</color>
+    <color name="auth_headline">#FFFFFF</color>
+    <color name="auth_panel">#FFFFFF</color>
+    <color name="auth_panel_dark">#F6F7FB</color>
+    <color name="auth_field">#FFFFFF</color>
+    <color name="auth_field_stroke">#E2E8F0</color>
+    <color name="auth_field_text">#1C1E21</color>
+    <color name="auth_field_hint">#8E95A2</color>
+    <color name="auth_panel_text">#1C1E21</color>
+    <color name="auth_panel_muted">#8E95A2</color>
+    <color name="auth_button">#E60067</color>
+    <color name="auth_button_pressed">#C2185B</color>
+
+    <color name="chat_assistant_bubble">#FFFFFF</color>
+    <color name="chat_assistant_bubble_stroke">#EEF0F4</color>
+    <color name="chat_assistant_text">#1C1E21</color>
+    <color name="livechat_header_start">#E60067</color>
+    <color name="livechat_header_end">#C2185B</color>
+    <color name="livechat_ticket_bg">#FFFFFF</color>
+    <color name="livechat_ticket_stroke">#EEF0F4</color>
+    <color name="livechat_ticket_surface">#F6F7FB</color>
+    <color name="livechat_ticket_field">#FFFFFF</color>
+    <color name="livechat_ticket_chip_bg">#FFE4EE</color>
+    <color name="livechat_ticket_chip_text">#E60067</color>
+    <color name="livechat_ticket_muted">#8E95A2</color>
+    <color name="livechat_ticket_accent">#22C55E</color>
+    <color name="livechat_ticket_button">#E60067</color>
+    <color name="livechat_ticket_button_pressed">#C2185B</color>
+    <color name="contacts_header_start">#E60067</color>
+    <color name="contacts_header_end">#C2185B</color>
+    <color name="contacts_card_bg">#FFFFFF</color>
+    <color name="contacts_card_stroke">#EEF0F4</color>
+    <color name="contacts_surface">#F6F7FB</color>
+    <color name="contacts_avatar_bg">#FFE4EE</color>
+    <color name="contacts_avatar_text">#E60067</color>
+    <color name="contacts_action_bg">#F6F7FB</color>
+    <color name="contacts_action_tint">#1C1E21</color>
+    <color name="contacts_delete_bg">#FFF0F3</color>
+    <color name="contacts_delete_tint">#D33B4A</color>
+    <color name="contacts_muted">#8E95A2</color>
+    <color name="contacts_safe_green">#22C55E</color>
+    <color name="profile_upload_bg">#FFE4EE</color>
+    <color name="profile_upload_stroke">#E60067</color>
+    <color name="profile_upload_text">#E60067</color>
+    <color name="room_hub_surface">#FFFFFF</color>
+    <color name="room_hub_surface_alt">#F6F7FB</color>
+    <color name="room_hub_stroke">#EEF0F4</color>
+    <color name="room_hub_hero_start">#E60067</color>
+    <color name="room_hub_hero_end">#C2185B</color>
+    <color name="room_hub_on_hero">#FFFFFF</color>
+    <color name="room_hub_on_hero_muted">#FFE4EE</color>
+    <color name="room_hub_orbit">#33E60067</color>
+    <color name="room_hub_node">#E60067</color>
+
+    <color name="report_accent">#E60067</color>
+    <color name="report_chip_checked_bg">#FFE4EE</color>
+    <color name="report_chip_checked_text">#E60067</color>
+    <color name="report_chip_checked_stroke">#E60067</color>
+    <color name="report_chip_unchecked_stroke">#EEF0F4</color>
+    <color name="report_tile_bg">#FFFFFF</color>
+    <color name="report_tile_stroke">#EEF0F4</color>
+    <color name="report_tile_content">#1C1E21</color>
+    <color name="report_submit_bg">#E60067</color>
+    <color name="report_update_location_bg">#FFE4EE</color>
+    <color name="report_update_location_text">#E60067</color>
+    <color name="report_update_location_stroke">#E60067</color>
+
+    <color name="filled_button_color">#E60067</color>
+    <color name="transparent">#00000000</color>
+
+    <!-- Edit Profile: Minimalist Pink -->
+    <color name="edit_profile_header_start">#FFFFFF</color>
+    <color name="edit_profile_header_center">#FFF5F8</color>
+    <color name="edit_profile_header_end">#F6F7FB</color>
+    <color name="edit_profile_avatar_ring">#E60067</color>
+    <color name="edit_profile_avatar_bg">#FFE4EE</color>
+    <color name="edit_profile_section_bg">#FFFFFF</color>
+    <color name="edit_profile_section_label">#8E95A2</color>
+    <color name="edit_profile_icon_bg">#FFE4EE</color>
+    <color name="edit_profile_icon_tint">#E60067</color>
+    <color name="edit_profile_accent">#E60067</color>
+    <color name="edit_profile_accent_soft">#FFE4EE</color>
+    <color name="edit_profile_upload_btn_bg">#FFE4EE</color>
+    <color name="edit_profile_upload_btn_stroke">#FFE4EE</color>
+    <color name="edit_profile_save_bg">#E60067</color>
+    <color name="edit_profile_save_bg_disabled">#FFB3D1</color>
+    <color name="edit_profile_row_divider">#F0F1F5</color>
+    <color name="edit_profile_row_label">#8E95A2</color>
+    <color name="edit_profile_row_value">#1C1E21</color>
+    <color name="edit_profile_row_chevron">#C5CAD3</color>
+    <color name="edit_profile_display_text">#8E95A2</color>
+    <color name="edit_profile_explore_text">#E60067</color>
+</resources>
+
