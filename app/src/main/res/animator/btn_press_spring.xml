@@ -24,5 +24,25 @@
         </set>
     </item>
     <!-- Default state: smooth rebound back to 1.0 -->
-
+    <item>
+        <set>
+            <objectAnimator
+                android:duration="150"
+                android:propertyName="scaleX"
+                android:valueTo="1.0"
+                android:valueType="floatType"
+                android:interpolator="@android:anim/decelerate_interpolator" />
+            <objectAnimator
+                android:duration="150"
+                android:propertyName="scaleY"
+                android:valueTo="1.0"
+                android:valueType="floatType"
+                android:interpolator="@android:anim/decelerate_interpolator" />
+            <objectAnimator
+                android:duration="150"
+                android:propertyName="translationZ"
+                android:valueTo="0dp"
+                android:valueType="floatType" />
+        </set>
+    </item>
 </selector>
