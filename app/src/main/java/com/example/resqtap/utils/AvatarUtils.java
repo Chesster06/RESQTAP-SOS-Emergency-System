@@ -118,4 +118,90 @@ public final class AvatarUtils {
                 if (bytes != null && bytes.length > 0) {
                     return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
                 }
+            } catch (Exception e) {
+                Log.d(TAG, "Failed to load gs:// image: " + e.getMessage());
+            }
+            return null;
+        }
+
+        if (clean.startsWith("http")) {
+            Bitmap bmp = downloadHttpStream(clean);
+            if (bmp == null && !clean.equals(sourceUrl.trim())) {
+                bmp = downloadHttpStream(sourceUrl.trim());
+            }
+            return bmp;
+        }
+
+        return null;
+    }
+
+    private static Bitmap downloadHttpStream(String endpoint) {
+        InputStream in = null;
+        HttpURLConnection conn = null;
+        try {
+            conn = (HttpURLConnection) new URL(endpoint).openConnection();
+            conn.setConnectTimeout(8000);
+            conn.setReadTimeout(12000);
+            conn.setInstanceFollowRedirects(true);
+            conn.connect();
+            if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                in = conn.getInputStream();
+                return BitmapFactory.decodeStream(in);
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "Failed to load http image from " + endpoint + ": " + e.getMessage());
+        } finally {
+            try { if (in != null) in.close(); } catch (Exception ignored) {}
+            try { if (conn != null) conn.disconnect(); } catch (Exception ignored) {}
+        }
+        return null;
+    }
+
+    /**
+     * Tukar URL foto profil Google bersaiz kecil (=s96-c) kepada resolusi tinggi (=s1000-c)
+     * supaya tidak kabur / berpiksel apabila dipaparkan pada skrin besar.
+     */
+    public static String getHighResUrl(String url) {
+        if (url == null || url.trim().isEmpty()) return "";
+        String clean = url.trim();
+        if (clean.contains("googleusercontent.com")) {
+            if (clean.matches(".*=s\\d+.*")) {
+                return clean.replaceAll("=s\\d+[^&?]*", "=s1000-c");
+            } else if (clean.matches(".*/s\\d+.*")) {
+                return clean.replaceAll("/s\\d+[^/]*", "/s1000-c");
+            } else if (!clean.contains("=")) {
+                return clean + "=s1000-c";
+            }
+        }
+        return clean;
+    }
+
+    /**
+     * Potong Bitmap menjadi bentuk bulatan sempurna (circular bitmap)
+     * supaya rendering peranti tidak menunjukkan bucu petak walaupun di-draw pada canvas biasa.
+     */
+    public static Bitmap getCircularBitmap(Bitmap bitmap) {
+        if (bitmap == null) return null;
+        int size = Math.min(bitmap.getWidth(), bitmap.getHeight());
+        Bitmap output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        android.graphics.Canvas canvas = new android.graphics.Canvas(output);
+
+        final android.graphics.Paint paint = new android.graphics.Paint();
+        final android.graphics.Rect rect = new android.graphics.Rect(
+                (bitmap.getWidth() - size) / 2,
+                (bitmap.getHeight() - size) / 2,
+                (bitmap.getWidth() + size) / 2,
+                (bitmap.getHeight() + size) / 2
+        );
+        final android.graphics.Rect destRect = new android.graphics.Rect(0, 0, size, size);
+
+        paint.setAntiAlias(true);
+        paint.setFilterBitmap(true);
+        paint.setDither(true);
+        canvas.drawARGB(0, 0, 0, 0);
+        canvas.drawCircle(size / 2f, size / 2f, size / 2f, paint);
+        paint.setXfermode(new android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.SRC_IN));
+        canvas.drawBitmap(bitmap, rect, destRect, paint);
+        return output;
+    }
 }
