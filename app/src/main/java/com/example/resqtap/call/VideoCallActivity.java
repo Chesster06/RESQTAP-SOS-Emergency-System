@@ -210,4 +210,173 @@ public class VideoCallActivity extends BaseActivity implements WebRTCClient.WebR
     }
 
     /** Dengar tawaran SDP Offer dari pemanggil melalui RTDB. */
+    private void listenForOffer() {
+        offerListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!snapshot.exists()) return;
+                String sdp = snapshot.child("sdp").getValue(String.class);
+                if (sdp != null && webRTCClient != null) {
+                    SessionDescription description = new SessionDescription(SessionDescription.Type.OFFER, sdp);
+                    webRTCClient.setRemoteDescriptionAndCreateAnswer(description, new WebRTCClient.AnswerCallback() {
+                        @Override
+                        public void onAnswerCreated(SessionDescription answer) {
+                            CallSignalingClient.getInstance().sendAnswer(callId, answer.description);
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            android.util.Log.e("VideoCallActivity", "Error setting offer and creating answer: " + error);
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        };
+        CallSignalingClient.getInstance().listenForOffer(callId, offerListener);
+
+        cameraStateListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    Boolean enabled = snapshot.getValue(Boolean.class);
+                    if (enabled != null) {
+                        runOnUiThread(() -> remoteCameraDisabledOverlay.setVisibility(enabled ? View.GONE : View.VISIBLE));
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        };
+        CallSignalingClient.getInstance().listenForCameraState(callId, "caller", cameraStateListener);
+
+        CallSignalingClient.getInstance().setCameraState(callId, "callee", true);
+        CallSignalingClient.getInstance().setMicState(callId, "callee", true);
+    }
+
+    /** Dengar maklumat ICE Candidates untuk bina sambungan P2P. */
+    private void listenForIceCandidates() {
+        iceCandidateListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, String previousChildName) {
+                if (!snapshot.exists() || webRTCClient == null) return;
+                String sdpMid = snapshot.child("sdpMid").getValue(String.class);
+                Integer sdpMLineIndex = snapshot.child("sdpMLineIndex").getValue(Integer.class);
+                String candidate = snapshot.child("candidate").getValue(String.class);
+
+                if (sdpMid != null && sdpMLineIndex != null && candidate != null && !candidate.trim().isEmpty()) {
+                    IceCandidate iceCandidate = new IceCandidate(sdpMid, sdpMLineIndex, candidate);
+                    webRTCClient.addIceCandidate(iceCandidate);
+                }
+            }
+            @Override public void onChildChanged(@NonNull DataSnapshot snapshot, String previousChildName) {}
+            @Override public void onChildRemoved(@NonNull DataSnapshot snapshot) {}
+            @Override public void onChildMoved(@NonNull DataSnapshot snapshot, String previousChildName) {}
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        };
+
+        CallSignalingClient.getInstance().listenForIceCandidates(callId, "callerCandidates", iceCandidateListener);
+    }
+
+    /** Terima stream kamera/mikrofon tempatan yang baru dimulakan. */
+    @Override
+    public void onLocalStream(VideoTrack videoTrack) {
+
+    }
+
+    /** Terima penstriman video/audio dari pihak pemanggil/penerima. */
+    @Override
+    public void onAddRemoteStream(VideoTrack videoTrack) {
+        runOnUiThread(() -> {
+            View connectingOverlay = findViewById(R.id.connecting_overlay);
+            if (connectingOverlay != null) {
+                connectingOverlay.setVisibility(View.GONE);
+            }
+            videoTrack.addSink(remoteVideoView);
+        });
+    }
+
+    /** Tamatkan paparan bila pihak lawan putuskan penstriman video. */
+    @Override
+    public void onRemoveRemoteStream() {
+        remoteEnded = true;
+        runOnUiThread(this::finish);
+    }
+
+    /** Hantar calon ICE tempatan ke Firebase RTDB untuk bina laluan P2P. */
+    @Override
+    public void onIceCandidate(IceCandidate candidate) {
+        if (candidate != null && candidate.sdp != null && !candidate.sdp.trim().isEmpty()) {
+            CallSignalingClient.getInstance().sendIceCandidate(callId, "calleeCandidates", candidate.sdpMid, candidate.sdpMLineIndex, candidate.sdp);
+        }
+    }
+
+    /** Pantau status sambungan WebRTC (Connected, Failed, Closed). */
+    @Override
+    public void onConnectionStateChange(PeerConnection.PeerConnectionState state) {
+        if (state == PeerConnection.PeerConnectionState.CONNECTED) {
+            runOnUiThread(() -> {
+                View connectingOverlay = findViewById(R.id.connecting_overlay);
+                if (connectingOverlay != null) {
+                    connectingOverlay.setVisibility(View.GONE);
+                }
+            });
+        } else if (state == PeerConnection.PeerConnectionState.DISCONNECTED ||
+            state == PeerConnection.PeerConnectionState.FAILED ||
+            state == PeerConnection.PeerConnectionState.CLOSED) {
+            remoteEnded = true;
+            runOnUiThread(this::finish);
+        }
+    }
+
+    // SEKSYEN: ONDESTROY
+    /** Pembersihan memori, buang listener, dan tutup sambungan. */
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        CallSignalingClient.getInstance().removeOfferListener(callId, offerListener);
+        CallSignalingClient.getInstance().removeIceCandidateListener(callId, "callerCandidates", iceCandidateListener);
+
+        if (callStatusListener != null && callId != null && com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null) {
+            com.google.firebase.database.FirebaseDatabase.getInstance().getReference("userCalls")
+                    .child(com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid())
+                    .child("currentCall").child("status")
+                    .removeEventListener(callStatusListener);
+        }
+        if (cameraStateListener != null && callId != null) {
+            CallSignalingClient.getInstance().removeCameraStateListener(callId, "caller", cameraStateListener);
+        }
+
+        if (webRTCClient != null) {
+            webRTCClient.close();
+            webRTCClient = null;
+        }
+
+        if (localVideoView != null) {
+            localVideoView.release();
+        }
+        if (remoteVideoView != null) {
+            remoteVideoView.release();
+        }
+
+        if (rootEglBase != null) {
+            rootEglBase.release();
+            rootEglBase = null;
+        }
+
+        if (audioManager != null) {
+            audioManager.setMode(AudioManager.MODE_NORMAL);
+            audioManager.setSpeakerphoneOn(false);
+        }
+
+        if (!remoteEnded && com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null) {
+            String uid = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid();
+            CallSignalingClient.getInstance().endCall(uid, callId);
+        }
+    }
 }
+
