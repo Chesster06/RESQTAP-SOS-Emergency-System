@@ -46,4 +46,22 @@ public final class SosServiceStarter {
             else context.startService(i);
         } catch (Exception ignored) {
         }
+    }
+
+    public static void start(Context context) {
+        if (context == null) return;
+        String code = UserPrefs.getActiveRoomCode(context);
+        start(context, code);
+    }
+
+    public static void stop(Context context) {
+        if (context == null) return;
+        try {
+            Intent i = new Intent(context, LiveRoomTrackingService.class);
+            i.setAction(LiveRoomTrackingService.ACTION_STOP);
+            context.startService(i);
+        } catch (Exception ignored) {
+        }
+    }
 }
+
