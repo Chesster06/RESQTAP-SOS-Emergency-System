@@ -1,0 +1,760 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_home"
+    tools:context=".MainActivity">
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:paddingBottom="112dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="20dp">
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/header_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="14dp"
+                android:layout_marginEnd="16dp"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="28dp"
+                app:cardElevation="10dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_gradient_header"
+                    android:orientation="vertical"
+                    android:padding="18dp">
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <com.google.android.material.imageview.ShapeableImageView
+                            android:id="@+id/header_profile_photo"
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:background="@drawable/bg_icon_circle_white"
+                            android:contentDescription="@string/profile_photo"
+                            android:padding="5dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/ic_avatar"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.ResQTap.Circle" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:layout_marginEnd="8dp"
+                            android:gravity="center_vertical"
+                            android:orientation="vertical"
+                            app:layout_constraintEnd_toStartOf="@id/inbox_button_container"
+                            app:layout_constraintStart_toEndOf="@id/header_profile_photo"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent">
+
+                            <TextView
+                                android:id="@+id/title"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:text="@string/home_title"
+                                android:textColor="@color/text_on_brand"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                android:letterSpacing="0.01" />
+
+                            <TextView
+                                android:id="@+id/subtitle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:text="@string/home_welcome_back"
+                                android:textColor="#E6FFFFFF"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+
+                        <FrameLayout
+                            android:id="@+id/inbox_button_container"
+                            android:layout_width="46dp"
+                            android:layout_height="46dp"
+                            android:clipChildren="false"
+                            android:clipToPadding="false"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btn_inbox"
+                                style="@style/Widget.ResQTap.MapControlButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:contentDescription="Inbox"
+                                app:backgroundTint="#33FFFFFF"
+                                app:icon="@drawable/ic_email"
+                                app:iconPadding="0dp"
+                                app:iconSize="20dp"
+                                app:iconTint="@color/white"
+                                app:strokeWidth="0dp" />
+
+                            <View
+                                android:id="@+id/inbox_unread_dot"
+                                android:layout_width="10dp"
+                                android:layout_height="10dp"
+                                android:layout_gravity="top|end"
+                                android:layout_marginTop="5dp"
+                                android:layout_marginEnd="5dp"
+                                android:background="@drawable/bg_unread_dot"
+                                android:elevation="4dp"
+                                android:visibility="gone" />
+                        </FrameLayout>
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/medical_card"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        app:cardBackgroundColor="@android:color/transparent"
+                        app:cardCornerRadius="0dp"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="0dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="0dp">
+
+                            <TextView
+                                android:id="@+id/medical_header"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/medical_detail_header"
+                                android:textAllCaps="true"
+                                android:textColor="@color/white"
+                                android:textSize="11sp"
+                                android:textStyle="bold"
+                                android:letterSpacing="0.10" />
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:orientation="horizontal">
+
+                                <!-- Blood Type Card -->
+                                <com.google.android.material.card.MaterialCardView
+                                    android:id="@+id/card_medical_blood"
+                                    android:layout_width="0dp"
+                                    android:layout_height="74dp"
+                                    android:layout_weight="1"
+                                    android:clickable="true"
+                                    android:focusable="true"
+                                    android:foreground="?attr/selectableItemBackground"
+                                    app:cardBackgroundColor="@color/med_card_blood_bg"
+                                    app:cardCornerRadius="18dp"
+                                    app:cardElevation="0dp"
+                                    app:strokeColor="@color/med_card_blood_stroke"
+                                    app:strokeWidth="1dp">
+
+                                    <androidx.constraintlayout.widget.ConstraintLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:clipChildren="false"
+                                        android:paddingStart="10dp"
+                                        android:paddingTop="9dp"
+                                        android:paddingEnd="4dp"
+                                        android:paddingBottom="4dp">
+
+                                        <TextView
+                                            android:id="@+id/lbl_blood"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/friend_details_blood"
+                                            android:textColor="@color/med_card_label"
+                                            android:textSize="13sp"
+                                            android:textStyle="bold"
+                                            app:layout_constraintStart_toStartOf="parent"
+                                            app:layout_constraintTop_toTopOf="parent" />
+
+                                        <TextView
+                                            android:id="@+id/tv_medical_blood"
+                                            android:layout_width="0dp"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="3dp"
+                                            android:layout_marginEnd="32dp"
+                                            android:ellipsize="end"
+                                            android:maxLines="1"
+                                            android:text="B+"
+                                            android:textAllCaps="true"
+                                            android:textColor="@color/brand_primary"
+                                            android:textSize="13sp"
+                                            android:textStyle="bold"
+                                            app:layout_constraintEnd_toEndOf="parent"
+                                            app:layout_constraintStart_toStartOf="parent"
+                                            app:layout_constraintTop_toBottomOf="@id/lbl_blood" />
+
+                                        <ImageView
+                                            android:layout_width="38dp"
+                                            android:layout_height="38dp"
+                                            android:layout_marginEnd="-2dp"
+                                            android:layout_marginBottom="-2dp"
+                                            android:rotation="4"
+                                            android:scaleType="fitCenter"
+                                            android:src="@drawable/img_med_blood"
+                                            app:layout_constraintBottom_toBottomOf="parent"
+                                            app:layout_constraintEnd_toEndOf="parent" />
+                                    </androidx.constraintlayout.widget.ConstraintLayout>
+                                </com.google.android.material.card.MaterialCardView>
+
+                                <!-- Allergies Card -->
+                                <com.google.android.material.card.MaterialCardView
+                                    android:id="@+id/card_medical_allergies"
+                                    android:layout_width="0dp"
+                                    android:layout_height="74dp"
+                                    android:layout_marginStart="8dp"
+                                    android:layout_weight="1.2"
+                                    android:clickable="true"
+                                    android:focusable="true"
+                                    android:foreground="?attr/selectableItemBackground"
+                                    app:cardBackgroundColor="@color/med_card_allergy_bg"
+                                    app:cardCornerRadius="18dp"
+                                    app:cardElevation="0dp"
+                                    app:strokeColor="@color/med_card_allergy_stroke"
+                                    app:strokeWidth="1dp">
+
+                                    <androidx.constraintlayout.widget.ConstraintLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:clipChildren="false"
+                                        android:paddingStart="10dp"
+                                        android:paddingTop="9dp"
+                                        android:paddingEnd="4dp"
+                                        android:paddingBottom="4dp">
+
+                                        <TextView
+                                            android:id="@+id/lbl_allergies"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/friend_details_allergies"
+                                            android:textColor="@color/med_card_label"
+                                            android:textSize="13sp"
+                                            android:textStyle="bold"
+                                            app:layout_constraintStart_toStartOf="parent"
+                                            app:layout_constraintTop_toTopOf="parent" />
+
+                                        <TextView
+                                            android:id="@+id/tv_medical_allergies"
+                                            android:layout_width="0dp"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="3dp"
+                                            android:layout_marginEnd="32dp"
+                                            android:ellipsize="end"
+                                            android:maxLines="1"
+                                            android:text="@string/medical_allergies_none"
+                                            android:textColor="#D97706"
+                                            android:textSize="12sp"
+                                            android:textStyle="bold"
+                                            app:layout_constraintEnd_toEndOf="parent"
+                                            app:layout_constraintStart_toStartOf="parent"
+                                            app:layout_constraintTop_toBottomOf="@id/lbl_allergies" />
+
+                                        <ImageView
+                                            android:layout_width="38dp"
+                                            android:layout_height="38dp"
+                                            android:layout_marginEnd="-2dp"
+                                            android:layout_marginBottom="-2dp"
+                                            android:rotation="6"
+                                            android:scaleType="fitCenter"
+                                            android:src="@drawable/img_med_allergy"
+                                            app:layout_constraintBottom_toBottomOf="parent"
+                                            app:layout_constraintEnd_toEndOf="parent" />
+                                    </androidx.constraintlayout.widget.ConstraintLayout>
+                                </com.google.android.material.card.MaterialCardView>
+
+                                <!-- Medical Conditions Card -->
+                                <com.google.android.material.card.MaterialCardView
+                                    android:id="@+id/card_medical_conditions"
+                                    android:layout_width="0dp"
+                                    android:layout_height="74dp"
+                                    android:layout_marginStart="8dp"
+                                    android:layout_weight="1"
+                                    android:clickable="true"
+                                    android:focusable="true"
+                                    android:foreground="?attr/selectableItemBackground"
+                                    app:cardBackgroundColor="@color/med_card_conditions_bg"
+                                    app:cardCornerRadius="18dp"
+                                    app:cardElevation="0dp"
+                                    app:strokeColor="@color/med_card_conditions_stroke"
+                                    app:strokeWidth="1dp">
+
+                                    <androidx.constraintlayout.widget.ConstraintLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:clipChildren="false"
+                                        android:paddingStart="10dp"
+                                        android:paddingTop="9dp"
+                                        android:paddingEnd="4dp"
+                                        android:paddingBottom="4dp">
+
+                                        <TextView
+                                            android:id="@+id/lbl_conditions"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/friend_details_conditions"
+                                            android:textColor="@color/med_card_label"
+                                            android:textSize="13sp"
+                                            android:textStyle="bold"
+                                            app:layout_constraintStart_toStartOf="parent"
+                                            app:layout_constraintTop_toTopOf="parent" />
+
+                                        <TextView
+                                            android:id="@+id/tv_medical_conditions"
+                                            android:layout_width="0dp"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="3dp"
+                                            android:layout_marginEnd="32dp"
+                                            android:ellipsize="end"
+                                            android:maxLines="1"
+                                            android:text="@string/medical_conditions_none"
+                                            android:textColor="#2563EB"
+                                            android:textSize="12sp"
+                                            android:textStyle="bold"
+                                            app:layout_constraintEnd_toEndOf="parent"
+                                            app:layout_constraintStart_toStartOf="parent"
+                                            app:layout_constraintTop_toBottomOf="@id/lbl_conditions" />
+
+                                        <ImageView
+                                            android:layout_width="38dp"
+                                            android:layout_height="38dp"
+                                            android:layout_marginEnd="-2dp"
+                                            android:layout_marginBottom="-2dp"
+                                            android:rotation="8"
+                                            android:scaleType="fitCenter"
+                                            android:src="@drawable/img_med_pill"
+                                            app:layout_constraintBottom_toBottomOf="parent"
+                                            app:layout_constraintEnd_toEndOf="parent" />
+                                    </androidx.constraintlayout.widget.ConstraintLayout>
+                                </com.google.android.material.card.MaterialCardView>
+                            </LinearLayout>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <FrameLayout
+                    android:layout_width="300dp"
+                    android:layout_height="300dp"
+                    android:layout_gravity="center">
+
+                    <View
+                        android:id="@+id/sos_ring_glow"
+                        android:layout_width="300dp"
+                        android:layout_height="300dp"
+                        android:alpha="0.35"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_sos_glow" />
+
+                    <View
+                        android:id="@+id/sos_ring_outer"
+                        android:layout_width="252dp"
+                        android:layout_height="252dp"
+                        android:alpha="0.75"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_sos_ring_outer" />
+
+                    <View
+                        android:id="@+id/sos_ring_mid"
+                        android:layout_width="212dp"
+                        android:layout_height="212dp"
+                        android:alpha="0.85"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_sos_ring_mid" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_sos"
+                        android:layout_width="172dp"
+                        android:layout_height="172dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_sos_blink"
+                        android:backgroundTint="@null"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:text="@string/home_sos"
+                        android:textColor="@color/white"
+                        android:textSize="36sp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.06"
+                        app:backgroundTint="@null"
+                        app:cornerRadius="86dp"
+                        app:elevation="4dp" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/sos_hint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:gravity="center"
+                    android:text="@string/home_sos_hint"
+                    android:textAlignment="center"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/features_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="22dp"
+                android:layout_marginTop="30dp"
+                android:layout_marginEnd="22dp"
+                android:text="@string/home_main_features"
+                android:textColor="@color/text_primary"
+                android:textSize="19sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.01" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="16dp"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:orientation="vertical">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/feature_hospital"
+                        android:layout_width="match_parent"
+                        android:layout_height="164dp"
+                        android:layout_marginBottom="12dp"
+                        android:foreground="@drawable/ripple_feature_hospital"
+                        app:cardBackgroundColor="@color/panel"
+                        app:cardCornerRadius="22dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="@color/divider"
+                        app:strokeWidth="1dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:padding="16dp">
+
+                            <ImageView
+                                android:layout_width="52dp"
+                                android:layout_height="52dp"
+                                android:src="@drawable/img_feature_hospital"
+                                android:scaleType="fitCenter"
+                                android:contentDescription="@null" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="12dp"
+                                android:text="@string/feature_hospital_title"
+                                android:textColor="@color/text_primary"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="@string/feature_hospital_desc"
+                                android:textColor="@color/text_secondary"
+                                android:ellipsize="end"
+                                android:minLines="2"
+                                android:maxLines="2"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/feature_support"
+                        android:layout_width="match_parent"
+                        android:layout_height="164dp"
+                        android:foreground="@drawable/ripple_feature_support"
+                        app:cardBackgroundColor="@color/panel"
+                        app:cardCornerRadius="22dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="@color/divider"
+                        app:strokeWidth="1dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:padding="16dp">
+
+                            <ImageView
+                                android:layout_width="52dp"
+                                android:layout_height="52dp"
+                                android:src="@drawable/img_feature_support"
+                                android:scaleType="fitCenter"
+                                android:contentDescription="@null" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="12dp"
+                                android:text="@string/feature_support_title"
+                                android:textColor="@color/text_primary"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="@string/feature_support_desc"
+                                android:textColor="@color/text_secondary"
+                                android:ellipsize="end"
+                                android:minLines="2"
+                                android:maxLines="2"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:orientation="vertical">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/feature_contacts"
+                        android:layout_width="match_parent"
+                        android:layout_height="164dp"
+                        android:layout_marginBottom="12dp"
+                        android:foreground="@drawable/ripple_feature_contacts"
+                        app:cardBackgroundColor="@color/panel"
+                        app:cardCornerRadius="22dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="@color/divider"
+                        app:strokeWidth="1dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:padding="16dp">
+
+                            <ImageView
+                                android:layout_width="52dp"
+                                android:layout_height="52dp"
+                                android:src="@drawable/img_feature_contacts"
+                                android:scaleType="fitCenter"
+                                android:contentDescription="@null" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="12dp"
+                                android:text="@string/feature_contacts_title"
+                                android:textColor="@color/text_primary"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="@string/feature_contacts_desc"
+                                android:textColor="@color/text_secondary"
+                                android:ellipsize="end"
+                                android:minLines="2"
+                                android:maxLines="2"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/feature_language"
+                        android:layout_width="match_parent"
+                        android:layout_height="164dp"
+                        android:foreground="@drawable/ripple_feature_language"
+                        app:cardBackgroundColor="@color/panel"
+                        app:cardCornerRadius="22dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="@color/divider"
+                        app:strokeWidth="1dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:padding="16dp">
+
+                            <ImageView
+                                android:layout_width="52dp"
+                                android:layout_height="52dp"
+                                android:src="@drawable/img_feature_report"
+                                android:scaleType="fitCenter"
+                                android:contentDescription="@null" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="12dp"
+                                android:text="@string/feature_report_title"
+                                android:textColor="@color/text_primary"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="@string/feature_report_desc"
+                                android:textColor="@color/text_secondary"
+                                android:ellipsize="end"
+                                android:minLines="2"
+                                android:maxLines="2"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Highlights Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="26dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tv_highlights_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_marginEnd="20dp"
+                    android:layout_marginBottom="12dp"
+                    android:text="@string/home_highlights_title"
+                    android:textColor="@color/text_primary"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_highlights"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"
+                    android:orientation="horizontal"
+                    android:overScrollMode="ifContentScrolls"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="4dp" />
+            </LinearLayout>
+
+            <!-- Medical News Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="22dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="96dp"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:layout_marginBottom="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tv_news_section_title"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/home_news_section_title"
+                        android:textColor="@color/text_primary"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btn_see_all_news"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:padding="6dp"
+                        android:text="@string/home_see_all_news"
+                        android:textColor="@color/brand_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <ProgressBar
+                    android:id="@+id/news_progress"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp"
+                    android:indeterminateTint="@color/brand_primary"
+                    android:visibility="gone" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_medical_news"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    android:overScrollMode="never" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
