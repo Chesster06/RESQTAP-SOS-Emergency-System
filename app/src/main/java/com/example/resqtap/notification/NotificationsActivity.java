@@ -300,4 +300,196 @@ public class NotificationsActivity extends BaseActivity {
         }
         return raw;
     }
+
+    private String getLocalizedMessage(String raw) {
+        if (raw == null || raw.trim().isEmpty()) return "";
+        String s = raw.trim();
+        if (s.startsWith("Anda telah berjaya mencipta bilik ")) {
+            String code = s.substring("Anda telah berjaya mencipta bilik ".length()).replace(".", "").trim();
+            return getString(R.string.notif_room_created_msg, code);
+        }
+        if (s.startsWith("You have successfully created room ")) {
+            String code = s.substring("You have successfully created room ".length()).replace(".", "").trim();
+            return getString(R.string.notif_room_created_msg, code);
+        }
+        if (s.startsWith("Anda telah berjaya menyertai bilik ")) {
+            String code = s.substring("Anda telah berjaya menyertai bilik ".length()).replace(".", "").trim();
+            return getString(R.string.notif_room_joined_msg, code);
+        }
+        if (s.startsWith("You have successfully joined room ")) {
+            String code = s.substring("You have successfully joined room ".length()).replace(".", "").trim();
+            return getString(R.string.notif_room_joined_msg, code);
+        }
+        if (s.startsWith("Anda telah memadamkan bilik ")) {
+            String code = s.substring("Anda telah memadamkan bilik ".length()).replace(".", "").trim();
+            return getString(R.string.notif_room_deleted_msg, code);
+        }
+        if (s.startsWith("You have deleted room ")) {
+            String code = s.substring("You have deleted room ".length()).replace(".", "").trim();
+            return getString(R.string.notif_room_deleted_msg, code);
+        }
+        if (s.startsWith("Anda telah keluar dari bilik ")) {
+            String code = s.substring("Anda telah keluar dari bilik ".length()).replace(".", "").trim();
+            return getString(R.string.notif_room_left_msg, code);
+        }
+        if (s.startsWith("You have left room ")) {
+            String code = s.substring("You have left room ".length()).replace(".", "").trim();
+            return getString(R.string.notif_room_left_msg, code);
+        }
+        if (s.endsWith(" telah menghantar permintaan rakan.")) {
+            String who = s.substring(0, s.length() - " telah menghantar permintaan rakan.".length()).trim();
+            return getString(R.string.notif_friend_request_msg, who);
+        }
+        if (s.endsWith(" sent you a friend request.")) {
+            String who = s.substring(0, s.length() - " sent you a friend request.".length()).trim();
+            return getString(R.string.notif_friend_request_msg, who);
+        }
+        if (s.endsWith(" telah menerima permintaan rakan anda!")) {
+            String who = s.substring(0, s.length() - " telah menerima permintaan rakan anda!".length()).trim();
+            return getString(R.string.notif_friend_accepted_msg, who);
+        }
+        if (s.endsWith(" accepted your friend request!")) {
+            String who = s.substring(0, s.length() - " accepted your friend request!".length()).trim();
+            return getString(R.string.notif_friend_accepted_msg, who);
+        }
+        return raw;
+    }
+
+    /** Paparkan NotificationDetail. */
+    private void showNotificationDetail(Notice item) {
+        if (item == null) return;
+        if (detailTitle != null) detailTitle.setText(getLocalizedTitle(item.title));
+        if (detailTime != null) {
+            detailTime.setText(getString(R.string.notification_detail_sent, dateFormat.format(new Date(item.time))));
+        }
+        if (detailMessage != null) detailMessage.setText(getLocalizedMessage(item.message));
+        if (detailSource != null) {
+            if (item.imageUrl.isEmpty()) {
+                detailSource.setVisibility(View.GONE);
+            } else {
+                detailSource.setText(getString(R.string.notification_detail_source, item.imageUrl));
+                detailSource.setVisibility(View.VISIBLE);
+            }
+        }
+        if (btnDetailCheckin != null) {
+            String combined = ((item.title != null ? item.title : "") + " " + (item.message != null ? item.message : "")).toLowerCase(Locale.ROOT);
+            boolean isEmergencyRelated = combined.contains("sos") || combined.contains("kecemasan") || combined.contains("emergency") || combined.contains("check-in") || combined.contains("checkin") || combined.contains("bantuan") || combined.contains("alert");
+            btnDetailCheckin.setVisibility(isEmergencyRelated ? View.VISIBLE : View.GONE);
+        }
+        showingDetail = true;
+        if (listContent != null) listContent.setVisibility(View.GONE);
+        if (detailContent != null) detailContent.setVisibility(View.VISIBLE);
+    }
+
+    /** Paparkan NotificationsList. */
+    private void showNotificationsList() {
+        showingDetail = false;
+        if (detailContent != null) detailContent.setVisibility(View.GONE);
+        if (listContent != null) listContent.setVisibility(View.VISIBLE);
+    }
+
+    private void applySelectableForeground(MaterialCardView card) {
+        try {
+            TypedValue outValue = new TypedValue();
+            getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
+            card.setForeground(androidx.core.content.ContextCompat.getDrawable(this, outValue.resourceId));
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void renderError(String message) {
+        if (notificationsScroll != null) notificationsScroll.setVisibility(View.GONE);
+        if (empty != null) {
+            empty.setVisibility(View.VISIBLE);
+            empty.setText(message == null || message.trim().isEmpty()
+                    ? getString(R.string.toast_generic_error)
+                    : message);
+        }
+    }
+
+    private void confirmClearAllNotifications() {
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.notification_clear_all_confirm_title)
+                .setMessage(R.string.notification_clear_all_confirm_msg)
+                .setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.dismiss())
+                .setPositiveButton(R.string.room_delete, (dialog, which) -> clearAllNotifications())
+                .show();
+    }
+
+    /** Padam atau bersihkan AllNotifications. */
+    private void clearAllNotifications() {
+        com.google.firebase.auth.FirebaseUser currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+        String uid = currentUser != null ? currentUser.getUid() : "";
+
+        if (!uid.isEmpty()) {
+            try {
+                FirebaseDatabase
+                        .getInstance(FirebaseRoomClient.DATABASE_URL)
+                        .getReference("userNotifications")
+                        .child(uid)
+                        .removeValue();
+            } catch (Exception ignored) {
+            }
+        }
+
+        userSnapshot = null;
+        globalSnapshot = null;
+        UserPrefs.setUnreadNotifications(this, 0);
+        combineAndRender();
+
+        android.widget.Toast.makeText(this, R.string.notification_cleared_toast, android.widget.Toast.LENGTH_SHORT).show();
+    }
+
+    private int dp(int value) {
+        return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
+    }
+
+    private static final class Notice {
+        final String id;
+        final String title;
+        final String message;
+        final String imageUrl;
+        final long time;
+
+        Notice(String id, String title, String message, String imageUrl, long time) {
+            this.id = id;
+            this.title = title;
+            this.message = message;
+            this.imageUrl = imageUrl;
+            this.time = time;
+        }
+
+        static Notice from(DataSnapshot snap) {
+            if (snap == null || !snap.exists()) return null;
+            String title = str(snap.child("title").getValue());
+            String message = str(snap.child("message").getValue());
+            String imageUrl = str(snap.child("imageUrl").getValue());
+            String id = str(snap.child("id").getValue());
+            if (id.isEmpty()) id = str(snap.getKey());
+            long sentAt = num(snap.child("sentAt").getValue());
+            long createdAt = num(snap.child("createdAt").getValue());
+            long time = sentAt > 0 ? sentAt : createdAt;
+            if (title.isEmpty() && message.isEmpty()) return null;
+            return new Notice(
+                    id.isEmpty() ? String.valueOf(time) : id,
+                    title.isEmpty() ? "ResQTap" : title,
+                    message,
+                    imageUrl,
+                    time > 0 ? time : System.currentTimeMillis()
+            );
+        }
+
+        private static String str(Object value) {
+            return value == null ? "" : String.valueOf(value).trim();
+        }
+
+        private static long num(Object value) {
+            if (value instanceof Number) return ((Number) value).longValue();
+            try {
+                return Long.parseLong(str(value));
+            } catch (Exception e) {
+                return 0L;
+            }
+        }
+    }
 }
