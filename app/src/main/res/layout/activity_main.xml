@@ -757,4 +757,35 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_nav"
+        android:layout_width="0dp"
+        android:layout_height="80dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_bottom_nav_glass"
+        android:clipToOutline="true"
+        android:elevation="16dp"
+        android:translationZ="32dp"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:paddingBottom="0dp"
+        app:activeIndicatorLabelPadding="12dp"
+        app:itemIconTint="@color/bottom_nav_tint"
+        app:itemActiveIndicatorStyle="@style/Widget.ResQTap.BottomNav.ActiveIndicator"
+        app:itemIconSize="20dp"
+        app:itemPaddingBottom="16dp"
+        app:itemPaddingTop="12dp"
+        app:itemRippleColor="@android:color/transparent"
+        app:itemTextColor="@color/bottom_nav_tint"
+        app:itemTextAppearanceActive="@style/TextAppearance.ResQTap.BottomNav.Active"
+        app:itemTextAppearanceInactive="@style/TextAppearance.ResQTap.BottomNav.Inactive"
+        app:labelVisibilityMode="labeled"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:menu="@menu/bottom_nav_menu" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
+
