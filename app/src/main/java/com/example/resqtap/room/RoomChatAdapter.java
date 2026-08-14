@@ -90,4 +90,66 @@ public class RoomChatAdapter extends RecyclerView.Adapter<RoomChatAdapter.Messag
     }
 
     @Override
+    public int getItemCount() {
+        return messages.size();
+    }
+
+    private boolean isSameDay(long ts1, long ts2) {
+        if (ts1 <= 0 || ts2 <= 0) return true;
+        Calendar c1 = Calendar.getInstance();
+        c1.setTimeInMillis(ts1);
+        Calendar c2 = Calendar.getInstance();
+        c2.setTimeInMillis(ts2);
+        return c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR)
+                && c1.get(Calendar.DAY_OF_YEAR) == c2.get(Calendar.DAY_OF_YEAR);
+    }
+
+    private String formatDateSeparator(long timestamp) {
+        Calendar today = Calendar.getInstance();
+        Calendar msgDate = Calendar.getInstance();
+        msgDate.setTimeInMillis(timestamp);
+
+        if (today.get(Calendar.YEAR) == msgDate.get(Calendar.YEAR)) {
+            if (today.get(Calendar.DAY_OF_YEAR) == msgDate.get(Calendar.DAY_OF_YEAR)) {
+                return context.getString(R.string.room_chat_today);
+            }
+            if (today.get(Calendar.DAY_OF_YEAR) - msgDate.get(Calendar.DAY_OF_YEAR) == 1) {
+                return context.getString(R.string.room_chat_yesterday);
+            }
+        }
+        return DateFormat.format("dd MMM yyyy", new Date(timestamp)).toString();
+    }
+
+    private String formatTime(long timestamp) {
+        if (timestamp <= 0) return "";
+        return DateFormat.format("hh:mm a", new Date(timestamp)).toString();
+    }
+
+    static class MessageViewHolder extends RecyclerView.ViewHolder {
+        TextView tvDateSeparator;
+        LinearLayout layoutMe;
+        TextView tvTextMe;
+        TextView tvTimeMe;
+
+        LinearLayout layoutOther;
+        ShapeableImageView ivAvatarOther;
+        TextView tvNameOther;
+        TextView tvTextOther;
+        TextView tvTimeOther;
+
+        public MessageViewHolder(@NonNull View itemView) {
+            super(itemView);
+            tvDateSeparator = itemView.findViewById(R.id.tv_date_separator);
+
+            layoutMe = itemView.findViewById(R.id.layout_message_me);
+            tvTextMe = itemView.findViewById(R.id.tv_text_me);
+            tvTimeMe = itemView.findViewById(R.id.tv_time_me);
+
+            layoutOther = itemView.findViewById(R.id.layout_message_other);
+            ivAvatarOther = itemView.findViewById(R.id.iv_avatar_other);
+            tvNameOther = itemView.findViewById(R.id.tv_name_other);
+            tvTextOther = itemView.findViewById(R.id.tv_text_other);
+            tvTimeOther = itemView.findViewById(R.id.tv_time_other);
+        }
+    }
 }
