@@ -38,5 +38,79 @@
         android:textStyle="bold" />
 
     <!-- Subtitle: Touch sensor to register fingerprint -->
+    <TextView
+        android:id="@+id/tv_sheet_subtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:lineSpacingExtra="2dp"
+        android:text="@string/biometric_register_subtitle"
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp" />
+
+    <!-- Center Interactive Fingerprint Progress Ring Area -->
+    <FrameLayout
+        android:id="@+id/layout_fingerprint_target"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="28dp"
+        android:clickable="true"
+        android:focusable="true">
+
+        <!-- Outer Progress Indicator Ring (Starts at 0%, expands to 50% on touch 1, 100% on touch 2) -->
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/progress_fingerprint_ring"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_gravity="center"
+            android:max="100"
+            android:progress="0"
+            app:indicatorColor="#E53935"
+            app:indicatorDirectionCircular="clockwise"
+            app:indicatorSize="196dp"
+            app:trackColor="#15000000"
+            app:trackCornerRadius="4dp"
+            app:trackThickness="6dp" />
+
+        <!-- Inner Soft Circle Surface -->
+        <FrameLayout
+            android:id="@+id/layout_inner_circle"
+            android:layout_width="144dp"
+            android:layout_height="144dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_fingerprint_circle">
+
+            <ImageView
+                android:id="@+id/iv_sheet_fingerprint"
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_fingerprint_24"
+                app:tint="#8E95A2" />
+
+            <ImageView
+                android:id="@+id/iv_sheet_check"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_check_24"
+                android:visibility="gone"
+                app:tint="@color/success_green" />
+        </FrameLayout>
+    </FrameLayout>
+
+    <!-- Instruction hint: Touch the fingerprint sensor (turns to red 'Lift finger...' on touch 1) -->
+    <TextView
+        android:id="@+id/tv_sheet_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="12dp"
+        android:text="@string/biometric_sheet_touch_sensor"
+        android:textColor="@color/text_secondary"
+        android:textSize="14sp"
+        android:textStyle="bold" />
 
 </LinearLayout>
