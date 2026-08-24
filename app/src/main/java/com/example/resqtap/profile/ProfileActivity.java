@@ -260,4 +260,200 @@ public class ProfileActivity extends BaseActivity {
     // SEKSYEN: ONDESTROY
     /** Pembersihan memori, buang listener, dan tutup sambungan. */
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        try {
+            imageExecutor.shutdownNow();
+        } catch (Exception ignored) {
+        }
+    }
+
+    /** Setup dan konfigurasi MenuItems dengan ikon berwarna ceria (Colorful Icons). */
+    private void setupMenuItems() {
+        setupItem(
+                R.id.item_personal,
+                R.drawable.ic_ios_person,
+                0xFFE60067, // Vibrant Rose Pink
+                0xFFFFE8F0, // Soft Rose Tint
+                getString(R.string.profile_personal_info),
+                "Personal info & medical details",
+                null,
+                () -> startActivity(new Intent(this, EditProfileActivity.class))
+        );
+
+        setupItem(
+                R.id.item_contacts,
+                R.drawable.ic_ios_contacts,
+                0xFFFF7043, // Coral Orange
+                0xFFFFF3E0, // Soft Coral Tint
+                getString(R.string.profile_emergency_contacts),
+                "Trusted contacts for SOS alerts",
+                null,
+                () -> startActivity(new Intent(this, EmergencyContactsListActivity.class))
+        );
+
+        setupItem(
+                R.id.item_security,
+                R.drawable.ic_ios_security,
+                0xFF10B981, // Vibrant Emerald Green
+                0xFFD1FAE5, // Soft Emerald Tint
+                getString(R.string.profile_security),
+                "App lock, biometrics & account security",
+                null,
+                () -> startActivity(new Intent(this, SecuritySettingsActivity.class))
+        );
+
+
+        String lang = getLanguageLabel();
+        setupItem(
+                R.id.item_language,
+                R.drawable.ic_ios_globe,
+                0xFF0284C7, // Vibrant Sky Blue
+                0xFFE0F2FE, // Soft Sky Blue Tint
+                getString(R.string.profile_language),
+                "Change app display language",
+                lang,
+                this::showLanguageDropdown
+        );
+
+        setupItem(
+                R.id.item_settings,
+                R.drawable.ic_ios_settings,
+                0xFF6366F1, // Indigo / Slate
+                0xFFEEF2FF, // Soft Indigo Tint
+                getString(R.string.bottom_nav_settings),
+                "Preferences, theme & system options",
+                null,
+                () -> startActivity(new Intent(this, SettingsActivity.class))
+        );
+
+        setupItem(
+                R.id.item_help,
+                R.drawable.ic_ios_help_circle,
+                0xFFA855F7, // Violet Purple
+                0xFFF3E8FF, // Soft Violet Tint
+                getString(R.string.profile_help_support),
+                "Guides, FAQs & live support",
+                null,
+                () -> startActivity(new Intent(this, SupportActivity.class))
+        );
+
+        setupItem(
+                R.id.item_about,
+                R.drawable.ic_ios_info_circle,
+                0xFF0D9488, // Deep Teal
+                0xFFCCFBF1, // Soft Teal Tint
+                getString(R.string.profile_about),
+                "App version, privacy policy & terms",
+                null,
+                () -> startActivity(new Intent(this, AboutResQTapActivity.class))
+        );
+    }
+
+    /** Setup dan konfigurasi Item dengan container warna latar unik. */
+    private void setupItem(int includeId, int iconRes, int iconTint, int bgTint, String title, String subtitle, String value, Runnable onClick) {
+        android.view.View root = findViewById(includeId);
+        if (root == null) return;
+
+        android.view.View iconContainer = root.findViewById(R.id.icon_container);
+        ImageView icon = root.findViewById(R.id.item_icon);
+        TextView titleView = root.findViewById(R.id.item_title);
+        TextView subtitleView = root.findViewById(R.id.item_subtitle);
+        TextView valueView = root.findViewById(R.id.item_value);
+
+        if (iconContainer != null) {
+            android.graphics.drawable.GradientDrawable gd = new android.graphics.drawable.GradientDrawable();
+            int radiusPx = (int) (12 * getResources().getDisplayMetrics().density + 0.5f);
+            gd.setCornerRadius(radiusPx);
+            boolean isNight = com.example.resqtap.utils.ThemeUtils.isNightMode(this);
+            int actualBg = isNight ? ((iconTint & 0x00FFFFFF) | 0x33000000) : bgTint;
+            gd.setColor(actualBg);
+            iconContainer.setBackground(gd);
+        }
+
+        if (icon != null) {
+            icon.setImageResource(iconRes);
+            icon.setImageTintList(android.content.res.ColorStateList.valueOf(iconTint));
+        }
+        if (titleView != null) {
+            titleView.setText(title);
+        }
+        if (subtitleView != null) {
+            if (subtitle == null || subtitle.trim().isEmpty()) {
+                subtitleView.setVisibility(android.view.View.GONE);
+            } else {
+                subtitleView.setVisibility(android.view.View.VISIBLE);
+                subtitleView.setText(subtitle);
+            }
+        }
+        if (valueView != null) {
+            if (value == null || value.trim().isEmpty()) {
+                valueView.setVisibility(android.view.View.GONE);
+            } else {
+                valueView.setVisibility(android.view.View.VISIBLE);
+                valueView.setText(value);
+            }
+        }
+
+        root.setOnClickListener(v -> {
+            if (onClick != null) onClick.run();
+        });
+    }
+
+    private String getLanguageLabel() {
+        String tag = UserPrefs.getLanguage(this);
+        if (tag == null) tag = "ms";
+        tag = tag.trim().toLowerCase(Locale.ROOT);
+        if (tag.startsWith("en")) return getString(R.string.lang_en);
+        if (tag.startsWith("zh")) return getString(R.string.lang_zh);
+        if (tag.startsWith("ta")) return getString(R.string.lang_ta);
+        return getString(R.string.lang_ms);
+    }
+
+    /** Paparkan LanguageDropdown. */
+    private void showLanguageDropdown() {
+        String[] labels = new String[]{
+                getString(R.string.lang_ms),
+                getString(R.string.lang_en),
+                getString(R.string.lang_zh),
+                getString(R.string.lang_ta)
+        };
+        String[] tags = new String[]{"ms", "en", "zh", "ta"};
+
+        String current = UserPrefs.getLanguage(this);
+        int checked = 0;
+        if (current != null) {
+            String normalized = current.trim().toLowerCase(Locale.ROOT);
+            if (normalized.startsWith("en")) checked = 1;
+            else if (normalized.startsWith("zh")) checked = 2;
+            else if (normalized.startsWith("ta")) checked = 3;
+        }
+
+        androidx.appcompat.app.AlertDialog dialog = new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.profile_language)
+                .setSingleChoiceItems(labels, checked, (d, which) -> {
+                    int safe = Math.max(0, Math.min(which, tags.length - 1));
+                    String next = tags[safe];
+                    String prev = LocaleUtils.getSavedLanguageTag(ProfileActivity.this);
+                    if (next.equalsIgnoreCase(prev)) {
+                        d.dismiss();
+                        return;
+                    }
+                    LocaleUtils.setLocaleAndPersist(ProfileActivity.this, next);
+                    setupMenuItems();
+                    d.dismiss();
+                    try {
+                        recreate();
+                    } catch (Exception ignored) {
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+        try {
+            dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE)
+                    .setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.text_primary));
+        } catch (Exception ignored) {
+        }
+    }
+
 }
