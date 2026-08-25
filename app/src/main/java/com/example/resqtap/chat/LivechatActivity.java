@@ -907,4 +907,266 @@ public class LivechatActivity extends BaseActivity {
         int yOffset = -(btnAttach.getHeight() + menu.getMeasuredHeight() + dp(10));
         popup.showAsDropDown(btnAttach, 0, yOffset, Gravity.START);
     }
+
+    private View createAttachmentMenuItem(String label, int iconRes, int iconColor) {
+        LinearLayout row = new LinearLayout(this);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setPadding(dp(10), 0, dp(12), 0);
+        row.setBackgroundResource(R.drawable.bg_livechat_attach_menu_item);
+
+        ImageView icon = new ImageView(this);
+        icon.setImageResource(iconRes);
+        icon.setColorFilter(iconColor);
+        LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(dp(22), dp(22));
+        iconParams.setMarginEnd(dp(14));
+        row.addView(icon, iconParams);
+
+        TextView text = new TextView(this);
+        text.setText(label);
+        text.setTextColor(Color.WHITE);
+        text.setTextSize(15);
+        text.setTypeface(text.getTypeface(), Typeface.BOLD);
+        text.setGravity(Gravity.CENTER_VERTICAL);
+        row.addView(text, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1));
+
+        row.setMinimumHeight(dp(44));
+        row.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(44)
+        ));
+        return row;
+    }
+
+    private void handleAttachmentOption(int which) {
+        if (which == 0) launchAttachmentPicker(new String[]{
+                "application/pdf",
+                "text/plain",
+                "application/msword",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "application/vnd.ms-excel",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "application/vnd.ms-powerpoint",
+                "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        });
+        if (which == 1) launchAttachmentPicker(new String[]{"image/*", "video/*"});
+        if (which == 2) takeCameraPhoto.launch(null);
+        if (which == 3) launchAttachmentPicker(new String[]{"audio/*"});
+        if (which == 4) launchAttachmentPicker(new String[]{"text/calendar", "application/ics"});
+    }
+
+    private void launchAttachmentPicker(String[] mimeTypes) {
+        pickAttachment.launch(mimeTypes);
+    }
+
+    private boolean hasSelectedAttachment() {
+        return selectedAttachmentUri != null || selectedAttachmentBytes != null;
+    }
+
+    private boolean isImageAttachment(AttachmentInfo attachment) {
+        String mimeType = safe(attachment.mimeType).toLowerCase(Locale.ROOT);
+        if (mimeType.startsWith("image/")) return true;
+        String name = safe(attachment.name).toLowerCase(Locale.ROOT);
+        return name.endsWith(".jpg")
+                || name.endsWith(".jpeg")
+                || name.endsWith(".png")
+                || name.endsWith(".webp")
+                || name.endsWith(".gif");
+    }
+
+    private void setSelectedAttachment(Uri uri) {
+        selectedAttachmentUri = uri;
+        selectedAttachmentBytes = null;
+        selectedAttachmentName = queryDisplayName(uri);
+        selectedAttachmentMime = safe(getContentResolver().getType(uri));
+        selectedAttachmentSize = querySize(uri);
+        if (selectedAttachmentName.isEmpty()) selectedAttachmentName = "attachment";
+        updateAttachmentLabels();
+    }
+
+    private void setSelectedCameraAttachment(Bitmap bitmap) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 88, out);
+        selectedAttachmentBytes = out.toByteArray();
+        selectedAttachmentUri = null;
+        selectedAttachmentMime = "image/jpeg";
+        selectedAttachmentSize = selectedAttachmentBytes.length;
+        selectedAttachmentName = "camera_" + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date()) + ".jpg";
+        updateAttachmentLabels();
+    }
+
+    private void updateAttachmentLabels() {
+        if (composerAttachmentLabel == null) return;
+        String label = selectedAttachmentUri == null && selectedAttachmentBytes == null
+                ? getString(R.string.support_livechat_no_attachment)
+                : getString(R.string.support_livechat_attachment_selected, selectedAttachmentName) + " (Ketik untuk padam)";
+        composerAttachmentLabel.setText(label);
+        composerAttachmentLabel.setVisibility(hasSelectedAttachment() ? View.VISIBLE : View.GONE);
+    }
+
+    private void clearAttachmentSelection() {
+        selectedAttachmentUri = null;
+        selectedAttachmentBytes = null;
+        selectedAttachmentName = "";
+        selectedAttachmentMime = "";
+        selectedAttachmentSize = 0L;
+        if (composerAttachmentLabel != null) {
+            composerAttachmentLabel.setText(R.string.support_livechat_no_attachment);
+            composerAttachmentLabel.setVisibility(View.GONE);
+        }
+    }
+
+    private Map<String, Object> inlineImageAttachmentMap(AttachmentInfo attachment) {
+        Map<String, Object> data = new HashMap<>();
+        String b64 = "";
+        if (attachment.bytes != null && attachment.bytes.length > 0) {
+            b64 = Base64.encodeToString(attachment.bytes, Base64.NO_WRAP);
+        } else if (attachment.uri != null) {
+            b64 = encodeImageToBase64(attachment.uri, 720, 75);
+        }
+        if (b64.isEmpty()) return data;
+
+        String mimeType = attachment.mimeType.isEmpty() ? "image/jpeg" : attachment.mimeType;
+        data.put("name", attachment.name);
+        data.put("mimeType", mimeType);
+        data.put("size", attachment.size);
+        data.put("downloadUrl", "data:" + mimeType + ";base64," + b64);
+        data.put("inline", true);
+        return data;
+    }
+
+    private String encodeImageToBase64(Uri localUri, int maxDim, int jpegQuality) {
+        try {
+            BitmapFactory.Options bounds = new BitmapFactory.Options();
+            bounds.inJustDecodeBounds = true;
+            try (java.io.InputStream in = getContentResolver().openInputStream(localUri)) {
+                if (in == null) return "";
+                BitmapFactory.decodeStream(in, null, bounds);
+            }
+            int w = Math.max(1, bounds.outWidth);
+            int h = Math.max(1, bounds.outHeight);
+            int sample = 1;
+            int max = Math.max(w, h);
+            while (max / sample > maxDim * 2) sample *= 2;
+
+            BitmapFactory.Options opts = new BitmapFactory.Options();
+            opts.inSampleSize = sample;
+            opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            Bitmap bitmap;
+            try (java.io.InputStream in2 = getContentResolver().openInputStream(localUri)) {
+                if (in2 == null) return "";
+                bitmap = BitmapFactory.decodeStream(in2, null, opts);
+            }
+            if (bitmap == null) return "";
+            int bw = bitmap.getWidth();
+            int bh = bitmap.getHeight();
+            int largest = Math.max(bw, bh);
+            if (largest > maxDim) {
+                float scale = maxDim / (float) largest;
+                int nw = Math.max(1, Math.round(bw * scale));
+                int nh = Math.max(1, Math.round(bh * scale));
+                Bitmap scaled = Bitmap.createScaledBitmap(bitmap, nw, nh, true);
+                bitmap.recycle();
+                bitmap = scaled;
+            }
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, Math.max(40, Math.min(jpegQuality, 95)), out);
+            bitmap.recycle();
+            return Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP);
+        } catch (Exception ignored) {
+            return "";
+        }
+    }
+
+    private void uploadAttachment(String messageId, AttachmentInfo attachment, AttachmentUploaded callback) {
+        // Fallback simpan metadata asas jika storan awan tidak dipasang
+        Map<String, Object> map = new HashMap<>();
+        map.put("name", attachment.name);
+        map.put("mimeType", attachment.mimeType);
+        map.put("size", attachment.size);
+        map.put("downloadUrl", "");
+        callback.onUploaded(map);
+    }
+
+    private void openAttachment(String url, String mimeType) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            if (!safe(mimeType).isEmpty()) intent.setDataAndType(Uri.parse(url), mimeType);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        } catch (Exception error) {
+            Toast.makeText(this, R.string.support_livechat_open_failed, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private Bitmap bitmapFromDataUrl(String dataUrl) {
+        try {
+            int comma = dataUrl.indexOf(',');
+            if (comma < 0 || comma >= dataUrl.length() - 1) return null;
+            byte[] bytes = Base64.decode(dataUrl.substring(comma + 1), Base64.DEFAULT);
+            return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private String queryDisplayName(Uri uri) {
+        try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                int index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                if (index >= 0) return safe(cursor.getString(index));
+            }
+        } catch (Exception ignored) {}
+        return safe(uri.getLastPathSegment());
+    }
+
+    private long querySize(Uri uri) {
+        try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                int index = cursor.getColumnIndex(OpenableColumns.SIZE);
+                if (index >= 0) return cursor.getLong(index);
+            }
+        } catch (Exception ignored) {}
+        return 0L;
+    }
+
+    private String safe(Object value) {
+        return String.valueOf(value == null ? "" : value).trim();
+    }
+
+    private int dp(int value) {
+        return Math.round(value * getResources().getDisplayMetrics().density);
+    }
+
+    @Override
+    protected void onDestroy() {
+        stopCallListening();
+        super.onDestroy();
+        if (messagesQuery != null && messagesListener != null) {
+            messagesQuery.removeEventListener(messagesListener);
+        }
+        if (chatRef != null && metaListener != null) {
+            chatRef.child("meta").removeEventListener(metaListener);
+        }
+    }
+
+    private static final class AttachmentInfo {
+        final Uri uri;
+        final byte[] bytes;
+        final String name;
+        final String mimeType;
+        final long size;
+
+        AttachmentInfo(Uri uri, byte[] bytes, String name, String mimeType, long size) {
+            this.uri = uri;
+            this.bytes = bytes;
+            this.name = name == null ? "" : name;
+            this.mimeType = mimeType == null ? "" : mimeType;
+            this.size = size;
+        }
+    }
+
+    private interface AttachmentUploaded {
+        void onUploaded(Map<String, Object> attachmentMap);
+    }
 }
