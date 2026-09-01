@@ -62,4 +62,9 @@ public class LanguageActivity extends BaseActivity {
                 recreate();
             } catch (Exception ignored) {
             }
+        });
+
+        MaterialButton back = findViewById(R.id.btn_back);
+        back.setOnClickListener(v -> finish());
+    }
 }
