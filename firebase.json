@@ -1,0 +1,56 @@
+{
+  "database": {
+    "rules": "database.rules.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "functions": {
+    "source": "firebase-functions",
+    "runtime": "nodejs18"
+  },
+  "hosting": {
+    "public": "ResQTap-Website/public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "**/*.apk",
+      "**/*.exe"
+    ],
+    "cleanUrls": true,
+    "redirects": [
+      {
+        "source": "/download",
+        "destination": "/",
+        "type": 301
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/admin",
+        "destination": "/admin.html"
+      },
+      {
+        "source": "/admin/**",
+        "destination": "/admin.html"
+      },
+      {
+        "source": "/features",
+        "destination": "/features.html"
+      },
+      {
+        "source": "/flow",
+        "destination": "/flow.html"
+      },
+      {
+        "source": "/safety",
+        "destination": "/safety.html"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
