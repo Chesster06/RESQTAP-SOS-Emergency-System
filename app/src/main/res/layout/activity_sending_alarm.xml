@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/sending_alarm_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_sending_alarm_pink"
+    android:fitsSystemWindows="true">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:paddingTop="18dp"
+            android:paddingBottom="24dp">
+
+            <!-- Top Bar: Centered SOS Header -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="36dp">
+
+                <TextView
+                    android:id="@+id/tv_sending_alarm_top_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="SOS"
+                    android:textColor="#FFFFFFFF"
+                    android:textSize="17sp"
+                    android:fontFamily="sans-serif-bold"
+                    android:letterSpacing="0.08" />
+            </FrameLayout>
+
+            <!-- Main Heading: Emergency Calling... (Animated dots & Centered) -->
+            <TextView
+                android:id="@+id/tv_sending_alarm_calling_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:textAlignment="center"
+                android:text="@string/sending_alarm_calling_title"
+                android:textColor="#FFFFFFFF"
+                android:textSize="28sp"
+                android:fontFamily="sans-serif-black" />
+
+            <!-- Subtitle (Centered) -->
+            <TextView
+                android:id="@+id/tv_sending_alarm_calling_desc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:gravity="center"
+                android:textAlignment="center"
+                android:text="@string/sending_alarm_calling_desc"
+                android:textColor="#D9FFFFFF"
+                android:textSize="13.5sp"
+                android:lineSpacingExtra="2dp" />
+
+            <!-- Spacer Top: Lift radar up slightly -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.4"
+                android:minHeight="4dp" />
+
+            <!-- Central Enlarged Radar Orbit Hub (370dp x 370dp) -->
+            <FrameLayout
+                android:id="@+id/fl_sending_radar_container"
+                android:layout_width="370dp"
+                android:layout_height="370dp"
+                android:layout_gravity="center"
+                android:clipChildren="false"
+                android:clipToPadding="false">
+
+                <!-- Outer Radar Ring (Enlarged to 360dp) -->
+                <View
+                    android:id="@+id/view_radar_outer_ring"
+                    android:layout_width="360dp"
+                    android:layout_height="360dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_sending_radar_ring_outer" />
+
+                <!-- Inner Radar Ring (Enlarged to 244dp) -->
+                <View
+                    android:id="@+id/view_radar_inner_ring"
+                    android:layout_width="244dp"
+                    android:layout_height="244dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_sending_radar_ring_inner" />
+
+                <!-- Center Hub: App Logo Badge (132dp x 132dp) -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_radar_center_logo"
+                    android:layout_width="132dp"
+                    android:layout_height="132dp"
+                    android:layout_gravity="center"
+                    app:cardCornerRadius="999dp"
+                    app:cardElevation="8dp"
+                    app:strokeColor="#FFFFFFFF"
+                    app:strokeWidth="2.5dp">
+
+                    <ImageView
+                        android:id="@+id/iv_radar_app_logo"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/resqtap_launcher_cropped" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Floating Accent Dots on Orbit -->
+                <!-- Top Orange Dot -->
+                <View
+                    android:id="@+id/dot_radar_orange"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:layout_gravity="top|center_horizontal"
+                    android:layout_marginTop="56dp"
+                    android:background="@drawable/bg_dot_orange" />
+
+                <!-- Left Cyan Dot -->
+                <View
+                    android:id="@+id/dot_radar_cyan"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_gravity="center_vertical|start"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_dot_cyan" />
+
+                <!-- Bottom Mint Green Dot -->
+                <View
+                    android:id="@+id/dot_radar_green"
+                    android:layout_width="11dp"
+                    android:layout_height="11dp"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginStart="-76dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@drawable/bg_dot_green" />
+
+                <!-- Right Yellow Dot -->
+                <View
+                    android:id="@+id/dot_radar_yellow"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:layout_gravity="center_vertical|end"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_dot_yellow" />
+
+                <!-- 6 Floating Avatar Bubbles (Enlarged) -->
+                <!-- 1. Top Avatar (12 o'clock) -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/avatar_node_1"
+                    android:layout_width="66dp"
+                    android:layout_height="66dp"
+                    android:layout_gravity="top|center_horizontal"
+                    android:layout_marginTop="0dp"
+                    app:cardCornerRadius="999dp"
+                    app:cardElevation="6dp"
+                    app:strokeColor="#FFFFFFFF"
+                    app:strokeWidth="2.5dp">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img_cartoon_avatar_1" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- 2. Top-Left Avatar (10 o'clock) -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/avatar_node_2"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_gravity="top|start"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="72dp"
+                    app:cardCornerRadius="999dp"
+                    app:cardElevation="6dp"
+                    app:strokeColor="#FFFFFFFF"
+                    app:strokeWidth="2.5dp">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img_cartoon_avatar_2" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- 3. Top-Right Avatar (2 o'clock) -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/avatar_node_3"
+                    android:layout_width="62dp"
+                    android:layout_height="62dp"
+                    android:layout_gravity="top|end"
+                    android:layout_marginEnd="24dp"
+                    android:layout_marginTop="76dp"
+                    app:cardCornerRadius="999dp"
+                    app:cardElevation="6dp"
+                    app:strokeColor="#FFFFFFFF"
+                    app:strokeWidth="2.5dp">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img_cartoon_avatar_3" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- 4. Bottom-Left Avatar (7 o'clock) -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/avatar_node_4"
+                    android:layout_width="58dp"
+                    android:layout_height="58dp"
+                    android:layout_gravity="bottom|start"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginBottom="48dp"
+                    app:cardCornerRadius="999dp"
+                    app:cardElevation="6dp"
+                    app:strokeColor="#FFFFFFFF"
+                    app:strokeWidth="2.5dp">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img_cartoon_avatar_4" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- 5. Bottom-Center Avatar (6 o'clock on inner ring) -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/avatar_node_5"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginBottom="36dp"
+                    app:cardCornerRadius="999dp"
+                    app:cardElevation="6dp"
+                    app:strokeColor="#FFFFFFFF"
+                    app:strokeWidth="2.5dp">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img_cartoon_avatar_5" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- 6. Bottom-Right Avatar (4 o'clock) -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/avatar_node_6"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:layout_gravity="bottom|end"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginBottom="26dp"
+                    app:cardCornerRadius="999dp"
+                    app:cardElevation="6dp"
+                    app:strokeColor="#FFFFFFFF"
+                    app:strokeWidth="2.5dp">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img_cartoon_avatar_6" />
+                </com.google.android.material.card.MaterialCardView>
+            </FrameLayout>
+
+            <!-- Spacer Bottom: Balances radar in vertical center -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:minHeight="20dp" />
+
+            <!-- Action: Big Pitch-Black Pill: "I'm Safe Now" -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_sending_alarm_safe_now"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:text="@string/sending_alarm_safe_now"
+                android:textColor="#FFFFFFFF"
+                android:textSize="16sp"
+                android:fontFamily="sans-serif-bold"
+                android:letterSpacing="0.02"
+                app:backgroundTint="#FF0B1220"
+                app:cornerRadius="999dp"
+                app:elevation="4dp" />
+
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>
