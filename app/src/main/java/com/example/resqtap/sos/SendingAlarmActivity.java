@@ -440,4 +440,263 @@ public class SendingAlarmActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void watchSosCaseReservation(String roomCode, String sosAlertId) {
+        if (roomCode == null || sosAlertId == null || roomCode.isEmpty() || sosAlertId.isEmpty()) return;
+        DatabaseReference ref = FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL)
+                .getReference("rooms")
+                .child(roomCode.toUpperCase(Locale.ROOT))
+                .child("sosAlerts")
+                .child(sosAlertId);
+
+        ValueEventListener listener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                if (isSosCancelled) return;
+
+                if (snapshot == null || !snapshot.exists()) {
+                    return;
+                }
+
+                String status = snapshot.child("status").getValue(String.class);
+                boolean isCancelled = "cancelled".equalsIgnoreCase(status)
+                        || snapshot.child("cancelledAt").exists()
+                        || snapshot.child("cancelledByAdmin").exists()
+                        || snapshot.child("cancelledClientAt").exists()
+                        || (snapshot.child("active").exists() && Boolean.FALSE.equals(snapshot.child("active").getValue(Boolean.class)));
+
+                boolean resolved = "resolved".equalsIgnoreCase(status) || snapshot.child("resolvedAt").exists();
+                if (isCancelled || resolved) {
+                    cleanUpActiveAlertNodes();
+                    handleSosCancelledByRemote();
+                    return;
+                }
+
+                Boolean served = snapshot.child("served").getValue(Boolean.class);
+                String servedBy = snapshot.child("servedBy").getValue(String.class);
+
+                // Admin di web dashboard telah menekan butang Reserve Case
+                if ((served != null && served) || (servedBy != null && !servedBy.trim().isEmpty())) {
+                    android.util.Log.d("SendingAlarmActivity", "Admin reserved case! Transitioning to SosProgressActivity: room=" + roomCode + ", alert=" + sosAlertId);
+                    stopWatchingReservations();
+
+                    // Hentikan sebarang siren/vibrasi tempatan
+                    silenceLocalDevice();
+
+                    // Simpan sesi aktif ke UserPrefs supaya kekal jika aplikasi ditutup atau dibuka semula
+                    UserPrefs.setActiveSosProgress(SendingAlarmActivity.this, roomCode, sosAlertId);
+
+                    // Buka SosProgressActivity (Case Update) serta-merta
+                    handler.post(() -> {
+                        if (!isFinishing() && !isDestroyed()) {
+                            isSendingAlarm = false;
+                            SosProgressActivity.launch(SendingAlarmActivity.this, roomCode, sosAlertId);
+                            finish();
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                android.util.Log.w("SendingAlarmActivity", "watchSosCaseReservation onCancelled: " + (error != null ? error.getMessage() : ""));
+            }
+        };
+
+        synchronized (reservationListeners) {
+            reservationListeners.put(ref, listener);
+        }
+        ref.addValueEventListener(listener);
+    }
+
+    private void simulateAdminReserveForActiveAlerts() {
+        android.util.Log.d("SendingAlarmActivity", "simulateAdminReserveForActiveAlerts called, count=" + activeSosIds.size());
+        if (activeSosIds.isEmpty()) {
+            final String fallbackRoom = (targetRoomCode != null && !targetRoomCode.trim().isEmpty()) ? targetRoomCode.trim() : "DIRECT";
+            final String fallbackAlertId = "mock_alert_" + System.currentTimeMillis();
+            UserPrefs.setActiveSosProgress(SendingAlarmActivity.this, fallbackRoom, fallbackAlertId);
+            handler.post(() -> {
+                if (!isFinishing() && !isDestroyed()) {
+                    isSendingAlarm = false;
+                    SosProgressActivity.launch(SendingAlarmActivity.this, fallbackRoom, fallbackAlertId);
+                    finish();
+                }
+            });
+            return;
+        }
+
+        for (Map.Entry<String, String> entry : new HashMap<>(activeSosIds).entrySet()) {
+            final String code = entry.getKey();
+            final String alertId = entry.getValue();
+            if (code.isEmpty() || alertId.isEmpty()) continue;
+
+            Map<String, Object> adminUpdates = new HashMap<>();
+            adminUpdates.put("status", "active");
+            adminUpdates.put("active", true);
+            adminUpdates.put("served", true);
+            adminUpdates.put("servedBy", "admin_hq");
+            adminUpdates.put("servedByName", "Administrator");
+            adminUpdates.put("servedAt", com.google.firebase.database.ServerValue.TIMESTAMP);
+            adminUpdates.put("progressStep", 1);
+            adminUpdates.put("progressStatus", "Admin Dispatched");
+            adminUpdates.put("progressNotes", "Emergency assistance is assigned and responders have been notified.");
+
+            FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL)
+                    .getReference("rooms")
+                    .child(code)
+                    .child("sosAlerts")
+                    .child(alertId)
+                    .updateChildren(adminUpdates)
+                    .addOnSuccessListener(v -> {
+                        android.util.Log.d("SendingAlarmActivity", "Admin reserve updated successfully on RTDB for " + alertId);
+                    })
+                    .addOnFailureListener(e -> {
+                        android.util.Log.w("SendingAlarmActivity", "Admin reserve update failed on RTDB: " + e.getMessage());
+                        // Fallback transition terus ke SosProgressActivity
+                        handler.post(() -> {
+                            if (!isFinishing() && !isDestroyed()) {
+                                isSendingAlarm = false;
+                                UserPrefs.setActiveSosProgress(SendingAlarmActivity.this, code, alertId);
+                                SosProgressActivity.launch(SendingAlarmActivity.this, code, alertId);
+                                finish();
+                            }
+                        });
+                    });
+        }
+    }
+
+    private void cleanUpActiveAlertNodes() {
+        for (Map.Entry<String, String> entry : new HashMap<>(activeSosIds).entrySet()) {
+            if (!entry.getKey().isEmpty() && !entry.getValue().isEmpty()) {
+                FirebaseRoomClient.deleteSosAlert(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
+    private void handleSosCancelledByRemote() {
+        if (isSosCancelled) return;
+        isSosCancelled = true;
+        isSendingAlarm = false;
+
+        cleanUpActiveAlertNodes();
+        stopWatchingReservations();
+        silenceLocalDevice();
+        activeSosIds.clear();
+        UserPrefs.clearActiveSosProgress(this);
+
+        runOnUiThread(() -> {
+            if (isFinishing() || isDestroyed()) return;
+            Toast.makeText(SendingAlarmActivity.this, R.string.sos_progress_cancelled, Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(SendingAlarmActivity.this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            finish();
+        });
+    }
+
+    private void stopWatchingReservations() {
+        synchronized (reservationListeners) {
+            for (Map.Entry<DatabaseReference, ValueEventListener> entry : reservationListeners.entrySet()) {
+                try {
+                    entry.getKey().removeEventListener(entry.getValue());
+                } catch (Exception ignored) {}
+            }
+            reservationListeners.clear();
+        }
+    }
+
+    /** Memaparkan dialog pengesahan sebelum membatalkan SOS dengan reka bentuk kad moden & ilustrasi kartun */
+    private void showSafeConfirmationDialog() {
+        if (isFinishing() || isDestroyed()) return;
+
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_confirm_stop_sos, null);
+        androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        View btnCancel = dialogView.findViewById(R.id.btn_confirm_safe_cancel);
+        View btnStop = dialogView.findViewById(R.id.btn_confirm_safe_stop);
+
+        if (btnCancel != null) {
+            btnCancel.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        if (btnStop != null) {
+            btnStop.setOnClickListener(v -> {
+                dialog.dismiss();
+                cancelSosAndExit();
+            });
+        }
+
+        dialog.show();
+    }
+
+    private void cancelSosAndExit() {
+        if (isSosCancelled) return;
+        isSosCancelled = true;
+        isSendingAlarm = false;
+
+        stopWatchingReservations();
+        silenceLocalDevice();
+
+        // Batalkan kes di Firebase untuk semua bilik
+        final String dev = UserPrefs.getOrCreateDeviceId(this);
+        for (Map.Entry<String, String> entry : new HashMap<>(activeSosIds).entrySet()) {
+            if (!entry.getKey().isEmpty() && !entry.getValue().isEmpty()) {
+                FirebaseRoomClient.cancelRoomSosQueued(entry.getKey(), entry.getValue(), dev);
+            }
+        }
+        activeSosIds.clear();
+
+        // Batalkan apa-apa alert aktif pengguna
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            final String uid = user.getUid();
+            FirebaseRoomClient.cancelAllActiveSosForUser(uid, dev);
+            handler.postDelayed(() -> {
+                try {
+                    FirebaseRoomClient.cancelAllActiveSosForUser(uid, dev);
+                } catch (Exception ignored) {}
+            }, 1000);
+        }
+
+        UserPrefs.clearActiveSosProgress(this);
+
+        Toast.makeText(this, R.string.sending_alarm_cancelled_success, Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
+        finish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        isSendingAlarm = false;
+        stopWatchingReservations();
+        handler.removeCallbacks(dotsRunnable);
+
+        for (AnimatorSet anim : activeAnimators) {
+            if (anim != null) {
+                anim.cancel();
+            }
+        }
+        activeAnimators.clear();
+
+        if (simulateReserveReceiver != null) {
+            try {
+                unregisterReceiver(simulateReserveReceiver);
+            } catch (Exception ignored) {}
+            simulateReserveReceiver = null;
+        }
+
+        if (isFinishing() || isSosCancelled) {
+            silenceLocalDevice();
+        }
+        super.onDestroy();
+    }
 }
