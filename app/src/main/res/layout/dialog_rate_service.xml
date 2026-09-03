@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:paddingStart="18dp"
+    android:paddingEnd="18dp"
+    android:paddingBottom="24dp">
+
+    <!-- Card Container -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_rate_service"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        app:cardBackgroundColor="@color/surface"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="24dp"
+        app:strokeColor="#20808080"
+        app:strokeWidth="1dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="22dp"
+            android:paddingTop="20dp"
+            android:paddingEnd="22dp"
+            android:paddingBottom="20dp">
+
+            <!-- Title & Close Button -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/tv_rate_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="28dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:text="@string/rate_service_title"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <ImageButton
+                    android:id="@+id/btn_close_rate_card"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/close"
+                    android:padding="4dp"
+                    android:src="@drawable/ic_close_24"
+                    app:tint="@color/text_secondary" />
+            </RelativeLayout>
+
+            <!-- 5 Star Rating Row -->
+            <LinearLayout
+                android:id="@+id/layout_rate_stars"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <!-- Star 1 -->
+                <FrameLayout
+                    android:id="@+id/btn_star_1"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <View
+                        android:id="@+id/star_highlight_1"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_star_selected_circle"
+                        android:visibility="gone" />
+
+                    <ImageView
+                        android:id="@+id/star_img_1"
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="1 Star"
+                        android:src="@drawable/ic_star_outline_24"
+                        app:tint="@color/text_secondary" />
+                </FrameLayout>
+
+                <!-- Star 2 -->
+                <FrameLayout
+                    android:id="@+id/btn_star_2"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <View
+                        android:id="@+id/star_highlight_2"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_star_selected_circle"
+                        android:visibility="gone" />
+
+                    <ImageView
+                        android:id="@+id/star_img_2"
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="2 Stars"
+                        android:src="@drawable/ic_star_outline_24"
+                        app:tint="@color/text_secondary" />
+                </FrameLayout>
+
+                <!-- Star 3 -->
+                <FrameLayout
+                    android:id="@+id/btn_star_3"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <View
+                        android:id="@+id/star_highlight_3"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_star_selected_circle"
+                        android:visibility="gone" />
+
+                    <ImageView
+                        android:id="@+id/star_img_3"
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="3 Stars"
+                        android:src="@drawable/ic_star_outline_24"
+                        app:tint="@color/text_secondary" />
+                </FrameLayout>
+
+                <!-- Star 4 -->
+                <FrameLayout
+                    android:id="@+id/btn_star_4"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <View
+                        android:id="@+id/star_highlight_4"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_star_selected_circle"
+                        android:visibility="gone" />
+
+                    <ImageView
+                        android:id="@+id/star_img_4"
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="4 Stars"
+                        android:src="@drawable/ic_star_outline_24"
+                        app:tint="@color/text_secondary" />
+                </FrameLayout>
+
+                <!-- Star 5 -->
+                <FrameLayout
+                    android:id="@+id/btn_star_5"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <View
+                        android:id="@+id/star_highlight_5"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_star_selected_circle"
+                        android:visibility="gone" />
+
+                    <ImageView
+                        android:id="@+id/star_img_5"
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="5 Stars"
+                        android:src="@drawable/ic_star_outline_24"
+                        app:tint="@color/text_secondary" />
+                </FrameLayout>
+            </LinearLayout>
+
+            <!-- Labels Row: Bad ... Excellent -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp">
+
+                <TextView
+                    android:id="@+id/tv_rate_bad"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="@string/rate_service_bad"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_rate_excellent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="@string/rate_service_excellent"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Thank You Message -->
+            <TextView
+                android:id="@+id/tv_rate_thank_you"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center"
+                android:text="@string/rate_service_thanks"
+                android:textColor="@color/brand_primary"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+</FrameLayout>
