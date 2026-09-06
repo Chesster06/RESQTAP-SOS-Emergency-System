@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="relationship_options">
+        <item>父母（父亲 / 母亲）</item>
+        <item>配偶（丈夫 / 妻子）</item>
+        <item>子女（儿子 / 女儿）</item>
+        <item>兄弟姐妹</item>
+        <item>亲属 / 家人</item>
+        <item>朋友</item>
+        <item>监护人</item>
+        <item>伴侣</item>
+        <item>同事</item>
+        <item>邻居</item>
+        <item>其他</item>
+    </string-array>
+
+    <string-array name="religion_options">
+        <item>伊斯兰教</item>
+        <item>基督教</item>
+        <item>佛教</item>
+        <item>印度教</item>
+        <item>其他</item>
+    </string-array>
+
+    <string-array name="ethnicity_options">
+        <item>马来裔</item>
+        <item>华裔</item>
+        <item>印度裔</item>
+        <item>沙巴土著 (BUMIPUTERA SABAH)</item>
+        <item>砂拉越土著 (BUMIPUTERA SARAWAK)</item>
+        <item>其他</item>
+    </string-array>
+
+    <string-array name="tts_language_options">
+        <item>马来语</item>
+        <item>英语</item>
+        <item>中文</item>
+        <item>泰米尔语</item>
+    </string-array>
+
+    <string-array name="gender_options">
+        <item>男</item>
+        <item>女</item>
+    </string-array>
+
+    <string-array name="organ_donor_options">
+        <item>否</item>
+        <item>是</item>
+    </string-array>
+
+    <string-array name="allergy_options">
+        <item>无</item>
+        <item>花生 / 坚果</item>
+        <item>海鲜 / 贝类</item>
+        <item>乳制品 / 乳糖</item>
+        <item>鸡蛋</item>
+        <item>小麦 / 麸质</item>
+        <item>青霉素 / 抗生素</item>
+        <item>阿司匹林 / 非甾体抗炎药</item>
+        <item>乳胶</item>
+        <item>灰尘 / 花粉</item>
+        <item>其他</item>
+    </string-array>
+
+    <string-array name="medication_options">
+        <item>无</item>
+        <item>止痛药（扑热息痛 / 必理痛）</item>
+        <item>抗生素</item>
+        <item>抗组胺药（抗过敏）</item>
+        <item>吸入剂（哮喘）</item>
+        <item>胰岛素 / 糖尿病药</item>
+        <item>降压药（高血压）</item>
+        <item>心脏 / 降脂药</item>
+        <item>胃药 / 抗酸药</item>
+        <item>其他</item>
+    </string-array>
+</resources>
