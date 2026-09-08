@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="relationship_options">
+        <item>Ibu Bapa (Bapa / Ibu)</item>
+        <item>Pasangan (Suami / Isteri)</item>
+        <item>Anak (Lelaki / Perempuan)</item>
+        <item>Adik-beradik (Abang / Kakak / Adik)</item>
+        <item>Keluarga / Saudara Mara</item>
+        <item>Rakan</item>
+        <item>Penjaga</item>
+        <item>Pasangan Hidup</item>
+        <item>Rakan Sekerja</item>
+        <item>Jiran</item>
+        <item>Lain-lain</item>
+    </string-array>
+
+    <string-array name="religion_options">
+        <item>ISLAM</item>
+        <item>KRISTIAN</item>
+        <item>BUDDHA</item>
+        <item>HINDU</item>
+        <item>LAIN-LAIN</item>
+    </string-array>
+
+    <string-array name="ethnicity_options">
+        <item>MELAYU</item>
+        <item>CINA</item>
+        <item>INDIA</item>
+        <item>BUMIPUTERA SABAH</item>
+        <item>BUMIPUTERA SARAWAK</item>
+        <item>LAIN-LAIN</item>
+    </string-array>
+
+    <string-array name="tts_language_options">
+        <item>Bahasa Melayu</item>
+        <item>English</item>
+        <item>Cina</item>
+        <item>Tamil</item>
+    </string-array>
+
+</resources>
