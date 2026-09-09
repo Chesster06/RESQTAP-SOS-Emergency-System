@@ -38,4 +38,40 @@
         <item>Tamil</item>
     </string-array>
 
+    <string-array name="gender_options">
+        <item>LELAKI</item>
+        <item>PEREMPUAN</item>
+    </string-array>
+
+    <string-array name="organ_donor_options">
+        <item>Tidak</item>
+        <item>Ya</item>
+    </string-array>
+
+    <string-array name="allergy_options">
+        <item>Tiada</item>
+        <item>Kacang</item>
+        <item>Makanan Laut (Seafood)</item>
+        <item>Tenusu / Laktosa</item>
+        <item>Telur</item>
+        <item>Gandum / Gluten</item>
+        <item>Penisilin / Antibiotik</item>
+        <item>Aspirin / NSAID</item>
+        <item>Lateks</item>
+        <item>Habuk / Debunga</item>
+        <item>Lain-lain</item>
+    </string-array>
+
+    <string-array name="medication_options">
+        <item>Tiada</item>
+        <item>Ubat Tahan Sakit (Paracetamol / Panadol)</item>
+        <item>Antibiotik</item>
+        <item>Antihistamin (Alahan)</item>
+        <item>Inhaler (Asma)</item>
+        <item>Insulin / Ubat Kencing Manis</item>
+        <item>Ubat Darah Tinggi (Hipertensi)</item>
+        <item>Ubat Jantung / Kolesterol</item>
+        <item>Ubat Gastrik / Antasid</item>
+        <item>Lain-lain</item>
+    </string-array>
 </resources>
