@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="360dp"
+    android:height="140dp"
+    android:viewportWidth="360"
+    android:viewportHeight="140">
+
+    <!-- Top Solid Pink Header -->
+    <path
+        android:fillColor="#E60067"
+        android:pathData="M0,0 L360,0 L360,140 L0,140 Z" />
+
+    <!-- Soft Wave Layer 1 (Translucent Flowing Wave) -->
+    <path
+        android:fillColor="#30FFFFFF"
+        android:pathData="M0,75 C90,110 180,70 270,105 C310,120 340,115 360,120 L360,140 L0,140 Z" />
+
+    <!-- Soft Wave Layer 2 (Middle Translucent Wave) -->
+
+</vector>
