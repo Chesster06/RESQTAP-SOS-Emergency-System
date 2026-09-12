@@ -77,4 +77,54 @@ public final class SosAudioManager {
                     android.util.Log.d("SOS_DEBUG", "SOS audio start failed: " + e.getMessage());
                 } catch (Exception ignored) {
                 }
+            }
+            try {
+                android.util.Log.d("SOS_DEBUG", "SosAudioManager: playing custom SOS sound continuously until snoozed alertId=" + id);
+            } catch (Exception ignored) {
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    public static void stop(Context context, String alertId) {
+        if (context == null) return;
+        String id = String.valueOf(alertId == null ? "" : alertId).trim();
+        if (id.isEmpty()) return;
+        synchronized (LOCK) {
+            if (!id.equals(activeAlertId)) return;
+            stopLocked();
+        }
+    }
+
+    public static void stopAll() {
+        synchronized (LOCK) {
+            stopLocked();
+        }
+    }
+
+    private static void stopLocked() {
+        activeAlertId = "";
+        try {
+            Runnable hs = hardStopRunnable;
+            if (hs != null) MAIN.removeCallbacks(hs);
+        } catch (Exception ignored) {
+        }
+        hardStopRunnable = null;
+
+        MediaPlayer mp = player;
+        player = null;
+        if (mp == null) return;
+        try {
+            if (mp.isPlaying()) mp.stop();
+        } catch (Exception ignored) {
+        }
+        try {
+            mp.reset();
+        } catch (Exception ignored) {
+        }
+        try {
+            mp.release();
+        } catch (Exception ignored) {
+        }
+    }
 }
