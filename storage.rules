@@ -1,0 +1,34 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /supportChats/{uid}/{allPaths=**} {
+      allow read: if request.auth != null && (request.auth.uid == uid || request.auth.token.admin == true);
+      allow write: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.size < 20 * 1024 * 1024
+        && (request.resource.contentType.matches('image/(jpeg|png|webp|gif)')
+            || request.resource.contentType.matches('audio/(mpeg|mp4|ogg|wav|webm)'));
+    }
+
+    match /supportChatAdminUploads/{adminUid}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+        && request.auth.uid == adminUid
+        && (request.auth.token.admin == true || (request.auth.token.email_verified == true && request.auth.token.email.matches('.*@resqtap\\.com$')))
+        && request.resource.size < 25 * 1024 * 1024
+        && (request.resource.contentType.matches('image/(jpeg|png|webp|gif)')
+            || request.resource.contentType.matches('audio/(mpeg|mp4|ogg|wav|webm)'));
+    }
+
+    match /incidentReports/{uid}/{allPaths=**} {
+      allow read: if request.auth != null && (request.auth.uid == uid || request.auth.token.admin == true);
+      allow write: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.size < 20 * 1024 * 1024
+        && (request.resource.contentType.matches('image/(jpeg|png|webp|gif)')
+            || request.resource.contentType.matches('video/(mp4|quicktime|webm)')
+            || request.resource.contentType.matches('audio/(mpeg|mp4|ogg|wav)'));
+    }
+  }
+}
