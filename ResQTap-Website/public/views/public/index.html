@@ -1,0 +1,1642 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ResQTap</title>
+  <link rel="icon" href="/assets/resqtap_launcher.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css?v=admin-dark-inputs-v7">
+  <!-- Leaflet.js: open-source map library for Live Map view -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+  <!-- Capture Leaflet IMMEDIATELY before anything else can overwrite window.L -->
+  <script>window._LeafletMap = window.L;</script>
+  <script>
+    (function() {
+      try {
+        if (localStorage.getItem("resqtap_theme") === "dark") {
+          document.documentElement.classList.add("dark-mode");
+        }
+      } catch (e) {}
+      var p = window.location.pathname.replace(/\/+$/, "");
+      var s = window.location.search;
+      var h = window.location.hash;
+      if (p === "/admin" || p === "/admin.html" || p.startsWith("/admin/") || s.indexOf("admin=true") !== -1 || h === "#admin") {
+        var hasAdminSession = false;
+        try {
+          hasAdminSession = localStorage.getItem("resqtap_admin_session") === "active";
+        } catch (e) {}
+        if (hasAdminSession) {
+          document.documentElement.classList.add("has-admin-session");
+        } else {
+          document.documentElement.classList.add("admin-route-loading");
+        }
+        // Immediately set title and prep body when available
+        document.title = "ResQTap Admin";
+        window.addEventListener("DOMContentLoaded", function() {
+          document.body.classList.remove("public-site-active");
+          document.body.classList.add("admin-site-active");
+          var ps = document.getElementById("publicSite");
+          if (ps) ps.classList.add("hidden");
+          if (hasAdminSession) {
+            var app = document.getElementById("appShell");
+            if (app) app.classList.remove("hidden");
+            var as = document.getElementById("authScreen");
+            if (as) as.classList.add("hidden");
+            var ldr = document.getElementById("adminRouteLoader");
+            if (ldr) ldr.classList.add("hidden");
+            document.documentElement.classList.remove("admin-route-loading");
+          } else {
+            var ldr = document.getElementById("adminRouteLoader");
+            if (ldr) ldr.classList.remove("hidden");
+          }
+        });
+      }
+    })();
+  </script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+  <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+</head>
+<body class="public-site-active">
+  <div id="adminRouteLoader" class="admin-route-loader hidden" aria-label="Loading admin portal">
+    <div class="admin-loader-content">
+      <div class="admin-loader-ring">
+        <img src="/assets/resqtap_launcher.png" alt="ResQTap Logo" class="admin-loader-logo">
+      </div>
+      <span class="admin-loader-title">ResQTap Admin</span>
+      <span class="admin-loader-text">Memuatkan sesi pentadbir...</span>
+    </div>
+  </div>
+  <main id="publicSite" class="public-site">
+    <div class="public-nav-wrapper">
+      <header class="public-nav">
+
+        <nav class="pill-nav-dock" aria-label="Website navigation">
+          <a class="pill-nav-item is-active" href="#home" data-scroll-link="home" aria-label="Home">
+            <i data-lucide="home" aria-hidden="true"></i>
+            <span>Home</span>
+          </a>
+          <a class="pill-nav-item" href="#features" data-scroll-link="features" aria-label="Features">
+            <i data-lucide="folder" aria-hidden="true"></i>
+            <span>Features</span>
+          </a>
+          <a class="pill-nav-item" href="#flow" data-scroll-link="flow" aria-label="Flow">
+            <i data-lucide="newspaper" aria-hidden="true"></i>
+            <span>Flow</span>
+          </a>
+          <a class="pill-nav-item" href="#safety" data-scroll-link="safety" aria-label="Safety">
+            <i data-lucide="mail" aria-hidden="true"></i>
+            <span>Safety</span>
+          </a>
+        </nav>
+      </header>
+    </div>
+
+    <section class="download-hero public-page is-active" data-public-panel="home" id="home">
+      <div class="hero-copy reveal is-visible">
+        <span class="surface-label">Emergency companion for Android</span>
+        <h1>ResQTap</h1>
+        <p>A focused emergency app for SOS alerts, live location sharing, emergency contacts, channel tracking, incident reports, and support chat.</p>
+        <div class="hero-actions">
+          <a class="download-button" href="assets/ResQTap.apk" download>
+            <i data-lucide="download" aria-hidden="true"></i>
+            <span>Download APK</span>
+          </a>
+          <a class="ghost-button" href="#features">
+            <i data-lucide="compass" aria-hidden="true"></i>
+            <span>Explore Features</span>
+          </a>
+        </div>
+        <div class="release-strip" aria-label="Release details">
+          <span>Android APK</span>
+          <span>Firebase realtime sync</span>
+          <span>SOS & live channel tracking</span>
+        </div>
+      </div>
+
+      <div class="phone-stage reveal is-visible" aria-label="ResQTap application preview">
+        <div class="phone-image-wrapper">
+          <img src="/assets/phone_app_screen.png?v=214" alt="ResQTap App Preview" class="phone-app-img" loading="eager">
+        </div>
+      </div>
+    </section>
+
+    <section class="public-section" id="features">
+      <div class="section-copy centered reveal is-visible">
+        <span class="surface-label">Feature Overview</span>
+        <h2>Emergency tools grouped for real app usage.</h2>
+        <p>Each feature supports a specific moment: setup before an emergency, active sharing during an incident, and follow-up after help is coordinated.</p>
+      </div>
+      <div class="feature-band">
+        <div class="feature-card reveal is-visible">
+          <i data-lucide="siren" aria-hidden="true"></i>
+          <strong>SOS alerts</strong>
+          <span>Trigger urgent alerts with channel, sender, timestamp, cancellation status, and recent activity context.</span>
+        </div>
+        <div class="feature-card reveal is-visible">
+          <i data-lucide="map-pin" aria-hidden="true"></i>
+          <strong>Live location</strong>
+          <span>Share current position to channel members so trusted people can track changes while the event is active.</span>
+        </div>
+        <div class="feature-card reveal is-visible">
+          <i data-lucide="users-round" aria-hidden="true"></i>
+          <strong>Channels and contacts</strong>
+          <span>Keep trusted members, emergency contacts, channel membership, and online state connected in one flow.</span>
+        </div>
+        <div class="feature-card reveal is-visible">
+          <i data-lucide="message-circle" aria-hidden="true"></i>
+          <strong>Support chat</strong>
+          <span>Send messages, attachments, and admin replies without leaving the support history behind.</span>
+        </div>
+        <div class="feature-card reveal is-visible">
+          <i data-lucide="clipboard-list" aria-hidden="true"></i>
+          <strong>Incident reports</strong>
+          <span>Submit reports with status, location, media, and admin review notes for follow-up work.</span>
+      </div>
+    </section>
+
+    <section class="public-section split-section" id="flow">
+      <div class="section-copy reveal is-visible">
+        <span class="surface-label">From tap to response</span>
+        <h2>Built around the first five minutes of an emergency.</h2>
+        <p>ResQTap keeps the critical path short: send an alert, expose the latest channel state, and keep every update visible to trusted members and operators.</p>
+      </div>
+      <div class="flow-steps">
+        <article class="flow-step reveal is-visible">
+          <span>01</span>
+          <div>
+            <strong>Tap SOS</strong>
+            <p>The app prepares alert context with sender, channel, timestamp, and emergency state.</p>
+          </div>
+        </article>
+        <article class="flow-step reveal is-visible">
+          <span>02</span>
+          <div>
+            <strong>Share location</strong>
+            <p>Channel members see live coordinates and recent movement while the alert remains active.</p>
+          </div>
+        </article>
+        <article class="flow-step reveal is-visible">
+          <span>03</span>
+          <div>
+            <strong>Coordinate help</strong>
+            <p>Admin can monitor reports, send updates, and reply through support chat.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="public-section operations-section" id="safety">
+      <div class="section-copy centered reveal is-visible">
+        <span class="surface-label">Safety operations</span>
+        <h2>A connected safety system for users and admins.</h2>
+      </div>
+      <div class="ops-grid">
+        <article class="ops-card wide reveal is-visible">
+          <div>
+            <i data-lucide="activity" aria-hidden="true"></i>
+            <strong>Realtime operation view</strong>
+          </div>
+          <div class="mini-chart" aria-hidden="true">
+            <span style="height: 38%"></span>
+            <span style="height: 64%"></span>
+            <span style="height: 45%"></span>
+            <span style="height: 82%"></span>
+            <span style="height: 56%"></span>
+            <span style="height: 72%"></span>
+          </div>
+          <p>Admin panel tracks users, channels, SOS alerts, reports, livechat, AI chat, notifications, and logs.</p>
+        </article>
+        <article class="ops-card reveal is-visible">
+          <i data-lucide="battery-warning" aria-hidden="true"></i>
+          <strong>Low battery awareness</strong>
+          <p>Channel monitoring can expose device state before a responder loses contact.</p>
+        </article>
+        <article class="ops-card reveal is-visible">
+          <i data-lucide="file-check-2" aria-hidden="true"></i>
+          <strong>Incident reports</strong>
+          <p>Users can submit location-aware reports with attachments for admin review.</p>
+        </article>
+        <article class="ops-card reveal is-visible">
+          <i data-lucide="languages" aria-hidden="true"></i>
+          <strong>Multilingual app base</strong>
+          <p>Localised resources are prepared for Malay, English, Tamil, and Chinese users.</p>
+        </article>
+      </div>
+    </section>
+
+    <footer class="public-footer">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <img src="assets/resqtap_launcher.png" alt="ResQTap">
+          <span>ResQTap Emergency Operations</span>
+        </div>
+        <p>&copy; 2026 ResQTap. All rights reserved.</p>
+        <a href="/admin" class="footer-admin-link">Admin Portal &rarr;</a>
+      </div>
+    </footer>
+
+
+    <div id="katupChatWidget" class="katup-chat-widget">
+
+      <div id="katupChatBox" class="katup-chat-box" role="dialog" aria-label="Katup Assistant" aria-hidden="true" data-lenis-prevent>
+
+        <div class="katup-header">
+          <div class="katup-profile">
+            <div class="katup-avatar-ring">
+              <img src="assets/katup.jpg" alt="Katup" class="katup-avatar-img">
+              <span class="katup-online-badge" aria-hidden="true"></span>
+            </div>
+            <div class="katup-info">
+              <strong class="katup-title">Katup</strong>
+              <span class="katup-badge-desc">Warm &bull; Bilingual &bull; ResQTap Guide</span>
+            </div>
+          </div>
+          <button id="katupCloseBtn" class="katup-close-btn" type="button" aria-label="Close Chat">
+            <i data-lucide="x" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <div class="katup-lang-bar">
+          <span>Pilihan Bahasa / Language:</span>
+          <div class="katup-lang-pills">
+            <button id="katupLangBm" class="katup-lang-btn is-active" type="button" data-lang="bm">Melayu</button>
+            <button id="katupLangEn" class="katup-lang-btn" type="button" data-lang="en">English</button>
+          </div>
+        </div>
+
+        <div id="katupChatMessages" class="katup-chat-messages" data-lenis-prevent>
+
+          <div class="katup-msg katup-msg-bot">
+            <div class="katup-msg-bubble">
+              <p id="katupWelcomeMsg">Hai, saya <strong>Katup</strong>, pembantu pintar ResQTap. Tanya saya apa-apa tentang fungsi SOS, perkongsian lokasi, atau bilik kecemasan.</p>
+            </div>
+          </div>
+
+          <div class="katup-helper-label" id="katupHelperLabel">Cadangan Soalan / Quick Questions</div>
+
+          <div id="katupSuggestions" class="katup-suggestions">
+            <button class="katup-pill-btn" type="button" data-prompt="Bagaimana cara fungsi SOS ResQTap berfungsi?">Cara guna SOS?</button>
+            <button class="katup-pill-btn" type="button" data-prompt="Bagaimanakah Live Location berfungsi dalam ResQTap?">Jejak Live Location?</button>
+            <button class="katup-pill-btn" type="button" data-prompt="Ceritakan tentang fungsi Channels dan koordinasi kecemasan.">Apa itu Channels?</button>
+            <button class="katup-pill-btn" type="button" data-prompt="Bagaimana cara muat turun APK ResQTap?">Muat turun APK</button>
+            <button class="katup-pill-btn" type="button" data-prompt="Siapakah pembangun projek ResQTap ini?">Siapa cipta ResQTap?</button>
+            <button class="katup-pill-btn" type="button" data-prompt="Bagaimana cari hospital atau klinik berdekatan?">Hospital berdekatan</button>
+          </div>
+        </div>
+
+        <form id="katupChatForm" class="katup-input-bar">
+          <input id="katupChatInput" type="text" placeholder="Tanya apa-apa... / Ask anything..." autocomplete="off" aria-label="Type message">
+          <button id="katupSendBtn" class="katup-send-btn" type="submit" aria-label="Send message">
+            <i data-lucide="send" aria-hidden="true"></i>
+          </button>
+        </form>
+      </div>
+
+      <button id="katupLauncherBtn" class="katup-launcher-btn" type="button" aria-label="Open Katup Chat">
+        <img src="assets/katup.jpg" alt="Katup" class="katup-launcher-avatar">
+        <span class="katup-launcher-glow" aria-hidden="true"></span>
+      </button>
+    </div>
+  </main>
+
+  <section id="authScreen" class="auth-screen hidden">
+    <!-- Top Purple Wave Banner -->
+    <div class="auth-top-banner">
+      <div class="auth-banner-particles" aria-hidden="true"></div>
+      <div class="auth-banner-content">
+        <div class="auth-brand-logo-row">
+          <img src="/assets/resqtap_launcher.png" alt="ResQTap Logo" class="auth-banner-logo">
+          <span class="auth-banner-brand-name">ResQTap</span>
+        </div>
+        <h2 class="auth-welcome-text">Hello 👋 Welcome!</h2>
+        <p class="auth-banner-desc">Sign in to access your emergency operations portal</p>
+      </div>
+      <svg class="auth-banner-wave" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0,0 C360,90 1080,90 1440,0 L1440,120 L0,120 Z" fill="#FFFFFF"></path>
+      </svg>
+    </div>
+
+    <!-- Main Content Area with Subtle Grid Background -->
+    <div class="auth-main-area">
+      <div class="auth-grid-canvas" aria-hidden="true"></div>
+
+      <div class="auth-layout-container">
+        <!-- Floating Login Card -->
+        <form id="loginForm" class="auth-card-box">
+          <div class="auth-card-heading">
+            <h1 class="auth-card-title">Login</h1>
+            <p class="auth-card-desc">Please login to admin dashboard</p>
+          </div>
+
+          <div class="auth-fields-stack">
+            <div class="auth-input-group">
+              <label class="auth-input-label" for="emailInput">
+                <span>Email/Username*</span>
+              </label>
+              <div class="auth-field-box">
+                <input id="emailInput" type="text" autocomplete="username email" placeholder="admin@resqtap.com" required>
+              </div>
+            </div>
+
+            <div class="auth-input-group">
+              <label class="auth-input-label" for="passwordInput">
+                <span>Password*</span>
+              </label>
+              <div class="auth-field-box password-box">
+                <input id="passwordInput" type="password" autocomplete="current-password" placeholder="••••••••••••" required>
+                <button type="button" id="togglePasswordBtn" class="auth-eye-btn" aria-label="Toggle password visibility">
+                  <i data-lucide="eye" id="togglePasswordIcon" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="auth-options-row">
+              <label class="auth-remember-me">
+                <input type="checkbox" id="rememberMeCheckbox">
+                <span>Remember me</span>
+              </label>
+              <a href="#" class="auth-forgot-link" onclick="event.preventDefault(); alert('Please contact system administrator to reset credentials.');">Forgot password?</a>
+            </div>
+          </div>
+
+          <button id="loginButton" class="auth-login-action-btn" type="submit">
+            <span class="btn-text">Login</span>
+          </button>
+
+          <div id="authMessage" class="form-message" role="status"></div>
+
+          <div class="auth-sub-links">
+            <a href="/" class="auth-back-to-site">
+              <i data-lucide="arrow-left" aria-hidden="true"></i>
+              <span>Back to main website</span>
+            </a>
+          </div>
+        </form>
+      </div>
+
+      <!-- Bottom Pink Decorative Elements -->
+      <div class="auth-bottom-decorations" aria-hidden="true">
+
+        <!-- Elegant bottom pink wave / curve -->
+        <svg class="auth-bottom-wave" viewBox="0 0 1440 80" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="bottomPinkGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#E60067" stop-opacity="0.12" />
+              <stop offset="50%" stop-color="#FF2E88" stop-opacity="0.22" />
+              <stop offset="100%" stop-color="#B80053" stop-opacity="0.12" />
+            </linearGradient>
+            <linearGradient id="bottomPinkLine" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#E60067" stop-opacity="0" />
+              <stop offset="30%" stop-color="#E60067" stop-opacity="0.5" />
+              <stop offset="70%" stop-color="#FF2E88" stop-opacity="0.5" />
+              <stop offset="100%" stop-color="#E60067" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          <path d="M0,40 C320,80 640,10 960,50 C1200,80 1360,20 1440,35 L1440,80 L0,80 Z" fill="url(#bottomPinkGrad)"></path>
+          <path d="M0,40 C320,80 640,10 960,50 C1200,80 1360,20 1440,35" fill="none" stroke="url(#bottomPinkLine)" stroke-width="2"></path>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section id="deniedScreen" class="auth-screen hidden">
+    <div class="auth-top-banner">
+      <div class="auth-banner-content">
+        <div class="auth-brand-logo-row">
+          <img src="/assets/resqtap_launcher.png" alt="ResQTap Logo" class="auth-banner-logo">
+          <span class="auth-banner-brand-name">ResQTap</span>
+        </div>
+        <h2 class="auth-welcome-text">Access Verification</h2>
+      </div>
+      <svg class="auth-banner-wave" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0,0 C360,90 1080,90 1440,0 L1440,120 L0,120 Z" fill="#FFFFFF"></path>
+      </svg>
+    </div>
+
+    <div class="auth-main-area">
+      <div class="auth-grid-canvas" aria-hidden="true"></div>
+      <div class="auth-layout-container" style="justify-content: center;">
+        <div class="auth-card-box" style="max-width: 460px;">
+          <div class="auth-card-heading">
+            <h1 class="auth-card-title" style="color: #D97706; font-size: 1.6rem !important;">Access Restricted</h1>
+            <p id="deniedUid" class="auth-card-desc">Admin claim required</p>
+          </div>
+
+          <div class="setup-box" style="margin: 18px 0; padding: 14px; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 10px; text-align: left;">
+            <strong style="color: #92400E; display: block; margin-bottom: 6px;">Realtime Database Configuration:</strong>
+            <p style="font-size: 0.8rem; color: #B45309; margin: 0 0 8px;">Grant this UID in your Firebase Realtime Database:</p>
+            <code id="adminPathCode" style="display: block; padding: 8px 10px; background: #FFFFFF; border: 1px solid #FCD34D; border-radius: 6px; color: #92400E; font-size: 0.82rem; word-break: break-all;">admins/&lt;uid&gt;/active = true</code>
+          </div>
+
+          <button id="deniedSignOut" class="auth-login-action-btn" style="background: #475569 !important; box-shadow: 0 4px 12px rgba(71, 85, 105, 0.3) !important;" type="button">
+            <span>Sign out</span>
+          </button>
+
+          <div class="auth-sub-links">
+            <a href="/" class="auth-back-to-site">
+              <i data-lucide="arrow-left" aria-hidden="true"></i>
+              <span>Back to main website</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="appShell" class="app-shell hidden">
+    <div id="sidebarBackdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-main">
+          <img class="brand-logo small" src="/assets/resqtap_launcher.png" alt="ResQTap">
+          <div class="sidebar-brand-text">
+            <strong>ResQTap</strong>
+            <span>Admin Panel</span>
+          </div>
+        </div>
+        <button id="sidebarCloseBtn" class="sidebar-close-btn" type="button" aria-label="Close menu">
+          <i data-lucide="x" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <nav class="nav-list" aria-label="Admin navigation">
+        <span class="nav-group-label">Overview</span>
+        <button class="nav-button is-active" data-view="dashboard" data-label="Dashboard" type="button">
+          <i data-lucide="layout-dashboard" aria-hidden="true"></i>
+          <span>Dashboard</span>
+        </button>
+
+        <span class="nav-group-label">Emergency &amp; Safety</span>
+        <button class="nav-button" data-view="livemap" data-label="SOS Alert" type="button">
+          <i data-lucide="siren" aria-hidden="true"></i>
+          <span>SOS Alert</span>
+        </button>
+        <button class="nav-button" data-view="reports" data-label="Reports" type="button">
+          <i data-lucide="clipboard-list" aria-hidden="true"></i>
+          <span>Reports</span>
+        </button>
+
+        <span class="nav-group-label">Communication</span>
+        <button class="nav-button" data-view="soslivechat" data-label="SOS Livechat" type="button">
+          <i data-lucide="radio" aria-hidden="true"></i>
+          <span>SOS Livechat</span>
+        </button>
+        <button class="nav-button" data-view="livechat" data-label="Report Livechat" type="button">
+          <i data-lucide="messages-square" aria-hidden="true"></i>
+          <span>Report Livechat</span>
+        </button>
+        <button class="nav-button" data-view="rooms" data-label="Channels" type="button">
+          <i data-lucide="message-square" aria-hidden="true"></i>
+          <span>Channels</span>
+        </button>
+
+        <span class="nav-group-label">App & Users</span>
+        <button class="nav-button" data-view="users" data-label="Users" type="button">
+          <i data-lucide="users" aria-hidden="true"></i>
+          <span>Users</span>
+        </button>
+        <button class="nav-button" data-view="highlights" data-label="Highlights" type="button">
+          <i data-lucide="sparkles" aria-hidden="true"></i>
+          <span>Highlights</span>
+        </button>
+        <button class="nav-button" data-view="notices" data-label="Notifications" type="button">
+          <i data-lucide="bell-ring" aria-hidden="true"></i>
+          <span>Notifications</span>
+        </button>
+
+        <span class="nav-group-label">System & Settings</span>
+        <button class="nav-button" data-view="logs" data-label="Logs" type="button">
+          <i data-lucide="scroll-text" aria-hidden="true"></i>
+          <span>Logs</span>
+        </button>
+        <button class="nav-button" data-view="admins" data-label="Admins" type="button">
+          <i data-lucide="shield-check" aria-hidden="true"></i>
+          <span>Admins</span>
+        </button>
+
+        <span class="nav-group-label">Account</span>
+        <button class="nav-button sidebar-profile-btn" data-view="profile" data-label="Profile" type="button" id="sidebarProfileNavBtn">
+          <div class="sidebar-avatar-mini" id="sidebarAvatarMini">
+            <img id="sidebarAvatarMiniImg" src="/assets/default_avatar.svg" alt="Avatar" onerror="this.src='/assets/default_avatar.svg'">
+          </div>
+          <div class="sidebar-user-info">
+            <span id="sidebarProfileName" class="sidebar-username">Administrator</span>
+            <span id="sidebarProfileRole" class="sidebar-userrole hidden"></span>
+          </div>
+        </button>
+        <button id="sidebarSignOutBtn" class="nav-button nav-button-danger sidebar-signout-btn" data-label="Sign Out" type="button" title="Sign out of admin console">
+          <i data-lucide="log-out" aria-hidden="true"></i>
+          <span>Sign Out</span>
+        </button>
+      </nav>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button id="sidebarToggleBtn" class="sidebar-toggle-btn" type="button" aria-label="Open menu">
+            <i data-lucide="menu" aria-hidden="true"></i>
+          </button>
+          <div>
+            <p id="syncStatus" class="eyebrow">Connecting</p>
+            <h2 id="viewTitle">Dashboard</h2>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <label class="search-shell" aria-label="Search records">
+            <i data-lucide="search" aria-hidden="true"></i>
+            <input id="globalSearch" class="search-input" type="search" placeholder="Search">
+          </label>
+          <button id="clearHistoryButton" class="secondary-button danger icon-button" type="button">
+            <i data-lucide="trash-2" aria-hidden="true"></i>
+            <span>Clear Logs</span>
+          </button>
+          <button id="clearDatabaseButton" class="secondary-button danger icon-button" type="button" title="Padam semua rekod pengguna selain akaun rasmi @resqtap">
+            <i data-lucide="database" aria-hidden="true"></i>
+            <span>Clear DB</span>
+          </button>
+          <button id="themeToggleBtn" class="secondary-button icon-button theme-toggle-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+            <i data-lucide="moon" id="themeToggleIcon" aria-hidden="true"></i>
+            <span id="themeToggleText">Dark Mode</span>
+          </button>
+        </div>
+      </header>
+
+      <section id="dashboardView" class="view-section">
+        <div class="dashboard-toolbar">
+          <label class="dashboard-date-pill" aria-label="Dashboard range">
+            <select id="dashboardRangeSelect" class="dashboard-range-select">
+              <option value="today">Today</option>
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+              <option value="year">This Year</option>
+            </select>
+            <i data-lucide="calendar-days" aria-hidden="true"></i>
+          </label>
+        </div>
+        <div id="metricGrid" class="metric-grid"></div>
+        <div class="dashboard-grid analytics-grid">
+          <section class="panel chart-panel usage-panel">
+            <div class="panel-header">
+              <h3>Usage Statistics</h3>
+            </div>
+            <div id="usageChart" class="line-chart" aria-label="Usage statistics"></div>
+          </section>
+
+          <section class="panel chart-panel feature-panel">
+            <div class="panel-header">
+              <h3>Feature Usage</h3>
+            </div>
+            <div class="feature-chart-layout">
+              <div id="featureChart" class="feature-chart" aria-label="Feature usage chart"></div>
+              <div id="featureLegend" class="feature-legend"></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section id="usersView" class="view-section hidden">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Users</h3>
+            <span id="usersCount" class="muted"></span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Medical</th>
+                  <th>Contacts</th>
+                  <th>Channels</th>
+                  <th>Last Seen</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="roomsView" class="view-section hidden">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Channels</h3>
+            <span id="roomsCount" class="muted"></span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Channel</th>
+                  <th>Creator</th>
+                  <th>Members</th>
+                  <th>Online</th>
+                  <th>SOS</th>
+                  <th>Updated</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="roomsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="sosView" class="view-section hidden">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>SOS Alerts</h3>
+            <span id="sosCount" class="muted"></span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th>Channel</th>
+                  <th>Sender</th>
+                  <th>Created</th>
+                  <th>Age</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="sosTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="soslivechatView" class="view-section hidden">
+        <div class="panel livechat-panel sos-livechat-panel">
+          <div class="panel-header">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <i data-lucide="radio" style="color:var(--danger, #e11d48);" aria-hidden="true"></i>
+              <h3>SOS Livechat</h3>
+            </div>
+            <span id="soslivechatCount" class="muted"></span>
+          </div>
+          <div class="livechat-layout">
+            <aside class="livechat-thread-pane" aria-label="SOS Alert chat sessions">
+              <div class="sos-thread-search-wrap" style="padding:10px 14px; border-bottom:1px solid var(--border, #e2e8f0);">
+                <input id="soslivechatSearchInput" type="text" placeholder="Search victim..." class="search-input" style="width:100%; padding:7px 12px; font-size:13px; border-radius:8px; border:1px solid var(--border, #cbd5e1); background:var(--surface, #fff); color:var(--text-primary, #0f172a);">
+              </div>
+              <div id="soslivechatThreadList" class="livechat-thread-list"></div>
+            </aside>
+            <section class="livechat-conversation" aria-label="Selected SOS conversation">
+              <div class="livechat-conversation-header">
+                <div>
+                  <h3 id="soslivechatSelectedTitle">Select an SOS Incident</h3>
+                  <span id="soslivechatSelectedSubtitle" class="muted">Active emergency alerts and responder livechats appear here.</span>
+                </div>
+                <div class="livechat-header-actions">
+                  <button id="soslivechatCallVideoBtn" class="secondary-button slim icon-button" type="button" disabled title="Start emergency video call">
+                    <i data-lucide="video" aria-hidden="true"></i>
+                    <span>Video Call</span>
+                  </button>
+                  <button id="soslivechatCallVoiceBtn" class="secondary-button slim icon-button" type="button" disabled title="Start emergency voice call">
+                    <i data-lucide="phone" aria-hidden="true"></i>
+                    <span>Voice Call</span>
+                  </button>
+                  <button id="soslivechatViewAlertBtn" class="secondary-button slim icon-button" type="button" disabled title="View SOS Case details on map">
+                    <i data-lucide="siren" aria-hidden="true"></i>
+                    <span>SOS Details</span>
+                  </button>
+                  <button id="soslivechatClearBtn" class="secondary-button slim icon-button" type="button" disabled title="Clear chat messages for this SOS session">
+                    <i data-lucide="eraser" aria-hidden="true"></i>
+                    <span>Clear Messages</span>
+                  </button>
+                  <button id="soslivechatDeleteBtn" class="secondary-button danger slim icon-button" type="button" disabled title="Delete this SOS livechat session permanently">
+                    <i data-lucide="trash-2" aria-hidden="true"></i>
+                    <span>Delete Chat</span>
+                  </button>
+                </div>
+              </div>
+              <div id="soslivechatMessages" class="livechat-messages">
+                <div id="soslivechatEmptyState" class="livechat-empty">
+                  <strong>No SOS incident selected</strong>
+                  <span>Select an SOS livechat session from the left to communicate with the victim.</span>
+                </div>
+              </div>
+              <form id="soslivechatReplyForm" class="livechat-reply-form">
+                <textarea id="soslivechatReplyInput" maxlength="1000" placeholder="Type urgent reply to victim..." disabled></textarea>
+                <div class="livechat-reply-actions" style="justify-content: flex-end;">
+                  <button id="soslivechatReplyButton" class="primary-button slim icon-button" style="background:#e11d48;" type="submit" disabled>
+                    <i data-lucide="send" aria-hidden="true"></i>
+                    <span>Send Urgently</span>
+                  </button>
+                </div>
+              </form>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section id="reportsView" class="view-section hidden">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Reports</h3>
+            <span id="reportsCount" class="muted"></span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th>Report</th>
+                  <th>Reporter</th>
+                  <th>Location</th>
+                  <th>Created</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="reportsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="noticesView" class="view-section hidden">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Update Notifications</h3>
+          </div>
+          <form id="noticeForm" class="notification-form">
+            <label class="field">
+              <span>Target</span>
+              <select id="notificationAudienceInput">
+                <option value="all">All app users</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Title</span>
+              <input id="notificationTitleInput" type="text" maxlength="60" placeholder="Notification title">
+            </label>
+            <label class="field notification-message-field">
+              <span>Message</span>
+              <textarea id="notificationMessageInput" maxlength="180" placeholder="Type notification message" required></textarea>
+            </label>
+            <div class="notification-actions">
+              <span id="notificationCharCount" class="muted">0/180</span>
+              <div class="composer-buttons">
+                <button id="clearNotificationButton" class="secondary-button slim icon-button" type="button" disabled>
+                  <i data-lucide="eraser" aria-hidden="true"></i>
+                  <span>Clear</span>
+                </button>
+                <button id="sendNotificationButton" class="primary-button slim icon-button" type="submit" disabled>
+                  <i data-lucide="send" aria-hidden="true"></i>
+                  <span>Send</span>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section id="highlightsView" class="view-section hidden">
+        <div class="panel highlight-manager-panel">
+          <div class="panel-header">
+            <div>
+              <h3>App Home Highlights (Banner Carousel)</h3>
+              <p class="muted" style="margin-top: 2px;">Manage promotional banners, CPR training guides, and safety announcements displayed on the mobile app carousel.</p>
+            </div>
+          </div>
+
+          <!-- Add New Highlight Form (Modern 2-Column Responsive Card) -->
+          <div class="highlight-creator-box">
+            <div class="creator-header">
+              <i data-lucide="plus-circle" style="width: 18px; height: 18px; color: var(--primary);"></i>
+              <strong>Create New Highlight Banner</strong>
+            </div>
+
+            <form id="highlightForm" class="highlight-form-grid">
+              <div class="form-inputs-col">
+                <label class="field">
+                  <span>Highlight Title <b style="color: #E60067;">*</b></span>
+                  <input id="hlTitleInput" type="text" maxlength="60" placeholder="e.g. Free CPR & Emergency Training 2026" required>
+                </label>
+
+                <label class="field">
+                  <span>Action / Website URL (Optional)</span>
+                  <input id="hlActionUrlInput" type="url" placeholder="https://www.moh.gov.my/cpr-info">
+                </label>
+
+                <div class="form-row-2">
+                  <label class="field">
+                    <span>Display Order</span>
+                    <input id="hlOrderInput" type="number" value="1" min="1" max="99">
+                  </label>
+                  <label class="field">
+                    <span>External Image URL (Optional)</span>
+                    <input id="hlImageUrlInput" type="text" placeholder="https://... or upload a file">
+                  </label>
+                </div>
+
+                <div class="form-actions-row">
+                  <button id="saveHighlightBtn" class="primary-button icon-button" type="submit">
+                    <i data-lucide="plus" aria-hidden="true"></i>
+                    <span>Add Highlight Banner</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-upload-col">
+                <span class="upload-label">Banner Image Preview</span>
+                <label class="banner-upload-dropzone">
+                  <input id="hlImageFileInput" type="file" accept="image/*" style="display: none;">
+                  <div id="hlDropzoneContent" class="dropzone-content">
+                    <div id="hlPreviewContainer" class="banner-preview-box">
+                      <img id="hlImagePreview" src="" alt="Banner Preview" style="display: none;">
+                      <div id="hlNoPreviewBox" class="no-preview-placeholder">
+                        <i data-lucide="image" style="width: 32px; height: 32px; color: #94A3B8; margin-bottom: 6px;"></i>
+                        <span style="font-size: 12px; font-weight: 700; color: #64748B;">Click to Upload Image</span>
+                        <small style="color: #94A3B8; font-size: 10px; margin-top: 2px;">PNG, JPG, WebP supported</small>
+                      </div>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </form>
+          </div>
+
+          <!-- Active Highlights Grid -->
+          <div class="panel-section-divider">
+            <div class="section-title-wrap">
+              <i data-lucide="layout-grid" style="width: 18px; height: 18px; color: #64748B;"></i>
+              <h4>Active Carousel Banners</h4>
+            </div>
+          </div>
+
+          <div id="highlightsGrid" class="highlights-card-grid">
+          </div>
+        </div>
+      </section>
+
+      <section id="logsView" class="view-section hidden">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Logs</h3>
+            <div class="history-controls">
+              <span id="notificationsCount" class="muted"></span>
+              <label class="page-size-field" aria-label="Notification rows per page">
+                <span>Rows</span>
+                <select id="notificationPageSizeSelect">
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                  <option value="30">30</option>
+                </select>
+              </label>
+            </div>
+          </div>
+          <div id="notificationCategoryTabs" class="category-tabs" role="tablist" aria-label="Notification categories"></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Recipient</th>
+                  <th>Sender</th>
+                  <th>Channel</th>
+                  <th>Sent</th>
+                  <th>Source</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="notificationsTableBody"></tbody>
+            </table>
+          </div>
+          <div id="notificationPagination" class="pagination-bar hidden">
+            <span id="notificationPageSummary" class="muted"></span>
+            <div class="pagination-actions">
+              <button id="notificationPrevPageButton" class="small-button" type="button" disabled>
+                <i data-lucide="chevron-left" aria-hidden="true"></i>
+                <span>Previous</span>
+              </button>
+              <button id="notificationNextPageButton" class="small-button" type="button" disabled>
+                <span>Next</span>
+                <i data-lucide="chevron-right" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="livechatView" class="view-section hidden">
+        <div class="panel livechat-panel">
+          <div class="panel-header">
+            <h3>Report Livechat</h3>
+            <span id="livechatCount" class="muted"></span>
+          </div>
+          <div class="livechat-layout">
+            <aside class="livechat-thread-pane" aria-label="Livechat conversations">
+              <div id="livechatThreadList" class="livechat-thread-list"></div>
+            </aside>
+            <section class="livechat-conversation" aria-label="Selected livechat conversation">
+              <div class="livechat-conversation-header">
+                <div>
+                  <h3 id="livechatSelectedTitle">Select Report Conversation</h3>
+                  <span id="livechatSelectedSubtitle" class="muted">Report discussions and user inquiries appear here.</span>
+                </div>
+                <div class="livechat-header-actions">
+                  <button id="livechatCallVideoBtn" class="secondary-button slim icon-button" type="button" disabled title="Start video call with user">
+                    <i data-lucide="video" aria-hidden="true"></i>
+                    <span>Video Call</span>
+                  </button>
+                  <button id="livechatCallVoiceBtn" class="secondary-button slim icon-button" type="button" disabled title="Start voice call with user">
+                    <i data-lucide="phone" aria-hidden="true"></i>
+                    <span>Voice Call</span>
+                  </button>
+                  <button id="resolveChatButton" class="secondary-button slim icon-button" type="button" disabled>
+                    <i data-lucide="check-circle-2" aria-hidden="true"></i>
+                    <span>Resolve</span>
+                  </button>
+                  <button id="deleteChatButton" class="secondary-button slim danger icon-button" type="button" disabled title="Delete this report livechat session permanently">
+                    <i data-lucide="trash-2" aria-hidden="true"></i>
+                    <span>Delete Chat</span>
+                  </button>
+                </div>
+              </div>
+              <div id="livechatMessages" class="livechat-messages">
+                <div id="livechatEmptyState" class="livechat-empty">
+                  <strong>No conversation selected</strong>
+                  <span>Choose a livechat thread to reply.</span>
+                </div>
+              </div>
+              <form id="livechatReplyForm" class="livechat-reply-form">
+                <textarea id="livechatReplyInput" maxlength="1000" placeholder="Type admin reply for this report..." disabled></textarea>
+                <div class="livechat-reply-actions">
+                  <div class="livechat-attach-wrap">
+                    <button id="livechatAttachButton" class="livechat-attach-button" type="button" aria-label="Attach file" aria-expanded="false" disabled>
+                      <i data-lucide="plus" aria-hidden="true"></i>
+                    </button>
+                    <div id="livechatAttachMenu" class="livechat-attach-menu hidden" role="menu" aria-label="Attachment options">
+                      <button class="attach-document" data-livechat-attach="document" type="button" role="menuitem">
+                        <i data-lucide="file-text" aria-hidden="true"></i>
+                        <span>Document</span>
+                      </button>
+                      <button class="attach-photo" data-livechat-attach="photo" type="button" role="menuitem">
+                        <i data-lucide="image" aria-hidden="true"></i>
+                        <span>Photos &amp; videos</span>
+                      </button>
+                      <button class="attach-camera" data-livechat-attach="camera" type="button" role="menuitem">
+                        <i data-lucide="camera" aria-hidden="true"></i>
+                        <span>Camera</span>
+                      </button>
+                      <button class="attach-audio" data-livechat-attach="audio" type="button" role="menuitem">
+                        <i data-lucide="headphones" aria-hidden="true"></i>
+                        <span>Audio</span>
+                      </button>
+                      <button class="attach-calendar" data-livechat-attach="calendar" type="button" role="menuitem">
+                        <i data-lucide="calendar-days" aria-hidden="true"></i>
+                        <span>Calendar</span>
+                      </button>
+                    </div>
+                  </div>
+                  <button id="livechatReplyButton" class="primary-button slim icon-button" type="submit" disabled>
+                    <i data-lucide="send" aria-hidden="true"></i>
+                    <span>Send</span>
+                  </button>
+                </div>
+                <input id="livechatAttachmentInput" class="hidden" type="file">
+                <div id="livechatAttachmentLabel" class="livechat-selected-attachment hidden" aria-live="polite"></div>
+              </form>
+            </section>
+          </div>
+        </div>
+      </section>
+
+
+      <section id="adminsView" class="view-section hidden">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Admins</h3>
+            <span id="adminsCount" class="muted"></span>
+          </div>
+          <form id="grantAdminForm" class="inline-form">
+            <input id="adminUidInput" type="text" placeholder="Firebase UID">
+            <button class="primary-button slim icon-button" type="submit">
+              <i data-lucide="shield-plus" aria-hidden="true"></i>
+              <span>Grant</span>
+            </button>
+          </form>
+          <div id="adminsList" class="compact-list"></div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           ADMIN PROFILE VIEW
+           Allows the logged-in administrator to view and edit profile details
+      ============================================================ -->
+      <section id="profileView" class="view-section hidden">
+        <div class="admin-profile-wrapper">
+          
+          <!-- Top Hero Banner: Profile & Photo Management -->
+          <div class="panel admin-profile-hero">
+            <div class="admin-profile-hero-inner">
+              <div class="admin-hero-left">
+                <!-- Avatar Circle & Upload Badge -->
+                <div class="admin-avatar-box">
+                  <div class="admin-avatar-circle" id="profileAvatarDisplay">
+                    <img id="profileAvatarImg" src="/assets/default_avatar.svg" alt="Profile Photo" onerror="this.src='/assets/default_avatar.svg'">
+                  </div>
+                  <label for="adminPhotoFileInput" class="admin-avatar-upload-badge" title="Upload new photo">
+                    <i data-lucide="camera" aria-hidden="true"></i>
+                    <input type="file" id="adminPhotoFileInput" accept="image/jpeg,image/png,image/webp" style="display:none;">
+                  </label>
+                </div>
+
+                <!-- Admin Identity Info -->
+                <div class="admin-identity-info">
+                  <div class="admin-name-badge-row">
+                    <h2 id="profileDisplayHeaderName" class="admin-name-title">Administrator</h2>
+                    <span id="profileRoleBadge" class="hidden">Administrator</span>
+                  </div>
+                  <p id="profileDisplayHeaderEmail" class="admin-email-text">admin@resqtap.com</p>
+
+                  <div class="admin-photo-actions-row">
+                    <label for="adminPhotoFileInput" class="primary-button slim icon-button photo-upload-btn" title="Choose new profile photo">
+                      <i data-lucide="upload" aria-hidden="true"></i>
+                      <span id="adminUploadBtnLabel">Upload Picture</span>
+                    </label>
+                    <button id="adminRemovePhotoBtn" class="secondary-button slim icon-button danger-tint hidden" type="button" title="Remove custom photo">
+                      <i data-lucide="trash-2" aria-hidden="true"></i>
+                      <span>Remove</span>
+                    </button>
+                    <span class="photo-hint-text">JPG, PNG, or WebP &bull; Max 5MB</span>
+                  </div>
+                </div>
+              </div>
+
+
+            </div>
+          </div>
+
+          <!-- 2-Column Responsive Form Layout (Balanced & Equal Height) -->
+          <div class="admin-profile-forms-grid">
+
+            <!-- Column 1: Personal Profile Details -->
+            <div class="panel profile-form-card">
+              <div class="panel-header">
+                <div class="card-title-group">
+                  <i data-lucide="user" class="card-title-icon" aria-hidden="true"></i>
+                  <div>
+                    <h3>Admin Information</h3>
+                    <span class="muted">Update display name and emergency contact details</span>
+                  </div>
+                </div>
+              </div>
+
+              <form id="adminProfileForm" class="admin-form-padding">
+                <div class="form-fields-grid-2col">
+                  <label class="field">
+                    <span>Display Name / Full Name</span>
+                    <input id="adminProfileName" type="text" placeholder="e.g. Chesster" required maxlength="50">
+                  </label>
+
+                  <label class="field">
+                    <span>Email Address</span>
+                    <input id="adminProfileEmail" type="email" placeholder="admin@resqtap.com" readonly class="is-readonly" title="Email is tied to Firebase Authentication login">
+                  </label>
+
+                  <label class="field">
+                    <span>Phone Number</span>
+                    <input id="adminProfilePhone" type="tel" placeholder="e.g. +60123456789" maxlength="20">
+                  </label>
+
+                  <label class="field">
+                    <span>Access Role</span>
+                    <input id="adminProfileRole" type="text" value="Administrator" readonly class="is-readonly">
+                  </label>
+
+                  <label class="field col-span-full">
+                    <span>Firebase User ID (UID)</span>
+                    <div class="input-with-action">
+                      <input id="adminProfileUid" type="text" readonly class="is-readonly font-mono">
+                      <button id="copyAdminUidBtn" class="secondary-button slim icon-button" type="button" title="Copy UID">
+                        <i data-lucide="copy" aria-hidden="true"></i>
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                  </label>
+                </div>
+
+                <div class="form-save-row">
+                  <button id="saveAdminProfileBtn" class="primary-button icon-button" type="submit">
+                    <i data-lucide="save" aria-hidden="true"></i>
+                    <span>Save Changes</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Column 2: Security & Password -->
+            <div class="panel profile-form-card">
+              <div class="panel-header">
+                <div class="card-title-group">
+                  <i data-lucide="lock" class="card-title-icon security" aria-hidden="true"></i>
+                  <div>
+                    <h3>Security & Password</h3>
+                    <span class="muted">Update your portal authentication password</span>
+                  </div>
+                </div>
+              </div>
+
+              <form id="adminPasswordForm" class="admin-form-padding">
+                <div class="form-fields-stack">
+                  <label class="field">
+                    <span>New Password</span>
+                    <div class="input-with-action">
+                      <input id="adminNewPassword" type="password" placeholder="Minimum 6 characters" minlength="6" autocomplete="new-password">
+                      <button id="toggleNewPasswordBtn" class="secondary-button slim icon-button" type="button" aria-label="Toggle password visibility">
+                        <i data-lucide="eye" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  </label>
+
+                  <label class="field">
+                    <span>Confirm New Password</span>
+                    <div class="input-with-action">
+                      <input id="adminConfirmPassword" type="password" placeholder="Re-enter password" minlength="6" autocomplete="new-password">
+                      <button id="toggleConfirmPasswordBtn" class="secondary-button slim icon-button" type="button" aria-label="Toggle password visibility">
+                        <i data-lucide="eye" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  </label>
+
+                  <div class="security-info-box">
+                    <div class="sec-item">
+                      <i data-lucide="shield" aria-hidden="true"></i>
+                      <span>Password must be at least 6 characters.</span>
+                    </div>
+                    <div class="sec-item">
+                      <i data-lucide="key" aria-hidden="true"></i>
+                      <span>Used across ResQTap web admin & operations console.</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-save-row">
+                  <button id="saveAdminPasswordBtn" class="secondary-button icon-button" type="submit">
+                    <i data-lucide="key-round" aria-hidden="true"></i>
+                    <span>Update Password</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+          </div>
+
+          <!-- Account Session Management Panel -->
+          <div class="panel admin-session-card">
+            <div class="admin-session-inner">
+              <div class="session-desc">
+                <div class="session-icon-wrap">
+                  <i data-lucide="shield-alert" aria-hidden="true"></i>
+                </div>
+                <div>
+                  <h4 class="session-title">Active Admin Session</h4>
+                  <p class="session-subtitle">Logged in as <strong id="profileSessionEmailText">admin@resqtap.com</strong>. All administrative operations are monitored and recorded.</p>
+                </div>
+              </div>
+              <button id="adminPageSignOutBtn" class="secondary-button icon-button danger-tint" type="button">
+                <i data-lucide="log-out" aria-hidden="true"></i>
+                <span>Sign out</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Live map view: real-time satellite monitoring -->
+      <section id="livemapView" class="view-section hidden">
+        <!-- Leaflet Map Container -->
+        <div id="livemapContainer" class="livemap-container" role="application" aria-label="Live user location map" style="flex:1;min-height:0;position:relative;"></div>
+      </section>
+    </main>
+
+    <aside id="detailPanel" class="detail-panel hidden" aria-live="polite">
+      <div class="detail-empty">
+        <strong>No item selected</strong>
+        <span>Select a row to inspect details.</span>
+      </div>
+    </aside>
+  </section>
+
+  <div id="attachmentViewerModal" class="attachment-viewer-modal hidden" aria-modal="true" role="dialog" aria-labelledby="attachmentViewerTitle">
+    <div class="attachment-viewer-backdrop" data-action="close-attachment-viewer"></div>
+    <section class="attachment-viewer-shell">
+      <header class="attachment-viewer-header">
+        <div>
+          <h3 id="attachmentViewerTitle">Attachment</h3>
+          <span id="attachmentViewerMeta" class="muted"></span>
+        </div>
+        <div class="attachment-viewer-actions">
+          <a id="attachmentViewerOpen" class="secondary-button slim icon-button" target="_blank" rel="noreferrer">
+            <i data-lucide="external-link" aria-hidden="true"></i>
+            <span>Open</span>
+          </a>
+          <button class="secondary-button slim icon-button" data-action="close-attachment-viewer" type="button">
+            <i data-lucide="x" aria-hidden="true"></i>
+            <span>Close</span>
+          </button>
+        </div>
+      </header>
+      <div id="attachmentViewerBody" class="attachment-viewer-body"></div>
+    </section>
+  </div>
+
+  <div id="toast" class="toast hidden" role="status"></div>
+
+  <div id="videoCallModal" class="video-call-modal hidden" aria-modal="true" role="dialog">
+    <div class="video-call-container">
+      <button id="vcMinimizeBtn" class="vc-minimize-btn" type="button" aria-label="Minimize Call">
+        <i data-lucide="arrow-left" aria-hidden="true"></i>
+      </button>
+      <div id="videoContainer" class="video-container">
+        <video id="remoteVideo" class="remote-video" autoplay playsinline></video>
+        <div id="voiceCallPanel" class="voice-call-panel hidden">
+          <div class="voice-call-avatar-wrap">
+            <div class="voice-call-ring outer"></div>
+            <div class="voice-call-ring middle"></div>
+            <div id="voiceCallAvatar" class="voice-call-avatar"></div>
+          </div>
+          <strong id="voiceCallName">Reporter</strong>
+          <span id="voiceCallLabel">Voice call</span>
+        </div>
+        <div id="remoteMuteIndicator" class="local-mute-indicator hidden" style="position: absolute; top: 12px; right: 12px; z-index: 10;">
+          <i data-lucide="mic-off"></i>
+        </div>
+        <div id="remoteCamOffIndicator" class="local-cam-off-indicator hidden" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); z-index: 10; color: white;">
+          <i data-lucide="video-off" style="width: 48px; height: 48px; margin-bottom: 8px;"></i><span>Camera Disabled</span>
+        </div>
+      </div>
+      <div id="vcFloatingInfo" class="vc-floating-info">
+        <div id="vcFloatingAvatar" class="vc-floating-avatar"></div>
+        <span id="vcFloatingName" class="vc-floating-name"></span>
+      </div>
+      <div class="local-video-wrapper">
+        <video id="localVideo" class="local-video-inner" autoplay playsinline muted></video>
+        <div id="localMuteIndicator" class="local-mute-indicator hidden"><i data-lucide="mic-off"></i></div>
+        <div id="localCamOffIndicator" class="local-cam-off-indicator hidden"><i data-lucide="video-off"></i><span>Camera Disabled</span></div>
+      </div>
+      <div id="videoCallOverlay" class="video-call-overlay">
+        <h3 id="videoCallStatus">Connecting...</h3>
+      </div>
+      <div class="video-call-controls">
+        <button id="vcMoreBtn" class="vc-control-btn" type="button" aria-label="More options">
+          <i data-lucide="more-vertical" aria-hidden="true"></i>
+        </button>
+        <button id="vcCamBtn" class="vc-control-btn" type="button" aria-label="Toggle Camera">
+          <span class="icon-on"><i data-lucide="video" aria-hidden="true"></i></span>
+          <span class="icon-off hidden"><i data-lucide="video-off" aria-hidden="true"></i></span>
+        </button>
+        <button id="vcMicBtn" class="vc-control-btn" type="button" aria-label="Toggle Microphone">
+          <span class="icon-on"><i data-lucide="mic" aria-hidden="true"></i></span>
+          <span class="icon-off hidden"><i data-lucide="mic-off" aria-hidden="true"></i></span>
+        </button>
+        <button id="vcEndBtn" class="vc-control-btn danger" type="button" aria-label="End Call">
+          <i data-lucide="phone-off" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div id="vcBottomSheet" class="vc-bottom-sheet">
+        <button id="vcShareScreenBtn" class="vc-menu-btn" type="button">
+          <i data-lucide="monitor-up" aria-hidden="true"></i>
+          <span>Share Screen</span>
+        </button>
+        <button id="vcSendMessageBtn" class="vc-menu-btn" type="button">
+          <i data-lucide="message-square" aria-hidden="true"></i>
+          <span>Send Message</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating SOS Case Update Modal -->
+  <div id="sosCaseUpdateModal" class="sos-case-modal hidden" aria-modal="true" role="dialog">
+    <div class="sos-case-backdrop" data-action="close-case-modal"></div>
+    <div class="sos-case-card">
+      <header class="sos-case-header">
+        <div class="sos-case-header-main">
+          <div class="sos-case-badge-pulse">
+            <i data-lucide="shield-alert" aria-hidden="true"></i>
+          </div>
+          <div>
+            <h2 id="caseModalTitle" class="sos-case-title">Active SOS Case</h2>
+            <p id="caseModalSubtitle" class="sos-case-subtitle">Manage emergency response progress</p>
+          </div>
+        </div>
+        <button class="sos-case-close-btn" data-action="close-case-modal" type="button" aria-label="Close modal">
+          <i data-lucide="x" aria-hidden="true"></i>
+        </button>
+      </header>
+
+      <div class="sos-case-body">
+        <!-- Progress Stepper Selector -->
+        <div class="sos-case-section">
+          <label class="sos-case-label">Emergency Response Stage</label>
+          <div class="sos-case-steps-grid" id="caseStepsGrid">
+            <button class="sos-case-step-btn is-active" type="button" data-step="1" data-label="Dispatched" data-status="Admin Dispatched" data-desc="Emergency responder assigned and notified.">
+              <div class="step-num">1</div>
+              <div class="step-text">
+                <strong>Dispatched</strong>
+                <span>Assigned</span>
+              </div>
+            </button>
+            <button class="sos-case-step-btn" type="button" data-step="2" data-label="En Route" data-status="Responder En Route" data-desc="Emergency team is moving towards location.">
+              <div class="step-num">2</div>
+              <div class="step-text">
+                <strong>En Route</strong>
+                <span>On the way</span>
+              </div>
+            </button>
+            <button class="sos-case-step-btn" type="button" data-step="3" data-label="On Scene" data-status="Arrived on Scene" data-desc="Responder has arrived and providing aid.">
+              <div class="step-num">3</div>
+              <div class="step-text">
+                <strong>On Scene</strong>
+                <span>Arrived</span>
+              </div>
+            </button>
+            <button class="sos-case-step-btn" type="button" data-step="4" data-label="Resolved" data-status="Emergency Resolved" data-desc="Incident handled safely and closed.">
+              <div class="step-num">4</div>
+              <div class="step-text">
+                <strong>Resolved</strong>
+                <span>Completed</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Responder / Admin Notes -->
+        <div class="sos-case-section">
+          <label class="sos-case-label" for="caseNotesInput">Live Progress Note to Victim / App</label>
+          <div class="sos-case-quick-tags">
+            <button type="button" class="sos-tag-chip" data-note="Emergency team has been dispatched to your GPS location.">Team Dispatched</button>
+            <button type="button" class="sos-tag-chip" data-note="Responders are 5 minutes away, stay safe and keep phone active.">5 Mins Away</button>
+            <button type="button" class="sos-tag-chip" data-note="Responders have arrived at your building/area.">At Location</button>
+            <button type="button" class="sos-tag-chip" data-note="Situation contained. Safe to resume normal activities.">Safe / Contained</button>
+          </div>
+          <textarea id="caseNotesInput" class="sos-case-textarea" rows="3" placeholder="Enter instructions or status update for the user... (Auto-saves automatically)"></textarea>
+        </div>
+
+        <!-- Emergency Quick Actions -->
+        <div class="sos-case-quick-actions">
+          <button id="caseCallBtn" class="secondary-button icon-button" type="button">
+            <i data-lucide="phone-call" aria-hidden="true"></i>
+            <span>Call Sender</span>
+          </button>
+          <button id="caseMessageBtn" class="secondary-button icon-button" type="button">
+            <i data-lucide="message-square" aria-hidden="true"></i>
+            <span>Message Sender</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Incident Report Case Update Modal -->
+  <div id="reportCaseUpdateModal" class="sos-case-modal hidden" aria-modal="true" role="dialog">
+    <div class="sos-case-backdrop" data-action="close-report-case-modal"></div>
+    <div class="sos-case-card">
+      <header class="sos-case-header">
+        <div class="sos-case-header-main">
+          <div class="sos-case-badge-pulse" style="background:#eff6ff;color:#2563eb;box-shadow:0 4px 14px rgba(37,99,235,0.2);">
+            <i data-lucide="clipboard-edit" aria-hidden="true"></i>
+          </div>
+          <div>
+            <h2 id="reportCaseModalTitle" class="sos-case-title">Incident Report Case</h2>
+            <p id="reportCaseModalSubtitle" class="sos-case-subtitle">Manage report review and emergency response stage</p>
+          </div>
+        </div>
+        <button class="sos-case-close-btn" data-action="close-report-case-modal" type="button" aria-label="Close modal">
+          <i data-lucide="x" aria-hidden="true"></i>
+        </button>
+      </header>
+
+      <div class="sos-case-body">
+        <!-- Reporter & Location Info Summary -->
+        <div class="report-case-summary-card" id="reportCaseSummaryCard" style="display:flex;align-items:center;justify-content:space-between;background:var(--panel-soft,rgba(255,255,255,0.05));border:1px solid var(--line);border-radius:12px;padding:12px 16px;">
+          <div>
+            <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Reporter & Location</div>
+            <div id="reportCaseReporterText" style="font-weight:700;color:var(--ink);font-size:0.95rem;margin-top:2px;">User</div>
+            <div id="reportCaseLocationText" style="font-size:0.8rem;color:var(--muted);margin-top:2px;">-</div>
+          </div>
+          <span id="reportCaseStatusBadge" class="pill-badge pill-alert">New</span>
+        </div>
+
+        <!-- Progress Stepper Selector -->
+        <div class="sos-case-section">
+          <label class="sos-case-label">Case Investigation Stage</label>
+          <div class="sos-case-steps-grid" id="reportCaseStepsGrid">
+            <button class="sos-case-step-btn is-active" type="button" data-step="1" data-status="new" data-label="Submitted" data-desc="Report received and registered in system.">
+              <div class="step-num">1</div>
+              <div class="step-text">
+                <strong>Submitted</strong>
+                <span>Baru</span>
+              </div>
+            </button>
+            <button class="sos-case-step-btn" type="button" data-step="2" data-status="reviewing" data-label="Under Review" data-desc="Report is being reviewed and verified by authorities.">
+              <div class="step-num">2</div>
+              <div class="step-text">
+                <strong>Under Review</strong>
+                <span>Disemak</span>
+              </div>
+            </button>
+            <button class="sos-case-step-btn" type="button" data-step="3" data-status="in_progress" data-label="In Progress" data-desc="Assistance or investigation is actively underway.">
+              <div class="step-num">3</div>
+              <div class="step-text">
+                <strong>In Progress</strong>
+                <span>Tindakan</span>
+              </div>
+            </button>
+            <button class="sos-case-step-btn" type="button" data-step="4" data-status="resolved" data-label="Resolved" data-desc="Incident investigated, handled, and safely resolved.">
+              <div class="step-num">4</div>
+              <div class="step-text">
+                <strong>Resolved</strong>
+                <span>Selesai</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Admin Notes / Response to Reporter -->
+        <div class="sos-case-section">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
+            <label class="sos-case-label" for="reportCaseNotesInput" style="margin-bottom:0;flex-shrink:0;">Admin Remarks & Notes</label>
+            <span id="reportCaseAutoSaveStatus" class="sos-case-autosave is-saved" style="font-size:0.75rem;margin-left:auto;padding-left:16px;">
+              <i data-lucide="check" style="width:13px;height:13px;margin-right:4px;"></i> All changes saved
+            </span>
+          </div>
+          <div class="sos-case-quick-tags" id="reportCaseQuickTags">
+            <button type="button" class="sos-tag-chip" data-note="Laporan telah diterima dan pegawai bertugas sedang menyemak maklumat kejadian.">Laporan Diterima</button>
+            <button type="button" class="sos-tag-chip" data-note="Pasukan penyelamat / bantuan sedang digerakkan ke lokasi yang dilaporkan.">Pasukan Digerakkan</button>
+            <button type="button" class="sos-tag-chip" data-note="Siasatan dan tindakan kawalan sedang dijalankan di lokasi kejadian.">Tindakan Dijalankan</button>
+            <button type="button" class="sos-tag-chip" data-note="Kes telah disahkan selesai dan tindakan susulan telah diambil sepenuhnya.">Kes Selesai</button>
+          </div>
+          <textarea id="reportCaseNotesInput" class="sos-case-textarea" rows="3" placeholder="Enter notes or updates for the user / case record..."></textarea>
+        </div>
+
+        <!-- Quick Actions Footer -->
+        <div class="sos-case-quick-actions" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <button id="reportCaseCallBtn" class="secondary-button icon-button" type="button">
+            <i data-lucide="phone-call" aria-hidden="true"></i>
+            <span>Call Reporter</span>
+          </button>
+          <button id="reportCaseRejectBtn" class="secondary-button danger icon-button" type="button" data-action="report-case-reject">
+            <i data-lucide="circle-x" aria-hidden="true"></i>
+            <span>Reject / Invalid</span>
+          </button>
+          <button id="reportCaseDeleteBtn" class="secondary-button danger icon-button" type="button" data-action="report-case-delete" style="margin-left:auto;">
+            <i data-lucide="trash-2" aria-hidden="true"></i>
+            <span>Delete Report</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Emergency Call Options Modal -->
+  <div id="caseCallOptionsModal" class="sos-case-modal hidden" aria-modal="true" role="dialog">
+    <div class="sos-case-backdrop" id="caseCallOptionsBackdrop"></div>
+    <div class="sos-case-card call-options-card">
+      <header class="sos-case-header">
+        <div class="sos-case-header-main">
+          <div class="sos-case-badge-pulse">
+            <i data-lucide="phone" aria-hidden="true"></i>
+          </div>
+          <div>
+            <h2 id="caseCallOptionsTitle" class="sos-case-title">Panggilan Kecemasan SOS</h2>
+            <p id="caseCallOptionsSubtitle" class="sos-case-subtitle">Pilih mod panggilan untuk menghubungi pengadu/mangsa</p>
+          </div>
+        </div>
+        <button class="sos-case-close-btn" id="caseCallOptionsCloseBtn" type="button" aria-label="Close modal">
+          <i data-lucide="x" aria-hidden="true"></i>
+        </button>
+      </header>
+
+      <div class="sos-case-body">
+        <div class="call-options-grid">
+          <button id="adminStartVideoCallBtn" class="call-option-btn call-video-btn" type="button">
+            <div class="call-option-icon">
+              <i data-lucide="video" aria-hidden="true"></i>
+            </div>
+            <div class="call-option-text">
+              <strong>Panggilan Video (Video Call)</strong>
+              <span>Berhubung dengan video langsung dan audio dua hala</span>
+            </div>
+            <i data-lucide="chevron-right" class="call-option-arrow" aria-hidden="true"></i>
+          </button>
+
+          <button id="adminStartVoiceCallBtn" class="call-option-btn call-voice-btn" type="button">
+            <div class="call-option-icon">
+              <i data-lucide="phone-call" aria-hidden="true"></i>
+            </div>
+            <div class="call-option-text">
+              <strong>Panggilan Suara (Voice Call)</strong>
+              <span>Panggilan audio berkualiti tinggi terus ke peranti pengadu</span>
+            </div>
+            <i data-lucide="chevron-right" class="call-option-arrow" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+
+      <footer class="sos-case-footer">
+        <button class="secondary-button" id="caseCallOptionsCancelBtn" type="button">Batal</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Custom Clear Database Confirmation Modal -->
+  <div id="clearDbModal" class="sos-case-modal hidden" aria-modal="true" role="dialog" aria-labelledby="clearDbModalTitle">
+    <div class="sos-case-backdrop" id="clearDbBackdrop"></div>
+    <div class="sos-case-card clear-db-modal-card">
+      <header class="sos-case-header">
+        <div class="sos-case-header-main">
+          <div class="sos-case-badge-pulse clear-db-badge">
+            <i data-lucide="database" aria-hidden="true"></i>
+          </div>
+          <div>
+            <h2 id="clearDbModalTitle" class="sos-case-title">Pembersihan Pangkalan Data</h2>
+            <p class="sos-case-subtitle">Reset rekod ujian selain akaun rasmi @resqtap</p>
+          </div>
+        </div>
+        <button class="sos-case-close-btn" id="clearDbCloseBtn" type="button" aria-label="Tutup dialog">
+          <i data-lucide="x" aria-hidden="true"></i>
+        </button>
+      </header>
+
+      <div class="sos-case-body">
+        <div class="clear-db-alert-banner">
+          <i data-lucide="alert-triangle" aria-hidden="true"></i>
+          <div>
+            <strong>Amaran Penting: Tindakan ini tidak boleh dikembalikan!</strong>
+            <p>Operasi ini akan memadam data ujian secara menyeluruh dari Realtime Database & Firebase Authentication.</p>
+          </div>
+        </div>
+
+        <div class="clear-db-breakdown">
+          <div class="clear-db-item">
+            <div class="clear-db-item-icon trash">
+              <i data-lucide="trash-2" aria-hidden="true"></i>
+            </div>
+            <div class="clear-db-item-text">
+              <strong>Dipadam Sepenuhnya (Selain @resqtap):</strong>
+              <p>Profil pengguna, bilik & panggilan, sejarah SOS, sembang sokongan/AI, koordinat GPS, dan akaun Firebase Auth.</p>
+            </div>
+          </div>
+
+          <div class="clear-db-item">
+            <div class="clear-db-item-icon shield">
+              <i data-lucide="shield-check" aria-hidden="true"></i>
+            </div>
+            <div class="clear-db-item-text">
+              <strong>Dikekalkan Selamat (Dilindungi):</strong>
+              <p>Semua akaun admin/staf berdomain <code>@resqtap</code> (seperti <em>chesster@resqtap.com</em>) akan kekal selamat.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="sos-case-footer">
+        <button class="secondary-button" id="clearDbCancelBtn" type="button">Batal</button>
+        <button class="clear-db-btn-danger" id="clearDbConfirmBtn" type="button">
+          <i data-lucide="trash-2" aria-hidden="true"></i>
+          <span id="clearDbConfirmText">Sahkan & Bersihkan</span>
+        </button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Floating Incoming SOS Call Alert for Admin -->
+  <div id="adminIncomingCallAlert" class="admin-call-alert hidden" role="alert" aria-live="assertive">
+    <div class="admin-call-alert-content">
+      <div class="admin-call-pulse-avatar">
+        <i data-lucide="phone-incoming" aria-hidden="true"></i>
+      </div>
+      <div class="admin-call-details">
+        <h4 id="adminIncomingCallerName" class="admin-call-caller-name">Mangsa SOS</h4>
+        <p id="adminIncomingCallDesc" class="admin-call-desc">Membuat panggilan kecemasan...</p>
+      </div>
+      <div class="admin-call-actions">
+        <button id="adminAcceptCallBtn" class="call-accept-btn" type="button">
+          <i data-lucide="phone" aria-hidden="true"></i>
+          <span id="adminAcceptCallBtnText">Jawab Panggilan</span>
+        </button>
+        <button id="adminDeclineCallBtn" class="call-decline-btn" type="button">
+          <i data-lucide="phone-off" aria-hidden="true"></i>
+          <span>Abaikan</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/app.js?v=admin-hl-v8"></script>
+</body>
+</html>
+
