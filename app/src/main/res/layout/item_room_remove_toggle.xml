@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="12dp"
+    android:gravity="center"
+    android:orientation="horizontal"
+    android:paddingStart="4dp"
+    android:paddingEnd="4dp">
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_footer_add_member"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="0dp"
+        android:layout_height="42dp"
+        android:layout_marginEnd="6dp"
+        android:layout_weight="1"
+        android:letterSpacing="0"
+        android:text="@string/room_add_member_btn"
+        android:textColor="@color/brand_primary"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        app:cornerRadius="999dp"
+        app:icon="@drawable/ic_person_add"
+        app:iconGravity="textStart"
+        app:iconPadding="8dp"
+        app:iconSize="18dp"
+        app:iconTint="@color/brand_primary" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/remove_person_footer"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="0dp"
+        android:layout_height="42dp"
+        android:layout_marginStart="6dp"
+        android:layout_weight="1"
+        android:letterSpacing="0"
+        android:text="@string/room_remove_member_label"
+        android:textColor="@color/danger_red"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        app:cornerRadius="999dp"
+        app:icon="@drawable/ic_delete"
+        app:iconGravity="textStart"
+        app:iconPadding="8dp"
+        app:iconSize="18dp"
+        app:iconTint="@color/danger_red" />
+
+</LinearLayout>
+
