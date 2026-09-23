@@ -728,4 +728,402 @@ public class QuickMessageActivity extends BaseActivity {
             wave.start();
         }
     }
+
+    private int[] getWaveBarIds() {
+        return new int[]{
+                R.id.tts_wave_bar_1,
+                R.id.tts_wave_bar_2,
+                R.id.tts_wave_bar_3,
+                R.id.tts_wave_bar_4,
+                R.id.tts_wave_bar_5,
+                R.id.tts_wave_bar_6
+        };
+    }
+
+    private void speakInputText() {
+        speakText(getTrimmedText(), true);
+    }
+
+    private void speakText(String text, boolean remember) {
+        String cleanText = text == null ? "" : text.trim();
+        if (cleanText.isEmpty()) {
+            showEmptyTextToast();
+            return;
+        }
+
+        if (!ttsReady || tts == null) {
+            Toast.makeText(this, R.string.toast_generic_error, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try {
+            applyTtsLanguage();
+            applySpeechRate();
+            tts.speak(cleanText, TextToSpeech.QUEUE_FLUSH, null, "text_to_speech_" + System.currentTimeMillis());
+            triggerPlaybackAnimation();
+            if (remember) {
+                addToHistory(cleanText);
+            }
+        } catch (Exception ignored) {
+            Toast.makeText(this, R.string.toast_generic_error, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void copyText() {
+        String text = getTrimmedText();
+        if (text.isEmpty()) {
+            showEmptyTextToast();
+            return;
+        }
+
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clipboard != null) {
+            clipboard.setPrimaryClip(ClipData.newPlainText(getString(R.string.text_to_speech_title), text));
+            Toast.makeText(this, R.string.text_to_speech_copied, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /** Simpan atau hantar data Text. */
+    private void saveText() {
+        String text = getTrimmedText();
+        if (text.isEmpty()) {
+            showEmptyTextToast();
+            return;
+        }
+
+        getTtsPrefs()
+                .edit()
+                .putString(KEY_SAVED_TEXT, text)
+                .apply();
+        addToHistory(text);
+        Toast.makeText(this, R.string.text_to_speech_saved, Toast.LENGTH_SHORT).show();
+    }
+
+    private void pasteClipboardText() {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clipboard == null || !clipboard.hasPrimaryClip() || clipboard.getPrimaryClip() == null) {
+            Toast.makeText(this, R.string.text_to_speech_clipboard_empty, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        ClipData clipData = clipboard.getPrimaryClip();
+        if (clipData == null || clipData.getItemCount() == 0) {
+            Toast.makeText(this, R.string.text_to_speech_clipboard_empty, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        CharSequence pasted = clipData.getItemAt(0).coerceToText(this);
+        if (pasted == null || TextUtils.isEmpty(pasted.toString().trim())) {
+            Toast.makeText(this, R.string.text_to_speech_clipboard_empty, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Editable current = ttsInput.getText();
+        int selectionStart = Math.max(0, ttsInput.getSelectionStart());
+        int selectionEnd = Math.max(0, ttsInput.getSelectionEnd());
+        int start = Math.min(selectionStart, selectionEnd);
+        int end = Math.max(selectionStart, selectionEnd);
+        int available = MAX_TEXT_LENGTH - (current.length() - (end - start));
+        if (available <= 0) {
+            Toast.makeText(this, R.string.text_to_speech_empty_error, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String pasteText = pasted.toString();
+        if (pasteText.length() > available) {
+            pasteText = pasteText.substring(0, available);
+        }
+        current.replace(start, end, pasteText);
+        ttsInput.setSelection(start + pasteText.length());
+        Toast.makeText(this, R.string.text_to_speech_pasted, Toast.LENGTH_SHORT).show();
+    }
+
+    private void cycleSpeechRate() {
+        selectedSpeechRateIndex = (selectedSpeechRateIndex + 1) % SPEECH_RATES.length;
+        getTtsPrefs()
+                .edit()
+                .putInt(KEY_SPEECH_RATE_INDEX, selectedSpeechRateIndex)
+                .apply();
+        updateSpeedLabel();
+        applySpeechRate();
+    }
+
+    /** Simpan atau hantar data SpeedLabel. */
+    private void updateSpeedLabel() {
+        if (speedValue != null) {
+            speedValue.setText(SPEECH_RATE_LABELS[selectedSpeechRateIndex]);
+        }
+    }
+
+    private void applySpeechRate() {
+        if (tts == null) return;
+        try {
+            tts.setSpeechRate(SPEECH_RATES[selectedSpeechRateIndex]);
+        } catch (Exception ignored) {
+        }
+    }
+
+    /** Simpan atau hantar data CharacterCount. */
+    private void updateCharacterCount() {
+        if (charCount == null || ttsInput == null || ttsInput.getText() == null) return;
+        charCount.setText(String.format(Locale.getDefault(), "%d / %d", ttsInput.getText().length(), MAX_TEXT_LENGTH));
+    }
+
+    private void addToHistory(String text) {
+        String cleanText = text == null ? "" : text.trim();
+        if (cleanText.isEmpty()) return;
+
+        List<String> history = loadHistory();
+        for (int i = history.size() - 1; i >= 0; i--) {
+            if (cleanText.equals(history.get(i))) {
+                history.remove(i);
+            }
+        }
+        history.add(0, cleanText);
+        while (history.size() > MAX_HISTORY_ITEMS) {
+            history.remove(history.size() - 1);
+        }
+        saveHistory(history);
+        renderHistory();
+    }
+
+    private List<String> loadHistory() {
+        List<String> history = new ArrayList<>();
+        String raw = getTtsPrefs().getString(KEY_HISTORY, "[]");
+        try {
+            JSONArray array = new JSONArray(raw);
+            for (int i = 0; i < array.length(); i++) {
+                String item = array.optString(i, "").trim();
+                if (!item.isEmpty()) {
+                    history.add(item);
+                }
+            }
+        } catch (JSONException ignored) {
+        }
+        return history;
+    }
+
+    /** Simpan atau hantar data History. */
+    private void saveHistory(List<String> history) {
+        JSONArray array = new JSONArray();
+        for (String item : history) {
+            array.put(item);
+        }
+        getTtsPrefs()
+                .edit()
+                .putString(KEY_HISTORY, array.toString())
+                .apply();
+    }
+
+    private void renderHistory() {
+        if (historyList == null || emptyHistory == null) return;
+        historyList.removeAllViews();
+        List<String> history = loadHistory();
+        emptyHistory.setVisibility(history.isEmpty() ? View.VISIBLE : View.GONE);
+        for (String item : history) {
+            addHistoryRow(item);
+        }
+    }
+
+    private void addHistoryRow(String text) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(dp(12), dp(10), dp(10), dp(10));
+        row.setMinimumHeight(dp(66));
+        row.setBackgroundResource(R.drawable.bg_tts_history_card);
+        row.setClickable(true);
+        row.setFocusable(true);
+        row.setOnClickListener(v -> fillInputFromHistory(text));
+
+        LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        rowParams.bottomMargin = dp(10);
+        historyList.addView(row, rowParams);
+
+        ImageView icon = new ImageView(this);
+        icon.setImageResource(R.drawable.ic_clock_24);
+        icon.setBackgroundResource(R.drawable.bg_tts_history_icon);
+        icon.setPadding(dp(9), dp(9), dp(9), dp(9));
+        row.addView(icon, new LinearLayout.LayoutParams(dp(36), dp(36)));
+
+        LinearLayout textColumn = new LinearLayout(this);
+        textColumn.setOrientation(LinearLayout.VERTICAL);
+        textColumn.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
+                0,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                1f
+        );
+        textParams.leftMargin = dp(12);
+        textParams.rightMargin = dp(8);
+        row.addView(textColumn, textParams);
+
+        TextView title = new TextView(this);
+        title.setText(R.string.text_to_speech_history_item_title);
+        title.setTextColor(getColor(R.color.text_primary));
+        title.setTextSize(12);
+        title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        title.setMaxLines(1);
+        title.setEllipsize(TextUtils.TruncateAt.END);
+        textColumn.addView(title, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
+
+        TextView preview = new TextView(this);
+        preview.setText(text);
+        preview.setTextColor(getColor(R.color.text_secondary));
+        preview.setTextSize(12);
+        preview.setMaxLines(1);
+        preview.setEllipsize(TextUtils.TruncateAt.END);
+        LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        previewParams.topMargin = dp(4);
+        textColumn.addView(preview, previewParams);
+
+        ImageButton delete = new ImageButton(this);
+        delete.setImageResource(R.drawable.ic_delete);
+        delete.setBackgroundResource(R.drawable.bg_tts_round_action);
+        delete.setColorFilter(getColor(R.color.text_secondary));
+        delete.setPadding(dp(9), dp(9), dp(9), dp(9));
+        delete.setContentDescription(getString(R.string.delete));
+        delete.setOnClickListener(v -> removeFromHistory(text));
+        LinearLayout.LayoutParams deleteParams = new LinearLayout.LayoutParams(dp(36), dp(36));
+        deleteParams.rightMargin = dp(8);
+        row.addView(delete, deleteParams);
+
+        ImageButton play = new ImageButton(this);
+        play.setImageResource(R.drawable.ic_play_24);
+        play.setBackgroundResource(R.drawable.bg_tts_history_play);
+        play.setPadding(dp(10), dp(10), dp(10), dp(10));
+        play.setContentDescription(getString(R.string.text_to_speech_play));
+        play.setOnClickListener(v -> speakText(text, false));
+        row.addView(play, new LinearLayout.LayoutParams(dp(38), dp(38)));
+    }
+
+    /** Padam atau bersihkan FromHistory. */
+    private void removeFromHistory(String text) {
+        List<String> history = loadHistory();
+        boolean removed = false;
+        for (int i = history.size() - 1; i >= 0; i--) {
+            if (text.equals(history.get(i))) {
+                history.remove(i);
+                removed = true;
+            }
+        }
+        if (removed) {
+            saveHistory(history);
+            renderHistory();
+        }
+    }
+
+    private void fillInputFromHistory(String text) {
+        if (ttsInput == null) return;
+        ttsInput.setText(text);
+        ttsInput.setSelection(ttsInput.getText().length());
+    }
+
+    private SharedPreferences getTtsPrefs() {
+        return getSharedPreferences(PREFS_TTS, MODE_PRIVATE);
+    }
+
+    private int dp(int value) {
+        return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
+    }
+
+    private String getTrimmedText() {
+        if (ttsInput == null || ttsInput.getText() == null) return "";
+        return ttsInput.getText().toString().trim();
+    }
+
+    /** Paparkan EmptyTextToast. */
+    private void showEmptyTextToast() {
+        Toast.makeText(this, R.string.text_to_speech_empty_error, Toast.LENGTH_SHORT).show();
+    }
+
+    private void applyTtsLanguage() {
+        if (tts == null) return;
+        try {
+            Locale preferred = getSelectedTtsLocale();
+            int result = tts.setLanguage(preferred);
+            if (isUnsupportedLanguage(result) && "ms".equals(preferred.getLanguage())) {
+                tts.setLanguage(new Locale("ms"));
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    private int getInitialTtsLanguageIndex() {
+        String tag = LocaleUtils.getSavedLanguageTag(this);
+        if ("en".equals(tag)) return 1;
+        if ("zh".equals(tag)) return 2;
+        if ("ta".equals(tag)) return 3;
+        return 0;
+    }
+
+    private Locale getSelectedTtsLocale() {
+        int selected = languageSpinner == null ? 0 : languageSpinner.getSelectedItemPosition();
+        switch (selected) {
+            case 1:
+                return Locale.ENGLISH;
+            case 2:
+                return Locale.SIMPLIFIED_CHINESE;
+            case 3:
+                return new Locale("ta", "IN");
+            default:
+                return new Locale("ms", "MY");
+        }
+    }
+
+    /** Semak dan sahkan UnsupportedLanguage. */
+    private boolean isUnsupportedLanguage(int result) {
+        return result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED;
+    }
+
+    /** Aktiviti tidak lagi kelihatan pada skrin. */
+    @Override
+    protected void onStop() {
+        stopSpeechToText();
+        stopTts();
+        animateSttWaveBars(false);
+        super.onStop();
+    }
+
+    // SEKSYEN: ONDESTROY
+    /** Pembersihan memori, buang listener, dan tutup sambungan. */
+    @Override
+    protected void onDestroy() {
+        stopSpeechToText();
+        animateSttWaveBars(false);
+        if (speechRecognizer != null) {
+            try {
+                speechRecognizer.destroy();
+            } catch (Exception ignored) {
+            }
+            speechRecognizer = null;
+        }
+        stopTts();
+        if (tts != null) {
+            try {
+                tts.shutdown();
+            } catch (Exception ignored) {
+            }
+            tts = null;
+            ttsReady = false;
+        }
+        super.onDestroy();
+    }
+
+    private void stopTts() {
+        if (tts == null) return;
+        try {
+            tts.stop();
+        } catch (Exception ignored) {
+        }
+    }
 }
