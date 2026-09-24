@@ -198,4 +198,37 @@ public class EmergencyContactsActivity extends BaseActivity {
                 })
                 .show();
     }
+
+    private void syncUpsertToDb(EmergencyContact c) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+        String uid = user.getUid();
+        executor.execute(() -> {
+            try {
+                FirebaseRoomClient.upsertEmergencyContact(uid, c);
+            } catch (Exception ignored) {
+            }
+        });
+    }
+
+    private void syncDeleteToDb(String contactId) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+        String uid = user.getUid();
+        executor.execute(() -> {
+            try {
+                FirebaseRoomClient.deleteEmergencyContact(uid, contactId);
+            } catch (Exception ignored) {
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        try {
+            executor.shutdownNow();
+        } catch (Exception ignored) {
+        }
+    }
 }
