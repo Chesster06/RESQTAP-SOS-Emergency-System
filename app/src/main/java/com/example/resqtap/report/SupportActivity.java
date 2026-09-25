@@ -44,4 +44,5 @@ public class SupportActivity extends BaseActivity {
                 startActivity(intent);
             });
         }
+    }
 }
