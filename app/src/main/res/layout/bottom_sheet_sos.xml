@@ -37,4 +37,91 @@
         android:textColor="@color/text_secondary"
         android:textSize="14sp" />
 
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="220dp"
+        android:layout_marginTop="18dp">
+
+        <View
+            android:layout_width="220dp"
+            android:layout_height="220dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_sos_ring_outer" />
+
+        <View
+            android:layout_width="190dp"
+            android:layout_height="190dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_sos_ring_mid" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            android:layout_gravity="center"
+            app:cardBackgroundColor="@color/brand_red"
+            app:cardCornerRadius="999dp"
+            app:cardElevation="0dp">
+
+            <TextView
+                android:id="@+id/sos_sheet_count"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="10"
+                android:textColor="@color/white"
+                android:textSize="46sp"
+                android:textStyle="bold" />
+        </com.google.android.material.card.MaterialCardView>
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/sos_sheet_slide_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="center"
+        android:text="@string/sos_sheet_slide_to_cancel"
+        android:textColor="@color/text_primary"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="14dp"
+        app:cardBackgroundColor="#FF0B1220"
+        app:cardCornerRadius="999dp"
+        app:cardElevation="0dp">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="@string/sos_sheet_slide_track"
+                android:textColor="#E6FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <SeekBar
+                android:id="@+id/sos_sheet_seek"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingStart="0dp"
+                android:paddingEnd="0dp"
+                android:progress="0"
+                android:max="100"
+                android:splitTrack="false"
+                android:thumbOffset="0dp"
+                android:thumb="@drawable/sos_seek_thumb"
+                android:progressTint="#00000000"
+                android:progressBackgroundTint="#00000000" />
+        </FrameLayout>
+    </com.google.android.material.card.MaterialCardView>
+
 </LinearLayout>
