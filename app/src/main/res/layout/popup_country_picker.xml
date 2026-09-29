@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="280dp"
+    android:layout_height="320dp"
+    android:background="@drawable/bg_country_popup_card"
+    android:elevation="14dp"
+    android:orientation="vertical"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
+
+    <!-- Search Box inside Dropdown -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="38dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="6dp"
+        android:background="@drawable/bg_country_search_input"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp">
+
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:contentDescription="Search"
+            android:src="@drawable/ic_ios_search"
+            app:tint="#64748B" />
+
+        <EditText
+            android:id="@+id/et_search_country"
+            style="@android:style/Widget.EditText"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="8dp"
+            android:background="@null"
+            android:fontFamily="sans-serif"
+            android:gravity="center_vertical"
+            android:hint="@string/hint_search_country"
+            android:imeOptions="actionDone"
+            android:includeFontPadding="false"
+            android:inputType="text"
+            android:maxLines="1"
+            android:paddingStart="0dp"
+            android:paddingTop="0dp"
+            android:paddingEnd="0dp"
+            android:paddingBottom="0dp"
+            android:textColor="#0F172A"
+            android:textColorHint="#94A3B8"
+            android:textCursorDrawable="@null"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+</LinearLayout>

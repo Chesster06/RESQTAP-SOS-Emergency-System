@@ -1,0 +1,172 @@
+<resources>
+    <style name="ShapeAppearanceOverlay.ResQTap.Circle" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.ResQTap.MapTypeThumb" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.ResQTap.BottomSheetTopRounded" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">24dp</item>
+        <item name="cornerSizeTopRight">24dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+
+    <style name="Widget.ResQTap.OutlinedButton" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetRight">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="cornerRadius">16dp</item>
+        <item name="strokeWidth">1.5dp</item>
+        <item name="strokeColor">@color/brand_primary</item>
+        <item name="android:textColor">@color/brand_primary</item>
+        <item name="backgroundTint">@color/brand_primary_light</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:paddingLeft">16dp</item>
+        <item name="android:paddingRight">16dp</item>
+        <item name="android:stateListAnimator">@animator/btn_press_spring</item>
+    </style>
+
+    <style name="Widget.ResQTap.FilledButton" parent="Widget.Material3.Button">
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetRight">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="cornerRadius">16dp</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="android:textColor">@color/filled_button_text</item>
+        <item name="backgroundTint">@color/filled_button_bg</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="android:stateListAnimator">@animator/btn_press_spring</item>
+    </style>
+
+    <style name="Widget.ResQTap.MapControlButton" parent="Widget.Material3.Button.IconButton">
+        <item name="ensureMinTouchTargetSize">false</item>
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetRight">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="cornerRadius">999dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="android:padding">0dp</item>
+        <item name="iconGravity">textStart</item>
+        <item name="backgroundTint">@color/panel</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="strokeColor">@color/divider</item>
+        <item name="iconTint">@color/text_primary</item>
+        <item name="iconPadding">0dp</item>
+        <item name="iconSize">22dp</item>
+    </style>
+
+    <style name="Widget.ResQTap.MapControlButton.Dark" parent="Widget.ResQTap.MapControlButton">
+        <item name="backgroundTint">@color/text_primary</item>
+        <item name="iconTint">@color/white</item>
+        <item name="strokeWidth">0dp</item>
+    </style>
+
+    <style name="Widget.ResQTap.MapControlButton.Primary" parent="Widget.ResQTap.MapControlButton">
+        <item name="backgroundTint">@color/brand_primary</item>
+        <item name="iconTint">@color/white</item>
+        <item name="strokeWidth">0dp</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.ResQTap.Dialog" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">24dp</item>
+    </style>
+
+    <style name="ThemeOverlay.ResQTap.AlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="shapeAppearance">@style/ShapeAppearanceOverlay.ResQTap.Dialog</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.ResQTap.Dialog</item>
+        <item name="colorSurface">@color/panel</item>
+        <item name="colorSurfaceContainer">@color/panel</item>
+        <item name="colorSurfaceContainerHigh">@color/panel</item>
+        <item name="colorSurfaceContainerHighest">@color/panel</item>
+        <item name="colorSurfaceContainerLow">@color/panel</item>
+        <item name="colorSurfaceContainerLowest">@color/panel</item>
+        <item name="colorSurfaceBright">@color/panel</item>
+        <item name="elevationOverlayEnabled">false</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorPrimary">@color/dialog_button_text</item>
+        <item name="colorSecondary">@color/dialog_button_text</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.ResQTap.DialogButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.ResQTap.DialogButton</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Widget.ResQTap.DialogButton</item>
+    </style>
+
+    <style name="Widget.ResQTap.DialogButton" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/dialog_button_text</item>
+        <item name="iconTint">@color/dialog_button_text</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.ResQTap.BottomNavActiveIndicator" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">999dp</item>
+    </style>
+
+    <style name="Widget.ResQTap.BottomNav.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/bottom_nav_active_indicator</item>
+        <item name="shapeAppearance">@style/ShapeAppearanceOverlay.ResQTap.BottomNavActiveIndicator</item>
+    </style>
+
+    <style name="TextAppearance.ResQTap.BottomNav.Active" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:fontFamily">@font/sfuitext_regular</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <style name="TextAppearance.ResQTap.BottomNav.Inactive" parent="TextAppearance.ResQTap.BottomNav.Active" />
+
+    <style name="DatePickerTheme" parent="Theme.MaterialComponents.Dialog.Alert">
+        <item name="colorAccent">#D81B60</item>
+        <item name="android:colorAccent">#D81B60</item>
+        <item name="colorPrimary">#94A3B8</item>
+        <item name="android:textColorPrimary">#0F172A</item>
+        <item name="android:textColorSecondary">#475569</item>
+        <item name="android:textColorPrimaryInverse">#FFFFFF</item>
+        <item name="android:background">#E2E8F0</item>
+        <item name="android:windowBackground">@drawable/bg_datepicker_silver</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="Theme.ResQTap.BottomSheetDialog" parent="Theme.Material3.DayNight.BottomSheetDialog">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowAnimationStyle">@style/Animation.ResQTap.BottomSheetDialog</item>
+        <item name="bottomSheetStyle">@style/Widget.ResQTap.BottomSheet.Modal</item>
+    </style>
+
+    <style name="Animation.ResQTap.BottomSheetDialog" parent="@android:style/Animation.Activity">
+        <item name="android:windowEnterAnimation">@anim/slide_in_bottom</item>
+        <item name="android:windowExitAnimation">@anim/slide_out_bottom</item>
+    </style>
+
+    <style name="Widget.ResQTap.BottomSheet.Modal" parent="Widget.Material3.BottomSheet.Modal">
+        <item name="android:background">@android:color/transparent</item>
+        <item name="backgroundTint">@android:color/transparent</item>
+        <item name="behavior_hideable">true</item>
+        <item name="behavior_skipCollapsed">true</item>
+    </style>
+
+    <style name="Theme.ResQTap.CustomDialog" parent="Theme.MaterialComponents.Dialog.Alert">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:windowIsFloating">true</item>
+    </style>
+
+    <style name="TextAppearance.ResQTap.ErrorSmall" parent="TextAppearance.Design.Error">
+        <item name="android:textSize">10.5sp</item>
+    </style>
+</resources>
