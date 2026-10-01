@@ -11,5 +11,16 @@
             <corners android:radius="999dp" />
         </shape>
     </item>
-
+    <item android:left="90dp" android:right="34dp" android:top="62dp">
+        <shape android:shape="rectangle">
+            <stroke android:width="2dp" android:color="#FFD6DEE9" />
+            <corners android:radius="999dp" />
+        </shape>
+    </item>
+    <item android:left="32dp" android:right="116dp" android:top="96dp">
+        <shape android:shape="rectangle">
+            <stroke android:width="2dp" android:color="#FFD6DEE9" />
+            <corners android:radius="999dp" />
+        </shape>
+    </item>
 </layer-list>
