@@ -34,5 +34,59 @@
         android:textStyle="bold" />
 
     <!-- Description -->
+    <TextView
+        android:id="@+id/tv_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="8dp"
+        android:gravity="center"
+        android:lineSpacingExtra="3dp"
+        android:text="@string/delete_account_dialog_message"
+        android:textColor="@color/text_secondary"
+        android:textSize="14sp" />
+
+    <!-- Actions Row: Delete Account (Red) & Cancel (Soft Grey) -->
+    <LinearLayout
+        android:id="@+id/actions_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <!-- Delete Account Button: Solid Vibrant Red Pill -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_delete"
+            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:backgroundTint="#EF230C"
+            android:letterSpacing="0"
+            android:text="@string/delete_account"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:cornerRadius="999dp" />
+
+        <!-- Cancel Button: Soft light grey rounded pill -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_cancel"
+            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:backgroundTint="#F3F4F6"
+            android:letterSpacing="0"
+            android:text="@string/cancel"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:cornerRadius="999dp" />
+    </LinearLayout>
 
 </LinearLayout>
