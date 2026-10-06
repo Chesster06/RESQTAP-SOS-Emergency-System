@@ -1,0 +1,51 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+    <!-- 1. Outer Soft Glow Rim (matching the wide diffused pink boundary in screenshot) -->
+    <path
+        android:strokeColor="#22FFAAAA"
+        android:strokeWidth="6"
+        android:pathData="M100,100 m -90,0 a 90,90 0 1,0 180,0 a 90,90 0 1,0 -180,0" />
+
+    <!-- 2. Main Faint Track (Full circle light pink hairline) -->
+    <path
+        android:strokeColor="#55FFAAAA"
+        android:strokeWidth="2"
+        android:pathData="M100,100 m -90,0 a 90,90 0 1,0 180,0 a 90,90 0 1,0 -180,0" />
+
+    <!-- 3. Dense Radial Minute Ticks (60 ticks around the inside rim) -->
+    <!-- 0 to 90 deg -->
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M100,14 v7" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M109,15 l-0.7,6.9" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M118,17 l-1.4,6.8" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M126,20 l-2.1,6.6" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M135,24 l-2.8,6.4" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M142,28 l-3.5,6.0" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M150,34 l-4.1,5.6" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M157,40 l-4.7,5.1" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M163,48 l-5.2,4.6" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M168,56 l-5.7,4.0" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M173,64 l-6.1,3.4" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M177,72 l-6.4,2.7" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M180,81 l-6.7,2.0" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M182,90 l-6.9,1.3" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M183,100 h-7" />
+
+    <!-- 90 to 180 deg -->
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M182,110 l-6.9,-1.3" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M180,119 l-6.7,-2.0" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M177,128 l-6.4,-2.7" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M173,136 l-6.1,-3.4" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M168,144 l-5.7,-4.0" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M163,152 l-5.2,-4.6" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M157,160 l-4.7,-5.1" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M150,166 l-4.1,-5.6" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M142,172 l-3.5,-6.0" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M135,176 l-2.8,-6.4" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M126,180 l-2.1,-6.6" />
+    <path android:strokeColor="#40FFB4B4" android:strokeWidth="1.2" android:pathData="M118,183 l-1.4,-6.8" />
+
+</vector>
