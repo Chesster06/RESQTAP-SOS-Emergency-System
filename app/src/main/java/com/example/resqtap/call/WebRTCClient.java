@@ -290,4 +290,152 @@ public class WebRTCClient {
      * 4. setLocalDescription dengan answer
      * 5. hantar answer kepada pemanggil
      */
+    public void setRemoteDescriptionAndCreateAnswer(SessionDescription sdp, AnswerCallback callback) {
+        if (peerConnection == null) {
+            if (callback != null) callback.onError("peerConnection is null");
+            return;
+        }
+
+        peerConnection.setRemoteDescription(new SimpleSdpObserver() {
+            @Override
+            public void onSetSuccess() {
+                android.util.Log.d("WebRTCClient", "setRemoteDescription SUCCESS. Draining candidates and creating answer...");
+                drainQueuedCandidates();
+
+                MediaConstraints constraints = new MediaConstraints();
+                peerConnection.createAnswer(new SimpleSdpObserver() {
+                    @Override
+                    public void onCreateSuccess(SessionDescription answer) {
+                        android.util.Log.d("WebRTCClient", "createAnswer SUCCESS. Setting local description...");
+                        peerConnection.setLocalDescription(new SimpleSdpObserver() {
+                            @Override
+                            public void onSetSuccess() {
+                                android.util.Log.d("WebRTCClient", "setLocalDescription SUCCESS. Dispatching answer to signaling...");
+                                if (callback != null) {
+                                    callback.onAnswerCreated(answer);
+                                }
+                            }
+
+                            @Override
+                            public void onSetFailure(String error) {
+                                android.util.Log.e("WebRTCClient", "setLocalDescription FAILURE: " + error);
+                                if (callback != null) callback.onError("setLocalDescription failed: " + error);
+                            }
+                        }, answer);
+                    }
+
+                    @Override
+                    public void onCreateFailure(String error) {
+                        android.util.Log.e("WebRTCClient", "createAnswer FAILURE: " + error);
+                        if (callback != null) callback.onError("createAnswer failed: " + error);
+                    }
+                }, constraints);
+            }
+
+            @Override
+            public void onSetFailure(String error) {
+                android.util.Log.e("WebRTCClient", "setRemoteDescription FAILURE: " + error);
+                if (callback != null) callback.onError("setRemoteDescription failed: " + error);
+            }
+        }, sdp);
+    }
+
+    public synchronized void addIceCandidate(IceCandidate candidate) {
+        if (candidate == null) return;
+        if (peerConnection != null && isRemoteDescriptionSet) {
+            peerConnection.addIceCandidate(candidate);
+        } else {
+            queuedCandidates.add(candidate);
+        }
+    }
+
+    private synchronized void drainQueuedCandidates() {
+        isRemoteDescriptionSet = true;
+        if (peerConnection != null) {
+            for (IceCandidate c : queuedCandidates) {
+                peerConnection.addIceCandidate(c);
+            }
+            queuedCandidates.clear();
+        }
+    }
+
+    public void setRemoteDescription(SessionDescription sdp) {
+        if (peerConnection != null) {
+            peerConnection.setRemoteDescription(new SimpleSdpObserver(), sdp);
+        }
+    }
+
+    public void createAnswer(org.webrtc.SdpObserver observer) {
+        if (peerConnection != null) {
+            peerConnection.createAnswer(new SimpleSdpObserver() {
+                @Override
+                public void onCreateSuccess(SessionDescription sessionDescription) {
+                    peerConnection.setLocalDescription(new SimpleSdpObserver(), sessionDescription);
+                    observer.onCreateSuccess(sessionDescription);
+                }
+            }, new MediaConstraints());
+        }
+    }
+
+    /** Senyapkan atau aktifkan mikrofon tempatan (Mute/Unmute Audio). */
+    public void toggleAudio(boolean enable) {
+        if (localAudioTrack != null) {
+            localAudioTrack.setEnabled(enable);
+        }
+    }
+
+    /** Matikan atau hidupkan penstriman video kamera tempatan. */
+    public void toggleVideo(boolean enable) {
+        if (localVideoTrack != null) {
+            localVideoTrack.setEnabled(enable);
+        }
+    }
+
+    // 6. TEARDOWN & CLEANUP MEMORY
+    /** Tutup sambungan PeerConnection, lepaskan kamera, dan bersihkan semua sumber media. */
+    public void close() {
+        synchronized (this) {
+            queuedCandidates.clear();
+            isRemoteDescriptionSet = false;
+        }
+
+        if (videoCapturer != null) {
+            try {
+                videoCapturer.stopCapture();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            videoCapturer.dispose();
+            videoCapturer = null;
+        }
+
+        if (localVideoSource != null) {
+            localVideoSource.dispose();
+            localVideoSource = null;
+        }
+
+        if (localAudioSource != null) {
+            localAudioSource.dispose();
+            localAudioSource = null;
+        }
+
+        if (peerConnection != null) {
+            peerConnection.close();
+            peerConnection.dispose();
+            peerConnection = null;
+        }
+
+        if (peerConnectionFactory != null) {
+            peerConnectionFactory.dispose();
+            peerConnectionFactory = null;
+        }
+    }
+
+    public static class SimpleSdpObserver implements org.webrtc.SdpObserver {
+        @Override public void onCreateSuccess(SessionDescription sessionDescription) {}
+        @Override public void onSetSuccess() {}
+        @Override public void onCreateFailure(String s) {}
+        @Override public void onSetFailure(String s) {}
+    }
 }
+
