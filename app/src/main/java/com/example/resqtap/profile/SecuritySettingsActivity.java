@@ -517,4 +517,274 @@ public class SecuritySettingsActivity extends BaseActivity {
             }
         }
     }
+
+    private void openSetPin(boolean isChanging) {
+        openSetPin(isChanging, false);
+    }
+
+    private void openSetPin(boolean isChanging, boolean isForBiometric) {
+        Intent intent = new Intent(this, SetPinActivity.class);
+        intent.putExtra(SetPinActivity.EXTRA_IS_CHANGING, isChanging);
+        intent.putExtra(SetPinActivity.EXTRA_IS_FOR_BIOMETRIC, isForBiometric);
+        setPinLauncher.launch(intent);
+    }
+
+    private void handlePasswordReset() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        String email = user != null ? user.getEmail() : UserPrefs.getEmail(this);
+        if (user == null || email == null || email.trim().isEmpty()) {
+            Toast.makeText(this, R.string.security_password_reset_no_email, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        View content = LayoutInflater.from(this).inflate(R.layout.dialog_change_password, null, false);
+        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+                .setView(content)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        EditText inputCurrent = content.findViewById(R.id.input_current_password);
+        EditText inputNew = content.findViewById(R.id.input_new_password);
+        EditText inputConfirm = content.findViewById(R.id.input_confirm_password);
+
+        ImageView toggleCurrent = content.findViewById(R.id.btn_toggle_current_password);
+        ImageView toggleNew = content.findViewById(R.id.btn_toggle_new_password);
+        ImageView toggleConfirm = content.findViewById(R.id.btn_toggle_confirm_password);
+
+        setupPasswordVisibilityToggle(inputCurrent, toggleCurrent);
+        setupPasswordVisibilityToggle(inputNew, toggleNew);
+        setupPasswordVisibilityToggle(inputConfirm, toggleConfirm);
+
+        View btnClose = content.findViewById(R.id.btn_close_password);
+        if (btnClose != null) {
+            btnClose.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        ImageView iconLength = content.findViewById(R.id.icon_rule_length);
+        TextView tvLength = content.findViewById(R.id.tv_rule_length);
+        ImageView iconCasing = content.findViewById(R.id.icon_rule_casing);
+        TextView tvCasing = content.findViewById(R.id.tv_rule_casing);
+        ImageView iconNumber = content.findViewById(R.id.icon_rule_number);
+        TextView tvNumber = content.findViewById(R.id.tv_rule_number);
+        ImageView iconSpecial = content.findViewById(R.id.icon_rule_special);
+        TextView tvSpecial = content.findViewById(R.id.tv_rule_special);
+        ImageView iconCommon = content.findViewById(R.id.icon_rule_common);
+        TextView tvCommon = content.findViewById(R.id.tv_rule_common);
+
+        int colorPink = getResources().getColor(R.color.brand_primary);
+        int colorPrimaryText = getResources().getColor(R.color.text_primary);
+        int colorMuted = getResources().getColor(R.color.text_secondary);
+
+        if (inputNew != null) {
+            inputNew.addTextChangedListener(new android.text.TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+                @Override
+                public void afterTextChanged(android.text.Editable s) {
+                    String val = s != null ? s.toString() : "";
+                    boolean hasLength = val.length() >= 8;
+                    boolean hasUpper = !val.equals(val.toLowerCase());
+                    boolean hasLower = !val.equals(val.toUpperCase());
+                    boolean hasCasing = hasUpper && hasLower;
+                    boolean hasNumber = val.matches(".*\\d.*");
+                    boolean hasSpecial = val.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*");
+                    String cur = inputCurrent != null && inputCurrent.getText() != null
+                            ? inputCurrent.getText().toString().trim() : "";
+                    boolean isNotCommon = !val.equalsIgnoreCase("password")
+                            && !val.equals("12345678")
+                            && (!val.isEmpty() && !val.equals(cur));
+
+                    updateRuleUi(iconLength, tvLength, hasLength, colorPrimaryText, colorMuted);
+                    updateRuleUi(iconCasing, tvCasing, hasCasing, colorPrimaryText, colorMuted);
+                    updateRuleUi(iconNumber, tvNumber, hasNumber, colorPrimaryText, colorMuted);
+                    updateRuleUi(iconSpecial, tvSpecial, hasSpecial, colorPrimaryText, colorMuted);
+                    updateRuleUi(iconCommon, tvCommon, isNotCommon, colorPrimaryText, colorMuted);
+                }
+            });
+        }
+
+        TextView btnCancel = content.findViewById(R.id.btn_cancel_password);
+        com.google.android.material.button.MaterialButton btnAction = content.findViewById(R.id.btn_action_password);
+
+        TextView tvTitle = content.findViewById(R.id.tv_password_dialog_title);
+        TextView tvDesc = content.findViewById(R.id.tv_password_dialog_desc);
+
+        View layoutStep1 = content.findViewById(R.id.layout_step1_current);
+        View layoutStep2 = content.findViewById(R.id.layout_step2_new);
+        View layoutStep3 = content.findViewById(R.id.layout_step3_confirm);
+
+        final int[] currentStep = new int[]{1};
+
+        Runnable updateStepUi = () -> {
+            if (currentStep[0] == 1) {
+                if (tvTitle != null) tvTitle.setText(R.string.security_change_password_title);
+                if (tvDesc != null) tvDesc.setText(R.string.security_change_password_step1_desc);
+                if (layoutStep1 != null) layoutStep1.setVisibility(View.VISIBLE);
+                if (layoutStep2 != null) layoutStep2.setVisibility(View.GONE);
+                if (layoutStep3 != null) layoutStep3.setVisibility(View.GONE);
+                if (btnAction != null) {
+                    btnAction.setText(R.string.security_next);
+                    btnAction.setIconResource(R.drawable.ic_lock_outline);
+                }
+                if (btnCancel != null) btnCancel.setText(R.string.cancel);
+                if (inputCurrent != null) inputCurrent.requestFocus();
+            } else if (currentStep[0] == 2) {
+                if (tvTitle != null) tvTitle.setText(R.string.security_change_password_step2_title);
+                if (tvDesc != null) tvDesc.setText(R.string.security_change_password_step2_desc);
+                if (layoutStep1 != null) layoutStep1.setVisibility(View.GONE);
+                if (layoutStep2 != null) layoutStep2.setVisibility(View.VISIBLE);
+                if (layoutStep3 != null) layoutStep3.setVisibility(View.GONE);
+                if (btnAction != null) {
+                    btnAction.setText(R.string.security_next);
+                    btnAction.setIconResource(R.drawable.ic_lock_outline);
+                }
+                if (btnCancel != null) btnCancel.setText(R.string.cancel);
+                if (inputNew != null) inputNew.requestFocus();
+            } else {
+                if (tvTitle != null) tvTitle.setText(R.string.security_change_password_step3_title);
+                if (tvDesc != null) tvDesc.setText(R.string.security_change_password_step3_desc);
+                if (layoutStep1 != null) layoutStep1.setVisibility(View.GONE);
+                if (layoutStep2 != null) layoutStep2.setVisibility(View.GONE);
+                if (layoutStep3 != null) layoutStep3.setVisibility(View.VISIBLE);
+                if (btnAction != null) {
+                    btnAction.setText(R.string.security_change_password_title);
+                    btnAction.setIconResource(R.drawable.ic_lock_outline);
+                }
+                if (btnCancel != null) btnCancel.setText(R.string.cancel);
+                if (inputConfirm != null) inputConfirm.requestFocus();
+            }
+        };
+
+        if (btnCancel != null) {
+            btnCancel.setOnClickListener(v -> {
+                if (currentStep[0] > 1) {
+                    currentStep[0]--;
+                    updateStepUi.run();
+                } else {
+                    dialog.dismiss();
+                }
+            });
+        }
+
+        if (btnAction != null) {
+            btnAction.setOnClickListener(v -> {
+                String curPass = inputCurrent != null ? inputCurrent.getText().toString().trim() : "";
+                String newPass = inputNew != null ? inputNew.getText().toString().trim() : "";
+                String confirmPass = inputConfirm != null ? inputConfirm.getText().toString().trim() : "";
+
+                if (currentStep[0] == 1) {
+                    if (curPass.isEmpty()) {
+                        Toast.makeText(this, R.string.security_current_password_hint, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    currentStep[0] = 2;
+                    updateStepUi.run();
+                } else if (currentStep[0] == 2) {
+                    if (newPass.length() < 6) {
+                        Toast.makeText(this, R.string.security_pwd_rule_length, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (newPass.equals(curPass)) {
+                        Toast.makeText(this, R.string.security_password_same_as_current, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    currentStep[0] = 3;
+                    updateStepUi.run();
+                } else {
+                    if (confirmPass.isEmpty()) {
+                        Toast.makeText(this, R.string.security_confirm_password_hint, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (newPass.equals(curPass)) {
+                        Toast.makeText(this, R.string.security_password_same_as_current, Toast.LENGTH_SHORT).show();
+                        currentStep[0] = 2;
+                        updateStepUi.run();
+                        return;
+                    }
+                    if (!newPass.equals(confirmPass)) {
+                        Toast.makeText(this, R.string.security_password_mismatch, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    btnAction.setEnabled(false);
+
+                    // Re-authenticate user with current password
+                    com.google.firebase.auth.AuthCredential credential =
+                            com.google.firebase.auth.EmailAuthProvider.getCredential(email.trim(), curPass);
+
+                    user.reauthenticate(credential)
+                            .addOnSuccessListener(aVoid -> {
+                                user.updatePassword(newPass)
+                                        .addOnSuccessListener(unused -> {
+                                            Toast.makeText(this, R.string.security_password_updated, Toast.LENGTH_SHORT).show();
+                                            dialog.dismiss();
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            btnAction.setEnabled(true);
+                                            Toast.makeText(this, e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        });
+                            })
+                            .addOnFailureListener(e -> {
+                                btnAction.setEnabled(true);
+                                Toast.makeText(this, R.string.security_password_incorrect, Toast.LENGTH_SHORT).show();
+                                currentStep[0] = 1;
+                                updateStepUi.run();
+                            });
+                }
+            });
+        }
+
+        dialog.show();
+    }
+
+    private void setupPasswordVisibilityToggle(EditText editText, ImageView toggleButton) {
+        if (editText == null || toggleButton == null) return;
+
+        final boolean[] isVisible = new boolean[]{false};
+        toggleButton.setOnClickListener(v -> {
+            isVisible[0] = !isVisible[0];
+            if (isVisible[0]) {
+                editText.setTransformationMethod(android.text.method.HideReturnsTransformationMethod.getInstance());
+                toggleButton.setImageResource(R.drawable.ic_eye);
+                toggleButton.setContentDescription("Hide password");
+            } else {
+                editText.setTransformationMethod(android.text.method.PasswordTransformationMethod.getInstance());
+                toggleButton.setImageResource(R.drawable.ic_eye_off);
+                toggleButton.setContentDescription("Show password");
+            }
+            // Keep cursor position at the end of text
+            try {
+                editText.setSelection(editText.getText().length());
+            } catch (Exception ignored) {
+            }
+        });
+    }
+
+    private void updateRuleUi(ImageView icon, TextView tv, boolean passed, int colorPassed, int colorMuted) {
+        if (icon == null || tv == null) return;
+        if (passed) {
+            icon.setImageResource(R.drawable.ic_check_circle_pink);
+            tv.setTextColor(colorPassed);
+        } else {
+            icon.setImageResource(R.drawable.ic_check_circle_grey);
+            tv.setTextColor(colorMuted);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
 }
