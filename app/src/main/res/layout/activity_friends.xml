@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_home"
+    tools:context=".friend.FriendsActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/header_bar"
+            android:layout_width="match_parent"
+            android:layout_height="124dp"
+            android:background="@drawable/bg_wave_header_pink"
+            android:paddingStart="18dp"
+            android:paddingTop="12dp"
+            android:paddingEnd="18dp"
+            android:paddingBottom="20dp">
+
+            <ImageButton
+                android:id="@+id/btn_back"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_room_header_icon"
+                android:contentDescription="@string/back"
+                android:padding="10dp"
+                android:src="@drawable/ic_arrow_back_24"
+                app:tint="@color/white"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_marginEnd="12dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/friends_title"
+                android:textColor="@color/white"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toTopOf="@id/subtitle"
+                app:layout_constraintEnd_toStartOf="@id/btn_add_friend"
+                app:layout_constraintStart_toEndOf="@id/btn_back"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_chainStyle="packed" />
+
+            <TextView
+                android:id="@+id/subtitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="12dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Connect &amp; stay safe together"
+                android:textColor="#E6FFFFFF"
+                android:textSize="12.5sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/btn_add_friend"
+                app:layout_constraintStart_toEndOf="@id/btn_back"
+                app:layout_constraintTop_toBottomOf="@id/title" />
+
+            <FrameLayout
+                android:id="@+id/btn_add_friend"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_room_header_icon"
+                android:clickable="true"
+                android:contentDescription="@string/friend_add_title"
+                android:focusable="true"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_person_add"
+                    app:tint="@android:color/white" />
+
+                <View
+                    android:id="@+id/badge_friend_requests"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_gravity="top|end"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginEnd="2dp"
+                    android:background="@drawable/bg_notif_badge_dot"
+                    android:visibility="gone" />
+            </FrameLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <LinearLayout
+            android:id="@+id/layout_search_bar"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginEnd="20dp"
+            android:background="@drawable/bg_friends_search"
+            android:elevation="1dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="14dp">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_ios_search"
+                app:tint="@color/text_secondary" />
+
+            <EditText
+                android:id="@+id/input_search_friends"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:background="@null"
+                android:hint="@string/friend_search_hint"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_secondary"
+                android:textSize="14sp" />
+
+            <ImageButton
+                android:id="@+id/btn_clear_search"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Clear"
+                android:src="@drawable/ic_close_24"
+                android:visibility="gone"
+                app:tint="@color/text_secondary" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_friends_section_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="22dp"
+            android:layout_marginTop="18dp"
+            android:layout_marginEnd="22dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/friend_suggested_section"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <FrameLayout
+            android:id="@+id/friends_content_container"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_friends"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:paddingBottom="100dp" />
+
+            <LinearLayout
+                android:id="@+id/empty_friends_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginBottom="40dp"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="68dp"
+                    android:layout_height="68dp"
+                    android:alpha="0.4"
+                    android:src="@drawable/ic_ios_contacts" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:gravity="center"
+                    android:text="@string/friend_no_friends_title"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="40dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginEnd="40dp"
+                    android:gravity="center"
+                    android:text="@string/friend_no_friends_desc"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </FrameLayout>
+    </LinearLayout>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_nav"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_bottom_nav_glass"
+        android:clipToOutline="true"
+        android:elevation="16dp"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:paddingBottom="0dp"
+        android:translationZ="32dp"
+        app:activeIndicatorLabelPadding="12dp"
+        app:itemActiveIndicatorStyle="@style/Widget.ResQTap.BottomNav.ActiveIndicator"
+        app:itemIconSize="20dp"
+        app:itemIconTint="@color/bottom_nav_tint"
+        app:itemPaddingBottom="16dp"
+        app:itemPaddingTop="12dp"
+        app:itemRippleColor="@android:color/transparent"
+        app:itemTextAppearanceActive="@style/TextAppearance.ResQTap.BottomNav.Active"
+        app:itemTextAppearanceInactive="@style/TextAppearance.ResQTap.BottomNav.Inactive"
+        app:itemTextColor="@color/bottom_nav_tint"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/bottom_nav_menu" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
+
