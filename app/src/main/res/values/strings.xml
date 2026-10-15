@@ -1,0 +1,1262 @@
+<resources>
+    <string name="app_name">ResQTap</string>
+    <string name="close">Close</string>
+
+    <string name="login_title">Welcome!</string>
+    <string name="login_subtitle">ResQTap - resq tap for emergency help.</string>
+    <string name="login_desc">Enter your email and password to log in.</string>
+    <string name="hint_phone">Phone number</string>
+    <string name="hint_email">Email</string>
+    <string name="hint_password">Password</string>
+    <string name="hint_password_confirm">Confirm password</string>
+    <string name="login_button">Log In</string>
+    <string name="login_go_register">Create Account</string>
+    <string name="login_signup_prompt">Don\'t have an account? Sign up</string>
+    <string name="login_signup_action">Sign up</string>
+    <string name="auth_login_headline">Login into your\naccount and setup</string>
+    <string name="auth_signup_headline">Sign Up into your\naccount and setup</string>
+    <string name="auth_login_with">Or Login With</string>
+    <string name="auth_divider_or">or</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="signing_in_with_google">Signing in with Google…</string>
+    <string name="default_web_client_id" translatable="false">YOUR_GOOGLE_WEB_CLIENT_ID.apps.googleusercontent.com</string>
+    <string name="toast_google_sign_in_failed">Google sign in failed</string>
+    <string name="toast_google_sign_in_cancelled">Google sign in cancelled</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="forgot_password_title">Forgot Password</string>
+    <string name="forgot_password_desc">Enter your email to receive a password reset link.</string>
+    <string name="send_reset_email">Send Reset Email</string>
+    <string name="toast_register_success_login">Registration successful. Please log in again.</string>
+    <string name="toast_account_not_exist">Account does not exist. Please register first.</string>
+    <string name="toast_login_invalid">Invalid email or password.</string>
+    <string name="toast_login_empty">Please enter email and password.</string>
+    <string name="toast_login_failed">Login failed.</string>
+    <string name="toast_login_profile_missing">Login successful, but account data is missing in the database. Please register again.</string>
+    <string name="toast_login_db_denied">Unable to access database (Rules). Please check permissions.</string>
+    <string name="toast_email_already_exists">This email is already registered.</string>
+    <string name="toast_email_not_registered">This email is not registered.</string>
+    <string name="toast_too_many_requests">Too many attempts. This device is temporarily blocked. Try again later or change network.</string>
+    <string name="toast_reset_email_empty">Please enter your email first.</string>
+    <string name="toast_reset_email_sent">Password reset email sent. Please check your inbox.</string>
+    <string name="toast_reset_email_failed">Failed to send password reset email.</string>
+
+    <string name="register_title">Create Account</string>
+    <string name="register_desc">Fill in the details below to register.</string>
+    <string name="hint_name">Name</string>
+    <string name="hint_first_name">First Name</string>
+    <string name="hint_last_name">Last Name</string>
+    <string name="error_required_first_name">First name required</string>
+    <string name="error_required_last_name">Last name required</string>
+    <string name="error_required_ic">Please enter your IC number</string>
+    <string name="error_invalid_ic">Please enter a valid IC number (at least 6 digits)</string>
+    <string name="error_required_gender">Please select your gender</string>
+    <string name="error_required_phone">Please enter your phone number</string>
+    <string name="error_invalid_phone">Please enter a valid phone number (at least 7 digits)</string>
+    <string name="error_required_address">Please enter your home address</string>
+    <string name="error_required_religion">Please select your religion</string>
+    <string name="error_required_dob">Please select your date of birth</string>
+    <string name="error_required_ethnicity">Please select your ethnicity</string>
+    <string name="hint_address">Address</string>
+    <string name="hint_blood_type">Blood type</string>
+    <string name="hint_allergy">Allergies</string>
+    <string name="hint_condition">Condition</string>
+    <string name="hint_existing_conditions">Existing conditions</string>
+    <string name="medical_detail_header">Medical Information</string>
+    <string name="medical_allergies_none">No allergies</string>
+    <string name="medical_conditions_none">None</string>
+    <string name="register_emergency_contacts_title">Emergency Contacts (3)</string>
+    <string name="hint_emergency_contact_1">Emergency contact 1 (phone)</string>
+    <string name="hint_emergency_contact_2">Emergency contact 2 (phone)</string>
+    <string name="hint_emergency_contact_3">Emergency contact 3 (phone, optional)</string>
+    <string name="register_create_account">Create Account</string>
+    <string name="back_to_login">Back to Login</string>
+
+    <string name="home_title">Home</string>
+    <string name="home_subtitle">Press SOS in an emergency.</string>
+    <string name="home_subtitle_phone">Signed in: %1$s</string>
+    <string name="home_subtitle_name">Hi %1$s, press SOS in an emergency.</string>
+    <string name="home_sos">SOS</string>
+    <string name="home_quick_message">Quick Message</string>
+    <string name="home_nearby_hospital">Nearby Emergency Services</string>
+    <string name="home_emergency_contacts">Emergency Contacts</string>
+    <string name="home_call_police">Call Police</string>
+    <string name="home_call_ambulance">Call Ambulance</string>
+    <string name="home_sos_hint">Press the SOS button if you need urgent help.</string>
+    <string name="home_blood_type_unknown">Blood type: -</string>
+    <string name="home_blood_type_value">Blood type: %1$s</string>
+    <string name="home_blood_type_hidden">Blood type: Hidden</string>
+    <string name="medical_blood_type_unknown">Blood type: -</string>
+    <string name="medical_blood_type_value">Blood type: %1$s</string>
+    <string name="medical_allergies_unknown">Allergies: -</string>
+    <string name="medical_allergies_value">Allergies: %1$s</string>
+    <string name="medical_conditions_unknown">Existing conditions: -</string>
+    <string name="medical_conditions_value">Existing conditions: %1$s</string>
+    <string name="medical_hidden">Medical details are hidden</string>
+    <string name="home_gps_unknown">GPS: -</string>
+    <string name="home_gps_on">GPS: ON</string>
+    <string name="home_gps_off">GPS: OFF</string>
+
+    <string name="quick_message_title">Quick Message</string>
+    <string name="quick_message_hint">Choose a message below</string>
+    <string name="quick_msg_need_help">I need help</string>
+    <string name="quick_msg_sick">I feel sick</string>
+    <string name="quick_msg_cant_speak">I can’t speak</string>
+    <string name="quick_msg_call_ambulance">Please call an ambulance</string>
+    <string name="quick_msg_call_family">Please contact my family</string>
+
+    <string name="text_to_speech_title">Text to Speech</string>
+    <string name="text_to_speech_subtitle">Convert text into audio</string>
+    <string name="text_to_speech_hint">Type or paste text here to convert to speech...</string>
+    <string name="text_to_speech_voice">Voice</string>
+    <string name="text_to_speech_clear">Clear text</string>
+    <string name="text_to_speech_paste">Paste text</string>
+    <string name="text_to_speech_language_label">Language:</string>
+    <string name="text_to_speech_voice_settings">Voice Settings</string>
+    <string name="text_to_speech_input_label">Enter text</string>
+    <string name="text_to_speech_preview_label">Audio preview</string>
+    <string name="text_to_speech_play_hint">Tap the circle to read your text aloud.</string>
+    <string name="text_to_speech_speed">Speed</string>
+    <string name="text_to_speech_play">Play Voice</string>
+    <string name="text_to_speech_history_title">Recent history</string>
+    <string name="text_to_speech_history_empty">No recent audio yet</string>
+    <string name="text_to_speech_history_item_title">Recent audio</string>
+    <string name="text_to_speech_copy">Copy</string>
+    <string name="text_to_speech_share">Share</string>
+    <string name="text_to_speech_save">Save</string>
+    <string name="text_to_speech_empty_error">Please enter text first</string>
+    <string name="text_to_speech_copied">Text copied</string>
+    <string name="text_to_speech_pasted">Text pasted</string>
+    <string name="text_to_speech_clipboard_empty">Clipboard is empty</string>
+    <string name="text_to_speech_saved">Text saved</string>
+    <string name="text_to_speech_share_title">Share text</string>
+    <string name="speech_to_text_title">Speech To Text</string>
+    <string name="speech_to_text_subtitle">Choose a language, tap record, and your words will appear below.</string>
+    <string name="speech_to_text_ready">Ready</string>
+    <string name="speech_to_text_recording">Recording</string>
+    <string name="speech_to_text_processing">Processing</string>
+    <string name="speech_to_text_captured">Captured</string>
+    <string name="speech_to_text_hold">Tap to record</string>
+    <string name="speech_to_text_listening">Stop</string>
+    <string name="speech_to_text_realtime">Real time detection</string>
+    <string name="speech_to_text_listening_placeholder">Listening...</string>
+    <string name="speech_to_text_transcript">Transcript</string>
+    <string name="speech_to_text_placeholder">Your speech text will appear here.</string>
+    <string name="speech_to_text_permission">Microphone permission is required for speech to text.</string>
+    <string name="speech_to_text_unavailable">Speech recognition is not available on this device.</string>
+
+    <string name="share_live_location_title">Share Live Location</string>
+    <string name="share_live_location_desc">Send your current location to selected contacts.</string>
+    <string name="share_live_location_button">Share Location</string>
+
+    <string name="nearby_hospital_title">Nearby Emergency Services</string>
+    <string name="nearby_hospital_desc">Find nearby emergency services using your location.</string>
+    <string name="nearby_hospital_open_maps">Open Map</string>
+    <string name="nearby_hospital_show_list">Show Emergency Services</string>
+    <string name="nearby_hospital_loading">Loading emergency services...</string>
+    <string name="nearby_hospital_no_results">No emergency services found nearby.</string>
+    <string name="nearby_hospital_need_location">Location permission is required.</string>
+    <string name="nearby_hospital_search">Search Emergency Services</string>
+    <string name="nearby_hospital_enable_location_title">Location is off</string>
+    <string name="nearby_hospital_enable_location_msg">Please turn on Location (GPS) to search for nearby emergency services.</string>
+    <string name="nearby_hospital_enable_location_action">Open Settings</string>
+    <string name="filter_all">All</string>
+    <string name="filter_hospital">Hospital</string>
+    <string name="filter_police">Police</string>
+    <string name="filter_fire">Fire Station</string>
+    <string name="section_fire_services">Fire &amp; Rescue</string>
+    <string name="section_hospital_services">Hospital &amp; Medical</string>
+    <string name="section_police_services">Police Department</string>
+    <string name="emergency_location_count">%d locations</string>
+    <string name="cancel">Cancel</string>
+    <string name="direction">Directions</string>
+    <string name="map_type_title">Map type</string>
+    <string name="map_type_auto">Auto</string>
+    <string name="map_type_street">Street</string>
+    <string name="map_type_satellite">Satellite</string>
+    <string name="map_traffic_title">Traffic info</string>
+    <string name="map_traffic_subtitle">Show live road conditions</string>
+
+    <string name="emergency_contacts_title">Emergency Contacts</string>
+    <string name="emergency_contacts_desc">Add contacts to receive SOS automatically.</string>
+    <string name="emergency_contacts_list_title">Emergency Contacts List</string>
+    <string name="emergency_contacts_list_desc">Keep trusted people ready for SOS calls and alerts.</string>
+    <string name="emergency_contacts_safe_badge">SOS ready</string>
+    <string name="emergency_contacts_primary_label">Trusted contact</string>
+    <string name="emergency_contacts_add_title">Add Contact</string>
+    <string name="emergency_contacts_form_note">Add someone who should be easy to reach during an SOS.</string>
+    <string name="emergency_contacts_name_label">Contact name</string>
+    <string name="emergency_contacts_relationship_label">Relationship</string>
+    <string name="emergency_contacts_phone_label">Phone number</string>
+    <string name="emergency_contacts_empty">No emergency contacts yet.</string>
+    <string name="emergency_contact_remove_confirm">Remove this contact?</string>
+    <string name="hint_contact_name">Name</string>
+    <string name="hint_contact_relationship">Relationship</string>
+    <string name="emergency_contacts_add">Add Contact</string>
+    <string name="contact_call">Direct Dial</string>
+    <string name="contact_edit">Edit</string>
+    <string name="contact_remove">Remove</string>
+    <string name="search">Search</string>
+
+    <string name="back">Back</string>
+
+    <string name="toast_not_implemented">Not implemented yet (UI demo).</string>
+    <string name="toast_sos_demo">SOS pressed (demo). Next: GPS + SMS + alarm.</string>
+    <string name="sos_sheet_title">SOS</string>
+    <string name="sos_sheet_subtitle">Your SOS and location will be sent to your circle and emergency contacts.</string>
+    <string name="sos_sheet_slide_to_cancel">Slide to cancel</string>
+    <string name="sos_sheet_slide_track">Slide to cancel SOS</string>
+    <string name="sos_alarm_slide_to_snooze">Slide to snooze alarm</string>
+    <string name="sos_alarm_snoozed">Alarm Snoozed</string>
+    <string name="sos_alarm_snoozed_success">Alarm snoozed • Siren silenced</string>
+    <string name="sos_alarm_resolved_auto_snoozed">Case resolved by admin • Alarm &amp; vibration snoozed</string>
+    <string name="sos_alarm_cancelled_auto_snoozed">Case cancelled • Alarm &amp; vibration snoozed</string>
+    <string name="sos_alarm_served_by_admin">Case handled by %1$s • Siren silenced</string>
+    <string name="sos_alert_title">Emergency SOS</string>
+    <string name="sos_room_badge_format">Channel: %1$s • %2$s</string>
+    <string name="sos_alarm_view_map">View on Map</string>
+    <string name="sos_alarm_dismiss">Dismiss</string>
+    <string name="sos_alarm_alert_received_title">SOS Received!</string>
+    <string name="sos_alarm_sender_label">SOS TRIGGERED BY</string>
+    <string name="sos_alarm_emergency_badge">EMERGENCY</string>
+    <string name="sos_alarm_needs_help">Needs immediate emergency assistance!</string>
+    <string name="sos_alarm_room_format">Channel: %1$s</string>
+    <string name="sos_alarm_code_format">Code: %1$s</string>
+    <string name="sos_alarm_room_code_format">Channel: %1$s</string>
+    <string name="sos_alarm_card_bold">Worry Not!</string>
+    <string name="sos_alarm_card_desc1"><![CDATA[<font color="#E11D48"><b>Worry Not!</b></font> %1$s has triggered an SOS alert with location details!]]></string>
+    <string name="sos_alarm_card_desc2">So sit back tight and stay calm while checking the channel and reaching out.</string>
+    <string name="sos_action_snooze">Snooze</string>
+    <string name="toast_account_created">Account created successfully.</string>
+
+    <string name="sos_progress_title">SOS Emergency Progress</string>
+    <string name="sos_progress_subtitle">Real-time status of your active SOS</string>
+    <string name="sos_progress_active_badge">RESERVED BY ADMIN</string>
+    <string name="sos_progress_action_status">Action Progress Status</string>
+    <string name="sos_progress_updated">Updated %1$s</string>
+    <string name="sos_progress_step1_title">SOS Alert Reserved</string>
+    <string name="sos_progress_step1_desc">Emergency team received alert and assigned responder</string>
+    <string name="sos_progress_step2_title">Responder En Route</string>
+    <string name="sos_progress_step2_desc">Emergency personnel heading to your location</string>
+    <string name="sos_progress_step3_title">On Scene</string>
+    <string name="sos_progress_step3_desc">Responder arrived at location providing assistance</string>
+    <string name="sos_progress_step4_title">Case Resolved</string>
+    <string name="sos_progress_step4_desc">Emergency resolved safely and incident closed</string>
+    <string name="sos_progress_cancel_sos">Cancel Emergency SOS</string>
+    <string name="sos_progress_cancelled">Emergency SOS has been cancelled.</string>
+    <string name="sos_progress_responder_label">ASSIGNED RESPONDER</string>
+    <string name="sos_progress_latest_note">LATEST STATUS NOTE</string>
+    <string name="sos_progress_cannot_exit">SOS is currently active. Please cancel the SOS alert to exit.</string>
+    <string name="sos_call_responder">Call Responder</string>
+    <string name="sos_message_responder">Message Responder</string>
+
+    <string name="open_menu">Open menu</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_settings">Settings</string>
+    <string name="profile_photo">Profile photo</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="logout">Log out</string>
+    <string name="logout_confirm_title">Are You Logging Out?</string>
+    <string name="logout_confirm_message">You can always log back in at any time. If you just want to switch accounts, you can add another account.</string>
+    <string name="profile_name_default">Name not set</string>
+    <string name="profile_uid_placeholder">UID: -</string>
+
+    <string name="profile_title">Profile</string>
+    <string name="profile_pick_photo">Upload Photo</string>
+    <string name="delete">Delete</string>
+    <string name="clear_profile_photo">Clear Profile Photo</string>
+    <string name="delete_account">Delete Account</string>
+    <string name="delete_account_dialog_title">Delete your account?</string>
+    <string name="delete_account_dialog_message">Your account and all associated data will be permanently deleted. This action cannot be undone.</string>
+    <string name="delete_account_confirm">Delete this account? All data will be deleted and this action cannot be undone.</string>
+    <string name="delete_account_failed">Failed to delete account.</string>
+    <string name="delete_account_requires_relogin">Please log in again to delete your account.</string>
+    <string name="delete_account_success">Account deleted.</string>
+    <string name="delete_account_reauth_title">Confirm Account Deletion</string>
+    <string name="delete_account_reauth_desc">Type the word &quot;DELETE&quot; below to confirm the permanent deletion of your account and all data.</string>
+    <string name="delete_account_password_hint">Type DELETE here</string>
+    <string name="delete_account_reauth_action">Delete Account</string>
+    <string name="delete_account_match_error">Please type DELETE exactly to proceed.</string>
+    <string name="profile_uid_value">UID: %1$s</string>
+    <string name="save">Save</string>
+    <string name="toast_profile_saved">Profile saved.</string>
+    <string name="toast_photo_uploaded">Photo uploaded successfully.</string>
+    <string name="toast_contact_added">Contact added.</string>
+    <string name="toast_contact_updated">Contact updated.</string>
+    <string name="toast_contact_duplicate">This contact already exists.</string>
+    <string name="toast_contact_phone_duplicate">Emergency contact already exists.</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="settings_description">Personalize how ResQTap looks, speaks, and alerts you.</string>
+
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_dark_mode">Dark Mode</string>
+    <string name="settings_dark_mode_desc">Use a darker interface for low light.</string>
+    <string name="settings_light_mode">Light Mode</string>
+    <string name="settings_light_mode_desc">Use a brighter interface in daylight.</string>
+    <string name="settings_voice_emergency">Voice &amp; Emergency</string>
+    <string name="settings_haptic_feedback">Haptic Feedback</string>
+    <string name="settings_vibration_strength">Vibration Strength</string>
+    <string name="settings_vibration_desc">Choose how strong emergency vibration should feel.</string>
+    <string name="low">Low</string>
+    <string name="medium">Medium</string>
+    <string name="high">High</string>
+    <string name="settings_tts">TalkBack Screen Reader</string>
+    <string name="settings_tts_desc">Enable Android TalkBack accessibility service.</string>
+    <string name="settings_fullscreen_quick_message">Full Screen Emergency Text</string>
+    <string name="settings_fullscreen_quick_message_desc">Show quick messages in a bigger full-screen view.</string>
+
+    <string name="language">Language</string>
+    <string name="lang_ms">Bahasa Melayu</string>
+    <string name="lang_en">English</string>
+    <string name="lang_zh">Chinese (Mandarin)</string>
+    <string name="lang_ta">Tamil</string>
+
+    <string name="battery_settings">Battery Settings</string>
+    <string name="low_battery_alert">Low Battery Alert</string>
+    <string name="low_battery_alert_desc">Warn you before the phone gets too low.</string>
+    <string name="battery_saver_mode">Battery Saver Mode</string>
+    <string name="battery_saver_mode_desc">Enable Android System Battery Saver.</string>
+
+    <string name="toast_language_saved">Language saved. Restart the app to apply.</string>
+    <string name="tap_to_close">Tap to close</string>
+
+    <string name="restart_required_title">Restart required</string>
+    <string name="restart_required_message">Restart the app to apply the new language.</string>
+    <string name="restart_now">Restart now</string>
+    <string name="restart_later">Later</string>
+
+    <string name="google_maps_key">YOUR_GOOGLE_MAPS_API_KEY</string>
+
+    <string name="room_title">Live Location Channels</string>
+    <string name="room_desc">Create a channel or join using a Channel ID. Members in the same channel can see each other\'s live location.</string>
+    <string name="room_code_hint">Channel ID (e.g. A1B2C3)</string>
+    <string name="room_join">Join Channel</string>
+    <string name="room_create">Create Channel</string>
+    <string name="room_code_invalid">Invalid Channel ID.</string>
+    <string name="room_map_title">Channel Map</string>
+    <string name="room_code_label">Channel ID: %1$s</string>
+    <string name="room_members_title">Members</string>
+    <string name="room_members_count">Members: %1$d</string>
+    <string name="room_members_empty">No members yet.</string>
+    <string name="room_remove_member_label">REMOVE MEMBER</string>
+    <string name="room_remove_person_toggle">REMOVE PERSON</string>
+    <string name="room_remove_person_title">Remove person</string>
+    <string name="room_remove_person_msg">Remove %1$s from this channel?</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_remove">Remove</string>
+    <string name="room_saved_list">Saved Channels</string>
+    <string name="room_create_with_id">Create Channel</string>
+    <string name="room_id_optional">Channel ID (optional)</string>
+    <string name="room_password">Channel Password</string>
+    <string name="room_hub_info_title">Share live location safely</string>
+    <string name="room_hub_info_body">Create a private channel for your circle or join one with a Channel ID and password.</string>
+    <string name="room_hub_form_title">Channel access</string>
+    <string name="room_hub_form_subtitle">Use a memorable Channel ID or leave it blank to generate one.</string>
+    <string name="room_hub_chip_private">Private</string>
+    <string name="room_hub_chip_live">Live tracking</string>
+    <string name="room_hub_visual_title">Live circle</string>
+    <string name="room_hub_visual_subtitle">Members share location only inside this channel.</string>
+    <string name="room_hub_secure_note">Channel password keeps access limited to people you trust.</string>
+    <string name="room_view">View</string>
+    <string name="room_edit">Edit</string>
+    <string name="room_delete">Delete</string>
+    <string name="room_leave">Leave</string>
+    <string name="room_edit_title">Edit Channel</string>
+    <string name="room_delete_confirm">Delete this channel from your list?</string>
+    <string name="room_delete_confirm_title">Delete Channel</string>
+    <string name="room_delete_confirm_prompt">This action cannot be undone. All channel data and members will be removed.\n\nPlease type \"%1$s\" to confirm:</string>
+    <string name="room_delete_name_mismatch">Channel name does not match.</string>
+    <string name="room_leave_confirm">Leave this channel?</string>
+    <string name="room_code_exists">Channel ID already exists.</string>
+    <string name="room_already_joined">You already joined!</string>
+    <string name="room_owner_cannot_join">You are the channel owner.</string>
+    <string name="room_created_success">Channel created successfully.</string>
+    <string name="room_joined_success">Joined channel successfully.</string>
+    <string name="room_list_title">Channel List</string>
+    <string name="room_not_found">Channel not found</string>
+    <string name="room_empty">No channels yet.</string>
+    <string name="room_empty_title">No channels yet</string>
+    <string name="room_empty_desc">Tap the add button (+) above to create a channel</string>
+    <string name="room_search_not_found">Channel not found</string>
+    <string name="room_search_empty_desc">No channels match your search query</string>
+    <string name="toast_room_password_required">Please enter a channel password.</string>
+    <string name="toast_incorrect_room_password">Incorrect channel password.</string>
+    <string name="toast_password_mismatch">Passwords do not match.</string>
+    <string name="toast_register_failed">Registration failed.</string>
+    <string name="toast_register_failed_db">Registration failed (db).</string>
+    <string name="toast_register_fill_all">Please fill in all the fields above.</string>
+    <string name="toast_register_email_in_use">Email is already in use. Please go back to the Login page.</string>
+    <string name="toast_register_email_in_use_pick_another">Email is already registered. Please use another email.</string>
+    <string name="toast_complete_profile_needed">Account exists but profile is incomplete. Please complete your information.</string>
+    <string name="gmail_only_warning">Use @gmail.com email.</string>
+
+    <string name="bottom_nav_home">Home</string>
+    <string name="bottom_nav_message">Voice</string>
+    <string name="bottom_nav_room">Channels</string>
+    <string name="bottom_nav_profile">Profile</string>
+    <string name="bottom_nav_settings">Settings</string>
+
+    <string name="about_title">About ResQTap</string>
+    <string name="about_tagline">Emergency assistance application designed for safety and quick response.</string>
+    <string name="about_app_header">About Application</string>
+    <string name="about_app_body">ResQTap is an emergency application designed to help users send emergency alerts, share live location, and communicate quickly during emergency situations. The app aims to improve user safety through fast emergency response features.</string>
+    <string name="about_features_header">Features</string>
+    <string name="about_terms_header">Terms &amp; Conditions</string>
+    <string name="about_privacy_header">Privacy &amp; Security</string>
+    <string name="about_privacy_body">ResQTap values user privacy and applies reasonable security measures to protect user information and emergency data.</string>
+    <string name="about_version_header">Version</string>
+    <string name="about_version_body">Version 1.0\nDeveloped using Android Studio\nPowered by Firebase</string>
+    <string name="about_footer">© 2026 ResQTap. All rights reserved.</string>
+
+    <string name="feature_one_tap_sos">ResQTap SOS Alert</string>
+    <string name="feature_realtime_location">Real-Time Location Sharing</string>
+    <string name="feature_emergency_room">Emergency Room System</string>
+    <string name="feature_nearby_hospital">Nearby Hospital Detection</string>
+    <string name="feature_instant_notification">Instant Notification &amp; Vibration Alert</string>
+    <string name="feature_emergency_contacts">Emergency Contact Support</string>
+    <string name="feature_secure_auth">Secure User Authentication</string>
+
+    <string name="terms_and_conditions_full" formatted="false">ResQTap Terms &amp; Conditions
+
+Welcome to ResQTap. By downloading, installing, accessing, or using this app, you agree to be bound by the Terms &amp; Conditions below. If you do not agree with any part of these terms, please stop using the app immediately.
+
+1. Introduction
+
+ResQTap is an emergency app designed to help users send emergency alerts, share their current location, and connect with contacts or room members during emergency situations. This app is intended to improve user safety but does not replace official emergency services such as police, hospitals, fire &amp; rescue, or government authorities.
+
+2. User Eligibility
+
+By using this app, you confirm that:
+
+You are at least 13 years old, or you use the app under guardian supervision.
+You have the right and authority to accept these terms.
+All information provided during registration is true, accurate, and up to date.
+
+3. App Usage
+
+You agree to use ResQTap only for lawful purposes. You must not:
+
+Use the app for fraud, harassment, threats, or illegal activities.
+Send false SOS alerts intentionally.
+Misuse location features or other users’ data sharing.
+Hack, modify, reverse engineer, or attempt to gain unauthorized access to the app?s systems.
+Use the app to distribute harmful content, viruses, spam, or activities that may impact other users.
+
+ResQTap reserves the right to suspend or terminate user accounts if these terms are violated.
+
+4. SOS &amp; Location Sharing
+
+This app may use:
+
+Real-time GPS location
+Internet connection
+Notifications
+Device vibration
+Selected contact access
+Room/member data
+
+You understand that:
+
+Location accuracy depends on your GPS and internet connection.
+SOS delivery may be disrupted due to network issues, battery limitations, system failures, or factors beyond control.
+ResQTap does not guarantee 100% successful emergency alert delivery at all times.
+
+5. User Responsibility
+
+You are fully responsible for:
+
+Your account security.
+Keeping your login information confidential.
+All activities performed through your account.
+Ensuring your device has working internet and GPS.
+
+You also agree not to misuse the emergency system in a way that causes panic, disturbance, or harm to others.
+
+6. Privacy &amp; User Data
+
+ResQTap may collect certain user data including:
+
+User name
+Profile information
+Current location
+Emergency data
+Room/member information
+App usage logs
+
+This data is used for:
+
+App safety features
+Emergency alert delivery
+System improvement
+Analytics and app stability
+
+We take reasonable steps to protect user data, but you understand that no digital system can be guaranteed 100% secure.
+
+7. Limitation of Liability
+
+ResQTap is provided "as is" and "as available". We do not guarantee that:
+
+The app will always be free from bugs or interruptions.
+All notifications will be received on time.
+The system will work without network disruptions or technical failures.
+
+The ResQTap developers are not responsible for:
+
+Data loss
+Device damage
+Injury
+Loss of life
+Direct or indirect losses
+Failure to deliver SOS due to external factors
+
+Use of this app is at your own risk.
+
+8. System Changes &amp; Updates
+
+We reserve the right to:
+
+Change app features
+Add or remove functionality
+Update the system
+Change design or policies
+Suspend or discontinue services temporarily or permanently without prior notice
+
+9. Intellectual Property
+
+All content in the app including:
+
+The ResQTap name
+Logo
+Design
+Source code
+Graphics
+User interface
+
+is owned by the developer or the rightful owner and protected by copyright laws.
+
+Users may not copy, sell, distribute, or exploit any part of the app without written permission.
+
+10. Termination
+
+We may suspend or terminate access without notice if:
+
+There is a violation of these terms
+The system is misused
+Suspicious activity is detected
+There is a threat to the security of the app or other users
+
+11. Third-Party Links &amp; Services
+
+The app may use third-party services such as:
+
+Google Maps
+Firebase
+Notification systems
+Location APIs
+
+Use of these services is subject to their respective terms and policies.
+
+12. User Consent
+
+By using ResQTap, you confirm that you:
+
+Have read and understood these Terms &amp; Conditions.
+Agree to comply with the rules stated.
+Understand the risks of using digital, internet-based emergency systems.
+
+13. Contact Us
+
+If you have questions, suggestions, or reports related to ResQTap, please contact the developer through the app?s official support channels.
+
+Effective Date: 2026
+App: ResQTap
+Terms Version: 1.0</string>
+
+    <string name="home_greeting">Hi, %1$s</string>
+    <string name="home_welcome_back">Welcome back!</string>
+    <string name="notifications">Notifications</string>
+
+    <string name="profile_personal_info">Personal Information</string>
+    <string name="profile_emergency_contacts">Emergency Contacts</string>
+    <string name="profile_security">Security</string>
+    <string name="profile_security_desc">App lock, biometrics &amp; security</string>
+    <string name="profile_app_settings">App Settings</string>
+    <string name="profile_language">Language</string>
+    <string name="profile_help_support">Help &amp; Support</string>
+    <string name="profile_about">About ResQTap</string>
+
+    <!-- Security Settings Activity Strings -->
+    <string name="security_title">Security</string>
+    <string name="security_desc">Configure app lock, PIN, and account protection.</string>
+    <string name="security_section_app_lock">Application Protection</string>
+    <string name="security_app_lock_title">App Lock (PIN)</string>
+    <string name="security_app_lock_desc">Require 4-digit PIN when opening the app.</string>
+    <string name="security_biometric_title">Biometric / Fingerprint</string>
+    <string name="security_biometric_desc">Use fingerprint recognition to unlock.</string>
+    <string name="security_change_pin_title">Change App PIN</string>
+    <string name="security_change_pin_desc">Update your 4-digit security passkey.</string>
+    <string name="security_change_biometric_pin_title">Change Biometric PIN</string>
+    <string name="security_change_biometric_pin_desc">Update your 4-digit backup PIN for biometric unlock.</string>
+    <string name="security_section_account">Account &amp; Access</string>
+    <string name="security_change_password_title">Change Password</string>
+    <string name="security_change_password_desc">Update your account login password.</string>
+    <string name="security_change_password_step1_desc">Enter your current password</string>
+    <string name="security_change_password_step2_title">New Password</string>
+    <string name="security_change_password_step2_desc">Create a strong new password</string>
+    <string name="security_change_password_step3_title">Confirm Password</string>
+    <string name="security_change_password_step3_desc">Re-enter your new password to confirm</string>
+    <string name="security_next">Next</string>
+    <string name="security_current_password_hint">Current Password</string>
+    <string name="security_new_password_hint">New Password</string>
+    <string name="security_confirm_password_hint">Confirm Password</string>
+    <string name="security_password_updated">Password successfully updated!</string>
+    <string name="security_password_incorrect">Current password is incorrect.</string>
+    <string name="security_password_mismatch">New password and confirmation do not match.</string>
+    <string name="security_password_same_as_current">New password cannot be the same as current password.</string>
+    <string name="security_pwd_rule_length">Must be a minimum of 8 characters</string>
+    <string name="security_pwd_rule_casing">One uppercase and lowercase letter</string>
+    <string name="security_pwd_rule_number">One number</string>
+    <string name="security_pwd_rule_special">Must contain special character</string>
+    <string name="security_pwd_rule_common">Must not be common</string>
+    <string name="security_device_status_title">Device Security Status</string>
+
+    <string name="security_device_status_secure">Protected • Screen lock active</string>
+    <string name="security_device_status_warning">Attention • No device screen lock set</string>
+    <string name="security_section_emergency">Emergency Safeguard</string>
+    <string name="security_duress_safeguard_title">Duress SOS Guard</string>
+    <string name="security_duress_safeguard_desc">Prevent accidental cancellation during an active emergency.</string>
+    <string name="security_pin_dialog_title">Set 4-Digit Security PIN</string>
+    <string name="security_pin_dialog_change_title">Change Security PIN</string>
+    <string name="security_pin_dialog_hint">Enter 4 digits</string>
+    <string name="security_pin_current_hint">Current 4-digit PIN</string>
+    <string name="security_pin_new_hint">New 4-digit PIN</string>
+    <string name="security_pin_confirm_hint">Confirm new 4-digit PIN</string>
+    <string name="security_pin_step_enter_title">Enter New PIN</string>
+    <string name="security_pin_step_enter_desc">Enter a 4-digit new PIN to secure your app</string>
+    <string name="security_pin_step_enter_your_title">Enter Your PIN</string>
+    <string name="security_pin_step_enter_your_desc">Enter a 4-digit PIN to secure your app</string>
+    <string name="security_pin_step_confirm_title">Confirm New PIN</string>
+    <string name="security_pin_step_confirm_desc">Re-enter your 4-digit new PIN to confirm</string>
+    <string name="security_pin_step_confirm_your_title">Confirm Your PIN</string>
+    <string name="security_pin_step_confirm_your_desc">Re-enter your 4-digit PIN to confirm</string>
+    <string name="security_pin_step_current_title">Enter Current PIN</string>
+    <string name="security_pin_step_current_desc">Enter your current 4-digit PIN to proceed</string>
+    <string name="security_pin_saved">Security PIN successfully set!</string>
+    <string name="security_pin_incorrect">Incorrect current PIN. Please try again.</string>
+    <string name="security_pin_mismatch">New PIN and confirmation do not match.</string>
+    <string name="security_pin_length_error">PIN must be exactly 4 digits.</string>
+    <string name="security_password_reset_sent">Password reset email sent to %1$s.</string>
+    <string name="security_password_reset_no_email">No registered email found for this account.</string>
+    <string name="security_app_lock_disabled">App lock disabled.</string>
+    <string name="app_lock_screen_title">Enter Security PIN</string>
+    <string name="app_lock_screen_desc">Please enter your 4-digit PIN to access ResQTap.</string>
+    <string name="app_lock_incorrect_pin">Incorrect PIN. Please try again.</string>
+    <string name="app_lock_use_biometric">Touch sensor or use Biometrics</string>
+    <string name="app_lock_biometric_prompt_title">Unlock ResQTap</string>
+    <string name="app_lock_biometric_prompt_subtitle">Verify your identity to open the app</string>
+    <string name="app_lock_forgot_pin">Forgot PIN?</string>
+    <string name="security_biometric_not_enrolled">No fingerprints registered on this device. Please register a fingerprint in device settings.</string>
+    <string name="security_biometric_unsupported">This device does not support biometric authentication.</string>
+    <string name="security_biometric_need_pin">Please enable App Lock (PIN) first to use Fingerprint unlock.</string>
+    <string name="biometric_register_title">Register Fingerprint</string>
+    <string name="biometric_register_subtitle">Touch sensor to register fingerprint</string>
+    <string name="biometric_confirm_title">Confirm Fingerprint</string>
+    <string name="biometric_confirm_subtitle">Touch sensor again to confirm</string>
+    <string name="biometric_confirm_sheet_title">Lift, then touch again</string>
+    <string name="biometric_confirm_sheet_subtitle">Keep lifting your finger to add the different parts of your fingerprint</string>
+    <string name="biometric_confirm_sheet_hint">Lift finger, then touch sensor again</string>
+    <string name="biometric_confirm_sheet_success">Fingerprint verified!</string>
+    <string name="biometric_confirm_sheet_action">DO IT LATER</string>
+    <string name="biometric_sheet_touch_sensor">Touch the fingerprint sensor</string>
+    <string name="biometric_prompt_verified_need_pin">Fingerprint confirmed! Please set your application backup PIN.</string>
+    <string name="biometric_and_pin_enabled_success">Biometric and Application PIN successfully enabled!</string>
+    <string name="security_biometric_disabled">Biometric unlock disabled.</string>
+    <string name="app_lock_use_pin_button">Use Application PIN</string>
+
+
+
+    <string name="toast_processing">Processing...</string>
+    <string name="toast_generic_error">Error. Please try again.</string>
+    <string name="toast_fill_all">Please fill in all the information above.</string>
+    <string name="toast_account_deleted">Account deleted successfully.</string>
+
+    <string name="personal_info_title">Personal Information</string>
+    <string name="personal_info_subtitle">Keep your details up to date</string>
+    <string name="hint_religion">Religion</string>
+    <string name="hint_personal_phone">Phone</string>
+    <string name="hint_parent_phone">Mobile phone</string>
+    <string name="hint_dob">Date of Birth</string>
+    <string name="hint_ethnicity">Ethnicity</string>
+    <string name="toast_complete_personal_info">Please complete your personal information first.</string>
+    <string name="edit_name_title">Change Name</string>
+    <string name="toast_name_required">Please enter a name.</string>
+
+    <string name="home_main_features">Main Features</string>
+    <string name="feature_hospital_title">Emergency Services</string>
+    <string name="feature_hospital_desc">Hospitals, police &amp; fire stations</string>
+    <string name="feature_contacts_title">Emergency Contact</string>
+    <string name="feature_contacts_desc">Manage emergency contacts</string>
+    <string name="feature_support_title">Help &amp; Support</string>
+    <string name="feature_support_desc">App guidance &amp; help</string>
+    <string name="feature_language_title">Language</string>
+    <string name="feature_language_desc">Change app language</string>
+    <string name="feature_report_title">Make a Report</string>
+    <string name="feature_report_desc">Send incident report</string>
+
+    <string name="report_title">Incident Details</string>
+    <string name="report_location_title">Location of Incident</string>
+    <string name="report_location_loading">Getting your current location...</string>
+    <string name="report_location_unavailable">Location is not available yet.</string>
+    <string name="report_update_location">Update Location</string>
+    <string name="report_additional_info">Additional Information (Optional)</string>
+    <string name="report_category_fire">Fire</string>
+    <string name="report_category_crime">Crime</string>
+    <string name="report_category_medical">Medical Aid</string>
+    <string name="report_category_humanitarian">Humanitarian Aid</string>
+    <string name="report_category_sea">Sea Emergency</string>
+    <string name="report_details_hint">Details *</string>
+    <string name="report_char_count_zero">Characters limit: 0/500</string>
+    <string name="report_char_count">Characters limit: %1$d/500</string>
+    <string name="report_attach_media">Attach Media *</string>
+    <string name="report_attachment_limit">Add up to 5 attachments</string>
+    <string name="report_add_media">Add media</string>
+    <string name="report_take_photo">Camera</string>
+    <string name="report_no_attachments">No attachments selected</string>
+    <string name="report_attachment_count">%1$d/5 attachments selected</string>
+    <string name="report_continue">Submit</string>
+    <string name="report_location_required">Please update your incident location first.</string>
+    <string name="report_category_required">Please select a report category.</string>
+    <string name="report_details_required">Please fill in the incident details.</string>
+    <string name="report_attachment_required">Please attach at least one media file.</string>
+    <string name="report_submitting">Submitting report...</string>
+    <string name="report_submitted">Report submitted successfully.</string>
+    <string name="report_success_title">Thank you</string>
+    <string name="report_success_message">Your report has been successfully submitted</string>
+    <string name="report_success_ok">OK</string>
+    <string name="report_submit_failed">Unable to submit report.</string>
+    <string name="report_attachment_full">You can attach up to 5 files only.</string>
+    <string name="report_attachment_uploading">Uploading attachments...</string>
+    <string name="report_location_permission_required">Location permission is required to submit a report.</string>
+    <string name="report_progress_title">Report Progress</string>
+    <string name="report_progress_desc">Real-time status of your incident report</string>
+    <string name="report_progress_stepper_title">Progress Status</string>
+    <string name="report_id_label">Report ID</string>
+    <string name="report_status_new">Submitted</string>
+    <string name="report_status_reviewing">Under Review</string>
+    <string name="report_status_resolved">Resolved</string>
+    <string name="report_status_rejected">Rejected</string>
+    <string name="report_step_1_title">Report Submitted</string>
+    <string name="report_step_1_desc">Incident logged into emergency system</string>
+    <string name="report_step_2_title">Under Review</string>
+    <string name="report_step_2_desc">Emergency dispatch is reviewing details</string>
+    <string name="report_step_3_title">Action in Progress</string>
+    <string name="report_step_3_desc">Emergency responders dispatched or handling</string>
+    <string name="report_step_4_title">Resolved</string>
+    <string name="report_step_4_desc">Incident resolved and closed</string>
+    <string name="report_action_new">Submit New Report</string>
+    <string name="report_action_view_active">View Active Report</string>
+    <string name="report_action_refresh">Refresh Status</string>
+    <string name="report_copied_id">Report ID copied</string>
+    <string name="report_not_found">No active report found.</string>
+    <string name="report_loading_progress">Loading report status...</string>
+    <string name="report_date_submitted">Submitted on %1$s</string>
+    <string name="report_active_pending_resolution">You cannot submit a new report while your current report is still active.</string>
+    <string name="report_deleted_or_closed">Report has been removed or closed.</string>
+    <string name="report_camera_permission_required">Camera permission is required to take a picture.</string>
+    <string name="report_camera_unavailable">Camera app is not available on this device.</string>
+
+    <string name="support_title">Help &amp; Support</string>
+    <string name="support_desc">If you need help, contact us here.</string>
+    <string name="support_livechat_title">Submit a Ticket</string>
+    <string name="support_livechat_desc">Submit a ticket directly to the ResQTap admin team.</string>
+    <string name="support_livechat_entry_desc">Submit a support ticket with topic and message.</string>
+    <string name="support_livechat_new_session">Open Support Ticket</string>
+    <string name="support_livechat_topic_hint">Ticket subject</string>
+    <string name="support_livechat_initial_message_hint">Describe the issue, steps taken, or extra details</string>
+    <string name="support_livechat_ticket_badge">New ticket</string>
+    <string name="support_livechat_queue_badge">Support queue</string>
+    <string name="support_livechat_form_note">A support ticket keeps your issue, files, and replies in one thread.</string>
+    <string name="support_livechat_priority_label">Priority</string>
+    <string name="support_livechat_priority_value">Standard</string>
+    <string name="support_livechat_sla_label">Response</string>
+    <string name="support_livechat_sla_value">Admin review</string>
+    <string name="support_livechat_topic_label">Subject</string>
+    <string name="support_livechat_message_label">Issue details</string>
+    <string name="support_livechat_attach">Attach file</string>
+    <string name="support_livechat_attach_short">+</string>
+    <string name="support_livechat_attach_document">Document</string>
+    <string name="support_livechat_attach_photo">Photos &amp; videos</string>
+    <string name="support_livechat_attach_camera">Camera</string>
+    <string name="support_livechat_attach_audio">Audio</string>
+    <string name="support_livechat_attach_calendar">Calendar</string>
+    <string name="support_livechat_start">Create Ticket</string>
+    <string name="support_livechat_no_attachment">No file attached</string>
+    <string name="support_livechat_topic_required">Enter a topic first.</string>
+    <string name="support_livechat_attachment_selected">Attached: %1$s</string>
+    <string name="support_livechat_attachment_uploading">Uploading attachment...</string>
+    <string name="support_livechat_attachment">Attachment</string>
+    <string name="support_livechat_open_attachment">Open attachment</string>
+    <string name="support_livechat_open_failed">Unable to open attachment.</string>
+    <string name="support_livechat_status_connecting">Connecting livechat...</string>
+    <string name="support_livechat_empty">Start a chat and our admin team will reply here.</string>
+    <string name="support_livechat_hint">Type your message</string>
+    <string name="support_livechat_send">Send</string>
+    <string name="support_livechat_login_required">Please sign in to use livechat.</string>
+    <string name="support_livechat_message_required">Enter a message first.</string>
+    <string name="support_livechat_sent">Message sent.</string>
+    <string name="support_livechat_failed">Unable to send message.</string>
+    <string name="support_livechat_sync_failed">Livechat sync failed.</string>
+    <string name="support_livechat_you">You</string>
+    <string name="support_livechat_admin">Admin</string>
+    <string name="support_livechat_ticket_claimed">Agent has been claimed your ticket</string>
+    <string name="support_livechat_typing">typing</string>
+    <string name="support_livechat_auto_reply">Hi! Thank you for contacting ResQTap Support. Your support request has been received successfully and is currently being reviewed by our support team. We are looking into the issue you reported so we can provide the right solution as soon as possible. Please wait for our response shortly.\n\nIf you have any additional information, such as screenshots, more details, or further clarification about this issue, you can reply to this ticket at any time to help us resolve your problem faster.\n\nIs there any additional information you would like to share about the issue you are facing? We appreciate your patience and cooperation throughout this process.</string>
+    <string name="support_livechat_waiting_agent_auto">While waiting for a Live Agent to join this chat, feel free to ask any questions or provide additional details about your issue. Our support team will assist you shortly.</string>
+
+    <string name="ai_chat_title">ResQTap Assistant</string>
+    <string name="ai_chat_subtitle">Ask about app features, settings, troubleshooting, and SOS tools.</string>
+    <string name="ai_chat_fab">Open ResQTap assistant</string>
+    <string name="ai_chat_welcome">Hi, I can help with ResQTap app features, settings, troubleshooting, and SOS tools.</string>
+    <string name="ai_chat_hint">Ask about ResQTap</string>
+    <string name="ai_chat_send">Send</string>
+    <string name="ai_chat_you">You</string>
+    <string name="ai_chat_assistant">ResQTap Support</string>
+    <string name="ai_chat_typing">...</string>
+    <string name="ai_chat_login_required">Please sign in to use the ResQTap assistant.</string>
+    <string name="ai_chat_empty_message">Enter a message first.</string>
+    <string name="ai_chat_failed">Unable to reach the ResQTap assistant.</string>
+    <string name="ai_chat_service_unavailable">ResQTap assistant service is not available yet.</string>
+    <string name="ai_chat_not_configured">The ResQTap assistant is not configured yet.</string>
+
+    <string name="language_title">Language</string>
+    <string name="language_choose">Choose a language</string>
+    <string name="toast_register_invalid_email">Invalid email.</string>
+    <string name="toast_register_weak_password">Password is too weak (min 6).</string>
+
+    <string name="map_toggle_type">Change map type</string>
+    <string name="map_my_location">My location</string>
+    <string name="map_zoom_in">Zoom in</string>
+    <string name="map_zoom_out">Zoom out</string>
+
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_empty">No notifications yet.</string>
+    <string name="notification_detail_sent">Sent %1$s</string>
+    <string name="notification_detail_source">Source: %1$s</string>
+    <string name="notification_detail_close">Close</string>
+    <string name="room_list_subtitle">Manage safety channels and members</string>
+    <string name="room_list_section_your_rooms">Your Channels</string>
+    <string name="room_list_filter_recently_active">Recently active</string>
+    <string name="splash_tagline">Fast help, safer you</string>
+    <string name="room_status_live">Live</string>
+
+    <string name="room_name_hint">Channel name</string>
+    <string name="dialog_edit_room_title">Channel Settings &amp; Permissions</string>
+    <string name="dialog_edit_room_message">Channel ID (code) cannot be changed. This updates the channel name and member permissions.</string>
+    <string name="room_settings_title">Channel Settings &amp; Permissions</string>
+    <string name="room_settings_desc">Manage preferences and member permissions for this safety channel.</string>
+    <string name="room_permissions_header">CHANNEL PERMISSIONS</string>
+    <string name="permission_allow_sos_title">Allow SOS Alarms</string>
+    <string name="permission_allow_sos_desc">Allow members to trigger and receive SOS emergency siren/broadcasts</string>
+    <string name="permission_allow_bell_title">Allow Ring / Bell Alerts</string>
+    <string name="permission_allow_bell_desc">Allow members to send audible ring or bell alerts to other members</string>
+    <string name="permission_allow_location_title">Live Location Sharing</string>
+    <string name="permission_allow_location_desc">Allow members in the channel to view each other\'s real-time location</string>
+    <string name="permission_allow_invites_title">Allow Member Invites</string>
+    <string name="permission_allow_invites_desc">Allow members to invite other friends into this safety channel</string>
+    <string name="room_settings_saved_success">Channel settings updated successfully</string>
+    <string name="sos_disabled_by_room_permission">SOS Alarms are currently disabled by the channel creator.</string>
+    <string name="bell_disabled_by_room_permission">Ring/Bell alerts are disabled in this channel by the creator.</string>
+    <string name="invite_disabled_by_room_permission">Member invitations are restricted to the channel creator.</string>
+    <string name="save_changes">Save Changes</string>
+    <string name="room_delete_room">Delete Channel</string>
+    <string name="toast_failed_with_reason">Failed: %1$s</string>
+
+    <string name="dialog_discard_changes_title">Discard changes?</string>
+    <string name="dialog_discard_changes_message">Discard your changes?</string>
+    <string name="action_yes">Yes</string>
+
+    <string name="dialog_clear_profile_photo_title">Remove profile photo?</string>
+    <string name="dialog_clear_profile_photo_message">Your profile photo will be removed and reset to default.</string>
+    <string name="action_remove_photo">Remove</string>
+    <string name="toast_profile_photo_removed">Profile photo removed.</string>
+    <string name="toast_upload_failed">Upload failed: %1$s</string>
+
+    <string name="battery_optimization_title">Battery Optimization</string>
+    <string name="battery_optimization_message">To ensure real-time SOS (FCM), please disable battery optimization for ResQTap. Some phones delay notifications when optimization is enabled.</string>
+    <string name="battery_optimization_disable">Disable</string>
+    <string name="battery_optimization_later">Later</string>
+
+    <string name="toast_removed_from_room">You were removed from this channel.</string>
+    <string name="toast_room_deleted">Channel deleted.</string>
+    <string name="toast_location_not_available_yet">Location not available yet.</string>
+    <string name="toast_removed_person">Removed %1$s.</string>
+    <string name="toast_turn_on_location">Please turn on Location (GPS).</string>
+    <string name="dialog_room_required_message">Please join or create a channel first.</string>
+    <string name="register_save_info">Save Information</string>
+    <string name="support_email_contact">Email: support@resqtap.app</string>
+    <string name="support_whatsapp_contact">WhatsApp: +60 12-345 6789</string>
+    <string name="nearby_hospital_error_missing_api_key">Missing Google Maps API key.</string>
+    <string name="nearby_hospital_error_failed_load">Failed to load hospitals.</string>
+    <string name="action_cancel_navigation">Cancel Navigation</string>
+    <string name="toast_my_location_not_available">Your location not available.</string>
+    <string name="loading_fastest_route">Finding the fastest route...</string>
+    <string name="faq_menu">Hi! I am ResQTap Assistant.\nPlease select common issues:\n\n1. How to change password or account\n2. How to use the SOS button\n3. How to use Room features\n4. How to add emergency contacts\n5. Issues related to location (GPS)\n6. App related issues</string>
+    <string name="faq_ans_1">Use Login or Register to access your account. If you forgot your password, use Forgot Password on the login screen. To update your profile, go to Profile or Settings.</string>
+    <string name="faq_ans_2">Use the SOS button to send emergency alerts and your location to your room or contacts. Only use in real emergencies.</string>
+    <string name="faq_ans_3">Open Room to create or join a room. Room members can share live location and receive SOS alerts.</string>
+    <string name="faq_ans_4">Open Emergency Contacts to add or edit contacts who can help during an emergency.</string>
+    <string name="faq_ans_5">Please turn on GPS and allow location access. ResQTap uses location for SOS alerts, room maps, and nearby hospitals.</string>
+    <string name="faq_ans_6">Try checking your internet connection, GPS, notification permissions, and \'battery optimization\'. Then restart ResQTap. For further assistance, contact support.</string>
+    <string name="faq_default">I only answer questions related to the application.\n\nPlease select common issues:\n1. How to change password or account\n2. How to use the SOS button\n3. How to use Room features\n4. How to add emergency contacts\n5. Issues related to location (GPS)\n6. App related issues</string>
+    <string name="faq_offer_livechat">You seem to have another question. Do you want to talk to a Live Chat Agent? (Y/N)</string>
+    <string name="notification_clear_all">Clear All</string>
+    <string name="notification_clear_all_confirm_title">Clear All Notifications</string>
+    <string name="notification_clear_all_confirm_msg">Are you sure you want to delete all notifications?</string>
+    <string name="notification_cleared_toast">All notifications cleared.</string>
+    <string name="bottom_nav_friends">Friends</string>
+    <string name="friends_title">Friends</string>
+    <string name="tab_friend_list">Friend List</string>
+    <string name="tab_friend_requests">Requests</string>
+    <string name="tab_my_qr">My QR</string>
+    <string name="tab_scan_qr">Scan QR</string>
+    <string name="friend_request_sent">Friend request sent successfully!</string>
+    <string name="friend_request_accepted">Friend request accepted!</string>
+    <string name="friend_request_rejected">Friend request rejected.</string>
+    <string name="friend_removed">Friend removed.</string>
+    <string name="scan_qr_prompt">Point camera at your friend\'s QR code</string>
+    <string name="friend_already_added">You are already friends!</string>
+    <string name="friend_request_already_sent">Friend request is already pending.</string>
+    <string name="cannot_add_self">You cannot add yourself as a friend.</string>
+    <string name="empty_friends">No friends added yet. Tap QR to add friends!</string>
+    <string name="empty_friend_requests">No pending friend requests.</string>
+
+    <string name="room_create_dialog_title">Create Safety Channel</string>
+    <string name="room_create_dialog_desc">Enter a channel name and select friends from your list to invite:</string>
+    <string name="room_name_input_hint">Channel Name (e.g. Family, Roadtrip)</string>
+    <string name="room_select_friends_title">Select Friends to Invite:</string>
+    <string name="room_no_friends_to_invite">No friends in your list yet. Add friends first in the Friends tab to add them into a channel.</string>
+    <string name="room_add_member_dialog_title">Add Members to Channel</string>
+    <string name="room_add_member_dialog_desc">Select friends from your friends list to add to this channel:</string>
+    <string name="room_no_new_friends_to_add">No new friends to add. All your friends are already in this channel or you have no friends added yet.</string>
+    <string name="room_select_at_least_one_friend">Please select at least one friend</string>
+    <string name="room_adding_member">Adding...</string>
+    <string name="room_member_added_success">Members added successfully!</string>
+    <string name="room_add_member_btn">Add Member</string>
+    <string name="room_default_name">Safety Channel</string>
+    <string name="room_enter_name_error">Please enter a channel name</string>
+    <string name="room_creating_status">Creating...</string>
+    <string name="room_error_prefix">Error: %1$s</string>
+
+    <string name="friend_add_by_id_title">Add by User ID</string>
+    <string name="friend_add_by_id_desc">Enter your friend\'s User ID (e.g. User#0000 or 0000) to search:</string>
+    <string name="friend_add_by_id_hint">Example: User#0000</string>
+    <string name="friend_add_dialog_close">Close</string>
+    <string name="friend_add_dialog_search">Search</string>
+    <string name="friend_enter_user_id">Please enter a User ID</string>
+    <string name="friend_user_not_found">User with ID \'%1$s\' not found</string>
+    <string name="friend_cannot_add_self">You cannot add yourself</string>
+    <string name="friend_sending_request">Sending...</string>
+    <string name="friend_request_sent_btn">Sent ✓</string>
+    <string name="friend_invite_btn">Invite</string>
+    <string name="friend_scan_qr_hint">Point camera at your friend\'s QR code</string>
+    <string name="friend_flashlight">Light</string>
+    <string name="friend_use_user_id">Use User ID</string>
+    <string name="friend_copy_id">Copy ID</string>
+    <string name="friend_share">Share</string>
+    <string name="friend_my_qr_hint">Ask your friend to scan this QR code to send a friend request</string>
+    <string name="friend_id_copied">User ID copied: %1$s</string>
+    <string name="friend_share_text">Add me as a friend on ResQTap! User ID: %1$s</string>
+    <string name="friend_share_title">Share User ID</string>
+    <string name="friend_delete_title">Remove Friend</string>
+    <string name="friend_delete_confirm_msg">Are you sure you want to remove %1$s from your friends list?</string>
+    <string name="friend_delete_action">Delete</string>
+    <string name="friend_accept_action">✓  Accept</string>
+    <string name="friend_reject_action">✕  Reject</string>
+    <string name="friend_incoming_request_subtext">Wants to be your friend</string>
+    <string name="friend_incoming_request_user_subtext">ID: #%1$s • Wants to be your friend</string>
+    <string name="friend_incoming_requests_section">INCOMING REQUESTS</string>
+    <string name="friend_no_incoming_requests">No friend requests</string>
+    <string name="friend_incoming_requests_placeholder">Friend requests will appear here</string>
+    <string name="friend_no_friends_title">No friends yet</string>
+    <string name="friend_no_friends_desc">Tap the add button (+) above to scan a friend\'s QR code</string>
+    <string name="friend_details_loading">Loading details…</string>
+    <string name="friend_details_blood">Blood</string>
+    <string name="friend_details_allergies">Allergies</string>
+    <string name="friend_details_conditions">Conditions</string>
+    <string name="friend_details_call">Call</string>
+    <string name="friend_details_no_phone">No phone number</string>
+    <string name="friend_details_no_email">No email</string>
+    <string name="friend_details_not_provided">None</string>
+    <string name="friend_default_name">Friend</string>
+    <string name="friend_user_default">User</string>
+    <string name="friend_tag_format">ID: #%1$s • Friend</string>
+    <string name="friend_resqtap_default">ResQTap Friend</string>
+    <string name="friend_manage_title">Add &amp; Manage Friends</string>
+    <string name="friend_option_scan">Scan QR Code</string>
+    <string name="friend_option_id">Add via User ID</string>
+    <string name="friend_option_my_qr">My QR Code</string>
+    <string name="friend_requests_with_count">Friend Requests (%1$d)</string>
+    <string name="friend_requests_no_count">Friend Requests</string>
+    <string name="friend_suggested_section">Suggested friends</string>
+    <string name="friend_suggested_section_count">Suggested friends (%1$d)</string>
+    <string name="friend_search_hint">Search friends.....</string>
+    <string name="friend_qr_invalid">Invalid QR code</string>
+    <string name="friend_camera_perm_required">Camera permission is required to scan QR codes</string>
+    <string name="friend_add_title">Add Friend</string>
+    <string name="friend_send_request_prompt">Send a friend request to %1$s?</string>
+    <string name="friend_send_request_btn">Send Request</string>
+    <string name="friend_send_failed">Failed to send friend request: %1$s</string>
+    <string name="friend_failed_prefix">Failed: %1$s</string>
+    <string name="friend_error_prefix">Error: %1$s</string>
+
+    <string name="login_header_title">Log in to stay protected with your family and safety network.</string>
+    <string name="login_header_subtitle">Access your 24/7 SOS safety hub and emergency network.</string>
+
+    <string name="register_step1_title">Create Your Account and Protect Your Loved Ones.</string>
+    <string name="register_step1_subtitle">Set up your email and secure password to get started.</string>
+    <string name="register_step2_title">Personal Information</string>
+    <string name="register_step2_subtitle">Fill in your personal profile details and take a clear photo to help responders identify you.</string>
+    <string name="register_step3_title">Medical &amp; Emergency Info</string>
+    <string name="register_step3_subtitle">Provide critical first-responder medical details and primary emergency contact.</string>
+    <string name="register_step4_title">You\'re All Set!</string>
+    <string name="register_step4_subtitle">Your safety tag and emergency profile are ready to protect you.</string>
+    <string name="register_step4_desc">Your emergency profile is now set up and ready to keep you safe.</string>
+    <string name="register_upload_photo">Take Photo</string>
+    <string name="register_profile_complete">Profile Complete!</string>
+    <string name="register_get_started">Get Started</string>
+    <string name="register_continue">Continue</string>
+    <string name="register_medical_section">Medical Information</string>
+    <string name="register_emergency_section">Primary Emergency Contact</string>
+    <string name="register_fill_required_step2">Please enter your Name, Address and Phone Number</string>
+
+    <string name="hint_gmail">Email Address</string>
+    <string name="hint_ic">IC Number</string>
+    <string name="hint_gender">Gender</string>
+    <string name="hint_allergies">Allergies</string>
+    <string name="hint_specify_allergy">Specify Allergy</string>
+    <string name="hint_specify_religion">Specify Religion</string>
+    <string name="hint_specify_ethnicity">Specify Ethnicity</string>
+    <string name="hint_search_country">Search country or code...</string>
+    <string name="hint_medications">Current Medications</string>
+    <string name="hint_specify_medication">Specify Medication / Condition</string>
+    <string name="hint_organ_donor">Organ Donor Status</string>
+    <string name="hint_emergency_name">Emergency Contact Name</string>
+    <string name="hint_emergency_phone">Emergency Contact Phone Number</string>
+    <string name="hint_emergency_relation">Relationship</string>
+    <string name="hint_specify_relation">Specify Relationship</string>
+
+    <string name="error_required_blood_type">Please select your blood type</string>
+    <string name="error_required_allergies">Please select allergy status</string>
+    <string name="error_required_medications">Please select medication status</string>
+    <string name="error_required_organ_donor">Please select organ donor status</string>
+    <string name="error_required_emergency_name">Please enter emergency contact name</string>
+    <string name="error_required_emergency_phone">Please enter emergency contact phone number</string>
+    <string name="error_invalid_emergency_phone">Please enter a valid phone number (at least 7 digits)</string>
+    <string name="error_required_emergency_relation">Please select relationship</string>
+    <string name="error_specify_other">Please specify details</string>
+
+    <string name="login_welcome_back">Welcome Back</string>
+    <string name="login_sign_in_sub">Sign in to your account</string>
+    <string name="login_header_sub">Access your 24/7 SOS safety hub and emergency network.</string>
+    <string name="login_email_hint">Email Address</string>
+    <string name="login_create_account_btn">Create Account</string>
+    <string name="call_connected">Connected</string>
+    <string name="friend_option_gallery">Scan from Gallery</string>
+    <string name="friend_qr_no_qr_found">No QR code found in this image</string>
+    <string name="toast_resume_profile_setup">Resuming profile setup...</string>
+    <string name="account_exists_dialog_title">Account Already Exists</string>
+    <string name="account_exists_dialog_msg">An account with %1$s is already registered in Firebase Authentication. If this is your account, please log in or reset your password.</string>
+    <string name="go_to_login">Log In</string>
+    <string name="reset_password">Reset Password</string>
+    <string name="ok">OK</string>
+    <string name="edit_profile_title">Edit Profile</string>
+    <string name="edit_profile_display">Display</string>
+    <string name="edit_profile_explore_benefits">Explore Benefits ›</string>
+    <string name="edit_profile_private_info">Private Information</string>
+    <string name="hint_weight">Weight</string>
+    <string name="hint_height">Height</string>
+    <string name="hint_birthdate">Birthdate</string>
+
+    <string name="pfp_sheet_title">Profile Photo</string>
+    <string name="pfp_sheet_desc">Update or remove your profile photo</string>
+    <string name="pfp_option_take_photo">Take Picture</string>
+    <string name="pfp_option_take_photo_desc">Use camera to capture a new photo</string>
+    <string name="pfp_option_gallery">Select from Gallery</string>
+    <string name="pfp_option_gallery_desc">Choose an image from your library</string>
+    <string name="pfp_option_remove">Remove Photo</string>
+    <string name="pfp_option_remove_desc">Delete current photo and reset to default</string>
+
+    <string name="tab_ai_assistant">AI Assistant</string>
+    <string name="tab_live_support">Live Support</string>
+    <string name="chat_input_hint_ai">Ask anything...</string>
+    <string name="chat_input_hint_live">Message support team...</string>
+    <string name="chat_disclaimer_ai">AI can make mistakes. Always double-check info.</string>
+    <string name="chat_disclaimer_live">Livechat with ResQTap Support Desk</string>
+    <string name="chat_disclaimer_unified">ResQTap Assistant • Smart responses &amp; live admin support</string>
+    <string name="live_support_admin_name">Admin Support</string>
+    <string name="live_support_online_status">Online • 1-on-1 Realtime Support</string>
+    <string name="live_support_admin_typing">Admin is typing...</string>
+    <string name="live_support_banner_new_msg">New message from Support</string>
+    <string name="live_support_empty_desc">Start chatting with our support agents. We are here to assist you!</string>
+    <string name="chip_switch_to_livechat">Talk to Human Agent 💬</string>
+    <string name="prompt_card_livechat_title">Livechat with support team?</string>
+    <string name="prompt_card_livechat_btn">View</string>
+    <string name="chat_transferred_to_admin_title">Transferred to Admin Session</string>
+    <string name="chat_transferred_to_admin_desc">Your chat session has now been successfully transferred to the ResQTap Live Admin Support Desk. A member of our dedicated support team will review your conversation and assist you directly with your request. Please remain in the chat while an admin is being connected to ensure a smooth and uninterrupted support experience. Thank you for your patience and for contacting ResQTap Support.</string>
+    <string name="livechat_active_cannot_reset">Livechat session is currently active. Only admin can close this session.</string>
+    <string name="livechat_session_ended_notice">The live support session has been marked resolved and closed by Admin. You can now use AI Assistant again.</string>
+    <string name="rate_service_title">How do you rate our customer service?</string>
+    <string name="rate_service_bad">Bad</string>
+    <string name="rate_service_excellent">Excellent</string>
+    <string name="rate_service_thanks">Thank you for your rating! ❤️</string>
+
+    <!-- Medical News & Home Localization -->
+    <string name="home_news_section_title">5 Latest News</string>
+    <string name="home_see_all_news">View All News</string>
+    <string name="home_highlights_title">Highlights</string>
+    <string name="medical_news_title">Medical News</string>
+    <string name="medical_news_load_failed">Failed to load latest news. Please try again.</string>
+    <string name="medical_news_source_health">Health</string>
+    <string name="medical_news_latest">Latest</string>
+
+    <!-- Room & Friend Notifications Localization -->
+    <string name="notif_friend_request_title">Friend Request</string>
+    <string name="notif_friend_request_msg">%1$s sent you a friend request.</string>
+    <string name="notif_friend_accepted_title">Friend Request Accepted</string>
+    <string name="notif_friend_accepted_msg">%1$s accepted your friend request!</string>
+    <string name="someone">Someone</string>
+    <string name="notif_room_created_title">Channel Created Successfully</string>
+    <string name="notif_room_created_msg">You have successfully created channel %1$s.</string>
+    <string name="notif_room_joined_title">Joined Channel Successfully</string>
+    <string name="notif_room_joined_msg">You have successfully joined channel %1$s.</string>
+    <string name="notif_room_deleted_title">Channel Deleted</string>
+    <string name="notif_room_left_title">Left Channel</string>
+    <string name="notif_room_deleted_msg">You have deleted channel %1$s.</string>
+    <string name="notif_room_left_msg">You have left channel %1$s.</string>
+    <string name="ai_feedback_thanks">Thanks for your feedback</string>
+    <string name="ai_feedback_improve">Feedback noted. We will improve this</string>
+
+    <!-- Room Chat -->
+    <string name="room_chat_title">Channel Chat</string>
+    <string name="room_chat_subtitle">Live chat with channel members</string>
+    <string name="room_chat_hint">Type a message...</string>
+    <string name="room_chat_send">Send</string>
+    <string name="room_chat_empty_title">No messages yet</string>
+    <string name="room_chat_empty_desc">Be the first to say hi or coordinate with your group members here!</string>
+    <string name="room_chat_today">Today</string>
+    <string name="room_chat_yesterday">Yesterday</string>
+    <string name="room_chat_btn_desc">Channel Messages</string>
+
+    <!-- Quick Emergency Preset Chips -->
+    <string name="chip_emergency_danger">🚨 Help! I am in danger</string>
+    <string name="chip_emergency_medical">🚑 Need medical assistance</string>
+    <string name="chip_emergency_location">📍 Please check my current location</string>
+    <string name="chip_emergency_safe">🟢 I am safe now</string>
+    <string name="chip_emergency_help_coming">🏃 Don\'t worry, I am on my way</string>
+
+    <!-- SOS Call & Livechat Additional Resources -->
+    <string name="sos_call_options_title">Emergency Call</string>
+    <string name="sos_call_options_subtitle">Choose call mode to connect with the admin responder:</string>
+    <string name="sos_call_option_video">Video Call</string>
+    <string name="sos_call_option_video_desc">Connect with responder via live video and audio</string>
+    <string name="sos_call_option_voice">Voice Call</string>
+    <string name="sos_call_option_voice_desc">Clear voice call audio without camera video</string>
+    <string name="sos_call_connecting_title">Connecting to Responder...</string>
+    <string name="sos_call_connecting_wait_voice">Please wait while the admin responder answers your voice call.</string>
+    <string name="sos_call_connecting_wait_video">Please wait while the admin responder answers your video call.</string>
+    <string name="sos_call_admin_busy">Admin responder is currently busy or unable to answer calls at this moment.</string>
+    <string name="sos_livechat_no_active_case">No active SOS case found.</string>
+    <string name="sos_livechat_input_hint">Type emergency message...</string>
+    <string name="sos_livechat_typing_status">Responder is typing...</string>
+    <string name="sos_livechat_chip_where">Where is the responder now?</string>
+    <string name="sos_livechat_chip_eta">How many minutes until arrival?</string>
+    <string name="sos_livechat_chip_safe_location">I am in a safe location.</string>
+    <string name="sos_livechat_chip_need_medical">I need immediate medical assistance!</string>
+    <string name="sos_login_required">Please log in to send SOS</string>
+    <string name="sos_topic_emergency">Emergency</string>
+    <string name="sos_topic_format">🚨 SOS Case (%1$s)</string>
+    <string name="sos_attachment_file_format">[Attached File: %1$s]</string>
+    <string name="sos_responder_admin_label">Administrator</string>
+
+    <!-- Introvert / Silent Emergency Response Features -->
+    <string name="call_decline_with_chat">Can\'t talk? Chat instead</string>
+    <string name="call_declined_silent_reason">User cannot speak. Transferred to silent text chat.</string>
+    <string name="checkin_status_safe">I am safe (False alarm)</string>
+    <string name="checkin_status_danger">I need help immediately!</string>
+    <string name="checkin_title">Emergency Check-In</string>
+    <string name="checkin_desc">Are you safe right now?</string>
+    <string name="toast_checkin_safe">Status updated: You are safe.</string>
+    <string name="toast_checkin_danger">Emergency alert refreshed!</string>
+
+    <!-- Private Friend Nickname -->
+    <string name="friend_nickname_dialog_title">Set Private Nickname</string>
+    <string name="friend_nickname_dialog_desc">This nickname will only be visible to you.</string>
+    <string name="friend_nickname_hint">Enter nickname (e.g. Bro, Roommate)</string>
+    <string name="friend_nickname_save">Save</string>
+    <string name="friend_nickname_reset">Reset</string>
+    <string name="friend_nickname_real_name_format">%1$s#%2$s • Friend</string>
+    <string name="friend_nickname_updated">Nickname updated</string>
+    <string name="friend_edit_nickname_desc">Edit private nickname</string>
+    <string name="account_deleted_notice">Session Timeout</string>
+    <!-- Medical Summary Dialog & Multi-Select -->
+    <string name="medical_summary_title">Medical Information</string>
+    <string name="medical_summary_desc">Quick emergency health summary</string>
+    <string name="medical_summary_btn_edit">Edit Medical Profile</string>
+    <string name="medical_summary_close">Close</string>
+    <string name="medical_summary_none_allergies">No known allergies</string>
+    <string name="medical_summary_none_conditions">No recorded conditions</string>
+    <string name="select_allergies_title">Select Allergies</string>
+    <string name="select_conditions_title">Select Conditions / Medications</string>
+
+    <!-- Sending Alarm Page Strings -->
+    <string name="sending_alarm_title">Sending Alarm</string>
+    <string name="sending_alarm_subtitle">Broadcasting emergency alert to admin and connected rooms...</string>
+    <string name="sending_alarm_status_dispatching">DISPATCHING EMERGENCY SIGNAL</string>
+    <string name="sending_alarm_gps_locating">Locating live GPS coordinates...</string>
+    <string name="sending_alarm_destinations_loading">Broadcasting to rooms &amp; admin...</string>
+    <string name="sending_alarm_admin_waiting">Waiting for admin responder...</string>
+    <string name="sending_alarm_admin_served">Responder assigned: %1$s</string>
+    <string name="sending_alarm_siren_on">Siren Sounding</string>
+    <string name="sending_alarm_siren_muted">Siren Muted</string>
+    <string name="sending_alarm_btn_mute">Mute Siren</string>
+    <string name="sending_alarm_btn_unmute">Unmute Siren</string>
+    <string name="sending_alarm_btn_chat">Emergency Chat</string>
+    <string name="sending_alarm_quiet_badge">SILENT SENDER MODE</string>
+    <string name="sending_alarm_cancelled_success">Emergency alarm cancelled.</string>
+    <string name="sending_alarm_calling_title">Emergency Calling…</string>
+    <string name="sending_alarm_calling_desc">Your Contact, app users nearby, and your organization will see your request help</string>
+    <string name="sending_alarm_brand_motto">Safety is Freedom</string>
+    <string name="sending_alarm_safe_now">I\'m Safe Now</string>
+    <string name="sending_alarm_confirm_safe_title">Stop SOS Alarm?</string>
+    <string name="sending_alarm_confirm_safe_desc">Are you sure you are safe? This will cancel the emergency signal sent to admin and room responders.</string>
+    <string name="sending_alarm_confirm_safe_btn">Yes, I am Safe</string>
+    <string name="sending_alarm_dialog_continue_sos">Keep Calling</string>
+    <string name="sending_alarm_dialog_stop_sos">Stop SOS</string>
+
+    <string name="security_change_password_modal_desc">Enter current password and set a new password.</string>
+    <string name="security_password_too_short">New password must be at least 6 characters.</string>
+
+    <!-- Navigation & Directions Strings -->
+    <string name="nav_calculating_route">Calculating route…</string>
+    <string name="nav_toggle_3d">Toggle 3D View</string>
+    <string name="nav_view_2d">Switch to 2D overview</string>
+    <string name="nav_view_3d">Switch to 3D navigation</string>
+    <string name="nav_overview">Overview</string>
+    <string name="nav_recenter">Recenter</string>
+    <string name="nav_cancel">Cancel Navigation</string>
+    <string name="nav_getting_gps">Obtaining current GPS location…</string>
+    <string name="report_summary">Report Summary</string>
+    <string name="toast_wrong_password_google_hint">Incorrect password. If you registered using Google, please tap \'Sign in with Google\'.</string>
+    <string name="marker_info_status_label">Status:</string>
+    <string name="marker_info_status_active">Available (24h)</string>
+    <string name="marker_info_distance_label">Distance:</string>
+    <string name="marker_info_directions">Get Directions</string>
+    <string name="capsule_estimated_arrival">Estimated Arrival</string>
+    <string name="user_marker_title_default">Your Location</string>
+    <string name="user_marker_status_label">Status:</string>
+    <string name="user_marker_status_active">GPS Active (Accurate)</string>
+    <string name="user_marker_coordinates_label">Coordinates:</string>
+    <string name="user_marker_locating_address">Locating address…</string>
+    <string name="user_marker_btn_copy_gps">Copy GPS</string>
+    <string name="user_marker_toast_copied">GPS coordinates copied: %1$s</string>
+</resources>
