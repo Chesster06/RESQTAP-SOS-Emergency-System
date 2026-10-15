@@ -1,0 +1,2947 @@
+package com.example.resqtap.map;
+import com.example.resqtap.R;
+
+import com.example.resqtap.app.BaseActivity;
+import com.example.resqtap.utils.PermissionUtils;
+import com.example.resqtap.utils.ThemeUtils;
+import com.example.resqtap.utils.UserPrefs;
+
+import android.Manifest;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.RectF;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.LinearInterpolator;
+import android.view.animation.OvershootInterpolator;
+import android.location.Location;
+import android.net.Uri;
+import android.os.Bundle;
+import android.provider.Settings;
+import java.util.List;
+import android.transition.AutoTransition;
+import android.transition.TransitionManager;
+import android.view.GestureDetector;
+import android.view.HapticFeedbackConstants;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
+import android.view.View;
+import com.google.android.material.switchmaterial.SwitchMaterial;
+import android.view.ViewGroup;
+import android.widget.HorizontalScrollView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
+import android.graphics.CornerPathEffect;
+import android.graphics.LinearGradient;
+import android.graphics.Shader;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.CancellationTokenSource;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.Path;
+import android.widget.ImageView;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.JointType;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.maps.model.RoundCap;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+
+/**
+ * NearbyHospitalActivity
+ * Cari hospital terdekat guna Google Places API: tunjuk jarak, nombor telefon, dan link direct ke Google Maps.
+ */
+public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCallback {
+    private GoogleMap map;
+    private FusedLocationProviderClient fusedLocationClient;
+    private ActivityResultLauncher<String[]> locationPerms;
+    private CancellationTokenSource cancellationTokenSource;
+
+    private LatLng currentLatLng;
+    private Marker myLocationMarker;
+    private final ArrayList<Marker> hospitalMarkers = new ArrayList<>();
+
+    private BottomSheetBehavior<?> sheetBehavior;
+    private View bottomSheetView;
+    private boolean pendingSearch = false;
+    private boolean gpsDialogShown = false;
+    private boolean hasAutoCentered = false;
+    private View mapControls;
+
+    private Polyline routePolyline;
+    private Polyline routeShadowPolyline;
+    private HospitalItem activeNavHospital;
+
+    private MaterialCardView cardNavigationInfo;
+    private TextView navDestinationName;
+    private TextView navStatusBadge;
+    private TextView navCategoryBadge;
+    private TextView navAddress;
+    private ImageView navCategoryIcon;
+    private MaterialCardView navIconCard;
+    private MaterialButton btnCancelNavigation;
+    private MaterialButton btnToggle3d;
+    private TextView tvToggle3dLabel;
+    private View layoutToggleView;
+    private boolean isNavigating3D = true;
+    private final ArrayList<LatLng> currentRoutePoints = new ArrayList<>();
+    private float currentNavBearing = 0f;
+
+    private View navSheetHeader;
+    private View navSheetHandle;
+    private View navSheetExpandedContent;
+    private MaterialCardView navCardAuto;
+    private MaterialCardView navCardStreet;
+    private MaterialCardView navCardSatellite;
+    private ImageView navCheckAuto;
+    private ImageView navCheckStreet;
+    private ImageView navCheckSatellite;
+    private View navCardTraffic;
+    private SwitchMaterial navSwitchTraffic;
+    private BottomSheetBehavior<MaterialCardView> navSheetBehavior;
+
+    private HorizontalScrollView scrollCategoryFilters;
+    private MaterialCardView searchCard;
+    private MaterialCardView capsuleEstimatedArrival;
+    private MaterialCardView capsuleIconCard;
+    private ImageView capsuleIcon;
+    private TextView capsuleEtaLabel;
+    private TextView capsuleEtaValue;
+    private LocationCallback navLocationCallback;
+    private Bitmap navigationDirectionBitmap;
+    private ValueAnimator markerTransitionAnimator;
+    private ValueAnimator markerRotationAnimator;
+
+    private String myPhotoUri = "";
+    private String myPhotoB64 = "";
+
+    // Marker Callout Views (Admin Dashboard / Popup Info Style)
+    private View markerCalloutLayout;
+    private MaterialCardView calloutLogoRing;
+    private ImageView calloutLogo;
+    private TextView calloutTitle;
+    private ImageView calloutBtnClose;
+    private TextView calloutStatus;
+    private TextView calloutStatusLabel;
+    private TextView calloutDistance;
+    private TextView calloutDistanceLabel;
+    private TextView calloutAddress;
+    private MaterialButton calloutBtnDirections;
+    private View calloutUserActions;
+    private MaterialButton calloutBtnCopyCoords;
+    private LatLng selectedCalloutLatLng;
+    private HospitalItem selectedCalloutHospital;
+
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final ArrayList<HospitalItem> hospitals = new ArrayList<>();
+    private final ArrayList<DisplayItem> displayItems = new ArrayList<>();
+    private HospitalAdapter listAdapter;
+    private RecyclerView recyclerView;
+    private TextView status;
+    private String currentCategory = "all";
+
+    private static final int SEARCH_RADIUS_METERS = 5000;
+    private static final int MAX_RESULTS_ALL_PER_CAT = 3;
+    private static final int MAX_RESULTS_SINGLE_CAT = 5;
+
+    private static final class HospitalItem {
+        final String name;
+        final String address;
+        final double lat;
+        final double lng;
+        final String category;
+        double distanceMeters;
+
+        HospitalItem(String name, String address, double lat, double lng, String category) {
+            this.name = name;
+            this.address = address;
+            this.lat = lat;
+            this.lng = lng;
+            this.category = category == null ? "hospital" : category;
+            this.distanceMeters = -1d;
+        }
+    }
+
+    private static final class DisplayItem {
+        static final int TYPE_HEADER = 0;
+        static final int TYPE_SERVICE = 1;
+
+        final int type;
+        final String category;
+        final String headerTitle;
+        final int count;
+        final HospitalItem hospital;
+
+        static DisplayItem createHeader(String category, String headerTitle, int count) {
+            return new DisplayItem(TYPE_HEADER, category, headerTitle, count, null);
+        }
+
+        static DisplayItem createService(HospitalItem hospital) {
+            return new DisplayItem(TYPE_SERVICE, hospital.category, null, 0, hospital);
+        }
+
+        private DisplayItem(int type, String category, String headerTitle, int count, HospitalItem hospital) {
+            this.type = type;
+            this.category = category;
+            this.headerTitle = headerTitle;
+            this.count = count;
+            this.hospital = hospital;
+        }
+    }
+
+    /** Keutamaan susunan kategori: 1 = Bomba, 2 = Medic / Hospital, 3 = Polis, 4 = Lain-lain. */
+    private static int getCategoryPriority(String category) {
+        if ("fire".equalsIgnoreCase(category)) return 1;
+        if ("hospital".equalsIgnoreCase(category)) return 2;
+        if ("police".equalsIgnoreCase(category)) return 3;
+        return 4;
+    }
+
+    private String getCategoryHeaderTitle(String category) {
+        if ("fire".equalsIgnoreCase(category)) {
+            return getString(R.string.section_fire_services);
+        } else if ("police".equalsIgnoreCase(category)) {
+            return getString(R.string.section_police_services);
+        } else {
+            return getString(R.string.section_hospital_services);
+        }
+    }
+
+    private void rebuildDisplayItems() {
+        displayItems.clear();
+        if (hospitals.isEmpty()) return;
+
+        String currentCat = null;
+        for (HospitalItem h : hospitals) {
+            String cat = h.category == null ? "hospital" : h.category;
+            if (!cat.equalsIgnoreCase(currentCat)) {
+                currentCat = cat;
+                int count = 0;
+                for (HospitalItem item : hospitals) {
+                    if (cat.equalsIgnoreCase(item.category)) count++;
+                }
+                displayItems.add(DisplayItem.createHeader(cat, getCategoryHeaderTitle(cat), count));
+            }
+            displayItems.add(DisplayItem.createService(h));
+        }
+    }
+
+    private final class HospitalAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+        @Override
+        public int getItemViewType(int position) {
+            return displayItems.get(position).type;
+        }
+
+        @NonNull
+        @Override
+        public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            if (viewType == DisplayItem.TYPE_HEADER) {
+                View row = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_hospital_header, parent, false);
+                return new HeaderViewHolder(row);
+            } else {
+                View row = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_hospital, parent, false);
+                return new ServiceViewHolder(row);
+            }
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+            DisplayItem item = displayItems.get(position);
+            if (holder instanceof HeaderViewHolder) {
+                HeaderViewHolder vh = (HeaderViewHolder) holder;
+                vh.title.setText(item.headerTitle);
+                try {
+                    vh.count.setText(getString(R.string.emergency_location_count, item.count));
+                } catch (Exception e) {
+                    vh.count.setText(String.valueOf(item.count));
+                }
+
+                vh.icon.setImageTintList(null);
+                if ("fire".equalsIgnoreCase(item.category)) {
+                    vh.icon.setImageResource(R.drawable.logo_bomba);
+                    vh.iconCard.setCardBackgroundColor(Color.parseColor("#FFF7ED"));
+                } else if ("police".equalsIgnoreCase(item.category)) {
+                    vh.icon.setImageResource(R.drawable.logo_pdrm);
+                    vh.iconCard.setCardBackgroundColor(Color.parseColor("#F0F4F9"));
+                } else {
+                    vh.icon.setImageResource(R.drawable.logo_kkm);
+                    vh.iconCard.setCardBackgroundColor(Color.parseColor("#FFF0F2"));
+                }
+            } else if (holder instanceof ServiceViewHolder) {
+                ServiceViewHolder vh = (ServiceViewHolder) holder;
+                HospitalItem hospital = item.hospital;
+                if (vh.name != null) vh.name.setText(hospital.name);
+                if (vh.distance != null) vh.distance.setText(formatDistance(hospital.distanceMeters));
+                if (vh.address != null) vh.address.setText(hospital.address == null ? "" : hospital.address);
+                if (vh.direction != null) vh.direction.setOnClickListener(v -> openDirections(hospital));
+                vh.itemView.setOnClickListener(v -> {
+                    if (sheetBehavior != null) {
+                        sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                    }
+                    showMarkerCallout(hospital, new LatLng(hospital.lat, hospital.lng));
+                });
+
+                if (vh.imgCategory != null) {
+                    vh.imgCategory.setImageTintList(null);
+                    if ("police".equalsIgnoreCase(hospital.category)) {
+                        vh.imgCategory.setImageResource(R.drawable.logo_pdrm);
+                        if (vh.cardCategory != null) {
+                            vh.cardCategory.setCardBackgroundColor(Color.parseColor("#F0F4F9"));
+                        }
+                    } else if ("fire".equalsIgnoreCase(hospital.category)) {
+                        vh.imgCategory.setImageResource(R.drawable.logo_bomba);
+                        if (vh.cardCategory != null) {
+                            vh.cardCategory.setCardBackgroundColor(Color.parseColor("#FFF7ED"));
+                        }
+                    } else {
+                        vh.imgCategory.setImageResource(R.drawable.logo_kkm);
+                        if (vh.cardCategory != null) {
+                            vh.cardCategory.setCardBackgroundColor(Color.parseColor("#FFF0F2"));
+                        }
+                    }
+                }
+            }
+        }
+
+        @Override
+        public int getItemCount() {
+            return displayItems.size();
+        }
+
+        final class ServiceViewHolder extends RecyclerView.ViewHolder {
+            final TextView name;
+            final TextView distance;
+            final TextView address;
+            final MaterialButton direction;
+            final ImageView imgCategory;
+            final MaterialCardView cardCategory;
+
+            ServiceViewHolder(@NonNull View row) {
+                super(row);
+                name = row.findViewById(R.id.hospital_name);
+                distance = row.findViewById(R.id.hospital_distance);
+                address = row.findViewById(R.id.hospital_address);
+                direction = row.findViewById(R.id.btn_direction);
+                imgCategory = row.findViewById(R.id.img_category_icon);
+                cardCategory = (MaterialCardView) row.findViewById(R.id.card_category_icon);
+            }
+        }
+
+        final class HeaderViewHolder extends RecyclerView.ViewHolder {
+            final MaterialCardView iconCard;
+            final ImageView icon;
+            final TextView title;
+            final TextView count;
+
+            HeaderViewHolder(@NonNull View row) {
+                super(row);
+                iconCard = (MaterialCardView) row.findViewById(R.id.header_icon_card);
+                icon = row.findViewById(R.id.header_icon);
+                title = row.findViewById(R.id.header_title);
+                count = row.findViewById(R.id.header_count);
+            }
+        }
+    }
+
+    // SEKSYEN: ONCREATE
+    /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        ThemeUtils.applySavedNightMode(this);
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_nearby_hospital);
+
+        View main = findViewById(R.id.main);
+        View overlayUi = findViewById(R.id.overlay_ui);
+        bottomSheetView = findViewById(R.id.bottom_sheet);
+
+        if (overlayUi != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(overlayUi, (v, insets) -> {
+                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
+                return insets;
+            });
+        }
+        if (bottomSheetView != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(bottomSheetView, (v, insets) -> {
+                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                if (recyclerView != null) {
+                    recyclerView.setPadding(
+                            recyclerView.getPaddingLeft(),
+                            recyclerView.getPaddingTop(),
+                            recyclerView.getPaddingRight(),
+                            dp(NearbyHospitalActivity.this, 16) + systemBars.bottom
+                    );
+                }
+                applyMapControlsBottomOffset();
+                return insets;
+            });
+        }
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        locationPerms = registerForActivityResult(
+                new ActivityResultContracts.RequestMultiplePermissions(),
+                this::onLocationPermissionResult
+        );
+
+        myPhotoUri = String.valueOf(UserPrefs.getPhotoUri(this) == null ? "" : UserPrefs.getPhotoUri(this)).trim();
+        myPhotoB64 = String.valueOf(UserPrefs.getPhotoB64(this) == null ? "" : UserPrefs.getPhotoB64(this)).trim();
+
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map_fragment);
+        if (mapFragment != null) mapFragment.getMapAsync(this);
+
+        MaterialButton btnZoomIn = findViewById(R.id.btn_map_zoom_in);
+        MaterialButton btnZoomOut = findViewById(R.id.btn_map_zoom_out);
+        MaterialButton btnMyLocation = findViewById(R.id.btn_map_my_location);
+        MaterialButton btnMapType = findViewById(R.id.btn_map_type);
+        MaterialButton btnBack = findViewById(R.id.btn_back);
+        mapControls = findViewById(R.id.map_controls);
+
+        if (btnZoomIn != null) btnZoomIn.setOnClickListener(v -> {
+            if (map == null) return;
+            map.animateCamera(CameraUpdateFactory.zoomIn());
+        });
+        if (btnZoomOut != null) btnZoomOut.setOnClickListener(v -> {
+            if (map == null) return;
+            map.animateCamera(CameraUpdateFactory.zoomOut());
+        });
+        if (btnMyLocation != null) btnMyLocation.setOnClickListener(v -> requestLocationIfNeeded(true));
+        if (btnMapType != null) btnMapType.setOnClickListener(v -> toggleMapType());
+        if (btnBack != null) btnBack.setOnClickListener(v -> {
+            if (isNavigating()) {
+                stopNavigation();
+            } else {
+                finish();
+            }
+        });
+
+        MaterialButton btnSearch = findViewById(R.id.btn_search_hospital);
+        if (btnSearch != null) {
+            btnSearch.setOnClickListener(v -> {
+                pendingSearch = true;
+                fetchNearbyHospitals();
+            });
+        }
+
+        ChipGroup chipGroupFilters = findViewById(R.id.chip_group_filters);
+        if (chipGroupFilters != null) {
+            com.google.android.material.chip.Chip chipHosp = findViewById(R.id.chip_hospital);
+            if (chipHosp != null) chipHosp.setChipIconTint(null);
+            com.google.android.material.chip.Chip chipPol = findViewById(R.id.chip_police);
+            if (chipPol != null) chipPol.setChipIconTint(null);
+            com.google.android.material.chip.Chip chipFir = findViewById(R.id.chip_fire);
+            if (chipFir != null) chipFir.setChipIconTint(null);
+
+            chipGroupFilters.setOnCheckedStateChangeListener((group, checkedIds) -> {
+                if (checkedIds.isEmpty()) return;
+                int checkedId = checkedIds.get(0);
+                if (checkedId == R.id.chip_hospital) {
+                    currentCategory = "hospital";
+                } else if (checkedId == R.id.chip_police) {
+                    currentCategory = "police";
+                } else if (checkedId == R.id.chip_fire) {
+                    currentCategory = "fire";
+                } else {
+                    currentCategory = "all";
+                }
+                if (!hospitals.isEmpty()) {
+                    pendingSearch = true;
+                    fetchNearbyHospitals();
+                }
+            });
+        }
+
+        if (bottomSheetView != null) {
+            sheetBehavior = BottomSheetBehavior.from(bottomSheetView);
+            sheetBehavior.setHideable(false);
+            sheetBehavior.setFitToContents(true);
+            sheetBehavior.setSkipCollapsed(false);
+            sheetBehavior.setPeekHeight(dp(this, 138));
+            sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            sheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+                @Override
+                public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                    if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
+                        int targetPeek = dp(NearbyHospitalActivity.this, 138);
+                        if (sheetBehavior != null && sheetBehavior.getPeekHeight() != targetPeek) {
+                            sheetBehavior.setPeekHeight(targetPeek);
+                        }
+                    } else if (newState == BottomSheetBehavior.STATE_HIDDEN && (cardNavigationInfo == null || cardNavigationInfo.getVisibility() != View.VISIBLE)) {
+                        sheetBehavior.setHideable(false);
+                        sheetBehavior.setPeekHeight(dp(NearbyHospitalActivity.this, 138));
+                        sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                    }
+                }
+
+                @Override
+                public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                }
+            });
+        }
+        applyMapControlsBottomOffset();
+
+        cardNavigationInfo = findViewById(R.id.card_navigation_info);
+        navDestinationName = findViewById(R.id.nav_destination_name);
+        navStatusBadge = findViewById(R.id.nav_status_badge);
+        navCategoryBadge = findViewById(R.id.nav_category_badge);
+        navAddress = findViewById(R.id.nav_address);
+        navCategoryIcon = findViewById(R.id.nav_category_icon);
+        navIconCard = (MaterialCardView) findViewById(R.id.nav_icon_card);
+        btnCancelNavigation = findViewById(R.id.btn_cancel_navigation);
+        btnToggle3d = findViewById(R.id.btn_toggle_3d);
+        tvToggle3dLabel = findViewById(R.id.tv_toggle_3d_label);
+        layoutToggleView = findViewById(R.id.nav_actions_layout);
+
+        navSheetHeader = findViewById(R.id.nav_sheet_header);
+        navSheetHandle = findViewById(R.id.nav_sheet_handle);
+        navSheetExpandedContent = findViewById(R.id.nav_sheet_expanded_content);
+        navCardAuto = (MaterialCardView) findViewById(R.id.nav_card_auto);
+        navCardStreet = (MaterialCardView) findViewById(R.id.nav_card_street);
+        navCardSatellite = (MaterialCardView) findViewById(R.id.nav_card_satellite);
+        navCheckAuto = findViewById(R.id.nav_check_auto);
+        navCheckStreet = findViewById(R.id.nav_check_street);
+        navCheckSatellite = findViewById(R.id.nav_check_satellite);
+        navCardTraffic = findViewById(R.id.nav_card_traffic);
+        navSwitchTraffic = findViewById(R.id.nav_switch_traffic);
+
+        setupNavSheetSwipeAndOptions();
+
+        if (cardNavigationInfo != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(cardNavigationInfo, (v, insets) -> {
+                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                int targetPeek = dp(NearbyHospitalActivity.this, 132) + systemBars.bottom;
+                if (navSheetBehavior != null) {
+                    navSheetBehavior.setPeekHeight(targetPeek);
+                }
+                if (navSheetHeader != null) {
+                    navSheetHeader.setPadding(
+                            dp(NearbyHospitalActivity.this, 20),
+                            dp(NearbyHospitalActivity.this, 12),
+                            dp(NearbyHospitalActivity.this, 20),
+                            dp(NearbyHospitalActivity.this, 26) + systemBars.bottom
+                    );
+                }
+                return insets;
+            });
+        }
+        scrollCategoryFilters = findViewById(R.id.scroll_category_filters);
+        searchCard = findViewById(R.id.search_card);
+        capsuleEstimatedArrival = findViewById(R.id.capsule_estimated_arrival);
+        capsuleIconCard = (MaterialCardView) findViewById(R.id.capsule_icon_card);
+        capsuleIcon = findViewById(R.id.capsule_icon);
+        capsuleEtaLabel = findViewById(R.id.capsule_eta_label);
+        capsuleEtaValue = findViewById(R.id.capsule_eta_value);
+
+        if (capsuleEstimatedArrival != null) {
+            capsuleEstimatedArrival.setOnClickListener(v -> {
+                animateCapsuleClick(v);
+                toggle3DNavigationMode();
+            });
+        }
+
+        if (btnCancelNavigation != null) {
+            btnCancelNavigation.setOnClickListener(v -> {
+                animateButtonClick(v);
+                stopNavigation();
+            });
+        }
+        if (btnToggle3d != null) {
+            btnToggle3d.setOnClickListener(v -> toggle3DNavigationMode());
+        }
+        if (layoutToggleView != null) {
+            layoutToggleView.setOnClickListener(v -> toggle3DNavigationMode());
+        }
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (navSheetBehavior != null && navSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+                    navSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                    return;
+                }
+                if (isNavigating()) {
+                    stopNavigation();
+                } else {
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                }
+            }
+        });
+
+        // Setup Marker Callout Views
+        markerCalloutLayout = findViewById(R.id.marker_callout_layout);
+        calloutLogoRing = (MaterialCardView) findViewById(R.id.callout_logo_ring);
+        calloutLogo = findViewById(R.id.callout_logo);
+        calloutTitle = findViewById(R.id.callout_title);
+        calloutBtnClose = findViewById(R.id.callout_btn_close);
+        calloutStatus = findViewById(R.id.callout_status);
+        calloutStatusLabel = findViewById(R.id.callout_status_label);
+        calloutDistance = findViewById(R.id.callout_distance);
+        calloutDistanceLabel = findViewById(R.id.callout_distance_label);
+        calloutAddress = findViewById(R.id.callout_address);
+        calloutBtnDirections = findViewById(R.id.callout_btn_directions);
+        calloutUserActions = findViewById(R.id.callout_user_actions);
+        calloutBtnCopyCoords = findViewById(R.id.callout_btn_copy_coords);
+        if (calloutBtnClose != null) {
+            calloutBtnClose.setOnClickListener(v -> hideMarkerCallout());
+        }
+        if (calloutBtnDirections != null) {
+            calloutBtnDirections.setOnClickListener(v -> {
+                if (selectedCalloutHospital != null) {
+                    HospitalItem target = selectedCalloutHospital;
+                    hideMarkerCallout();
+                    openDirections(target);
+                }
+            });
+        }
+        if (calloutBtnCopyCoords != null) {
+            calloutBtnCopyCoords.setOnClickListener(v -> {
+                if (selectedCalloutLatLng != null) {
+                    String coords = String.format(Locale.US, "%.5f, %.5f", selectedCalloutLatLng.latitude, selectedCalloutLatLng.longitude);
+                    android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                    if (clipboard != null) {
+                        android.content.ClipData clip = android.content.ClipData.newPlainText("GPS Coordinates", coords);
+                        clipboard.setPrimaryClip(clip);
+                        String msg = getString(R.string.user_marker_toast_copied, coords);
+                        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+
+        status = findViewById(R.id.status);
+        recyclerView = findViewById(R.id.hospital_list);
+        listAdapter = new HospitalAdapter();
+        if (recyclerView != null) {
+            recyclerView.setLayoutManager(new LinearLayoutManager(this));
+            recyclerView.setAdapter(listAdapter);
+            recyclerView.setHasFixedSize(false);
+            recyclerView.setNestedScrollingEnabled(true);
+        }
+
+        maybePromptEnableGps();
+        requestLocationIfNeeded(false);
+    }
+
+    /** Aktiviti aktif dan sedia untuk interaksi pengguna. */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (GpsUtils.isGpsEnabled(this)) gpsDialogShown = false;
+        maybePromptEnableGps();
+        requestLocationIfNeeded(false);
+        if (pendingSearch && PermissionUtils.hasAnyLocation(this) && GpsUtils.isGpsEnabled(this)) {
+            fetchNearbyHospitals();
+        }
+    }
+
+    /** Aktiviti dijeda sementara. */
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopNavigationLocationUpdates();
+        if (markerTransitionAnimator != null) {
+            markerTransitionAnimator.cancel();
+        }
+        if (markerRotationAnimator != null) {
+            markerRotationAnimator.cancel();
+        }
+        if (cancellationTokenSource != null) {
+            cancellationTokenSource.cancel();
+            cancellationTokenSource = null;
+        }
+    }
+
+    // SEKSYEN: ONDESTROY
+    /** Pembersihan memori, buang listener, dan tutup sambungan. */
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopNavigationLocationUpdates();
+        if (markerTransitionAnimator != null) {
+            markerTransitionAnimator.cancel();
+            markerTransitionAnimator = null;
+        }
+        if (markerRotationAnimator != null) {
+            markerRotationAnimator.cancel();
+            markerRotationAnimator = null;
+        }
+        if (navigationDirectionBitmap != null && !navigationDirectionBitmap.isRecycled()) {
+            try { navigationDirectionBitmap.recycle(); } catch (Exception ignored) {}
+            navigationDirectionBitmap = null;
+        }
+        executor.shutdownNow();
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        map = googleMap;
+        applySavedMapType();
+        map.getUiSettings().setMyLocationButtonEnabled(false);
+        map.getUiSettings().setZoomControlsEnabled(false);
+        map.getUiSettings().setCompassEnabled(false);
+        map.getUiSettings().setMapToolbarEnabled(false);
+        map.getUiSettings().setAllGesturesEnabled(true);
+
+        LatLng fallback = new LatLng(3.1390, 101.6869); // Kuala Lumpur, Malaysia
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(fallback, 12f));
+
+        map.setOnMarkerClickListener(marker -> {
+            if (marker == null) return false;
+            // Paparkan kad maklumat apabila marker lokasi pengguna (avatar) ditekan
+            if (marker.equals(myLocationMarker)) {
+                showUserMarkerCallout(marker.getPosition());
+                return true;
+            }
+
+            HospitalItem item = null;
+            if (marker.getTag() instanceof HospitalItem) {
+                item = (HospitalItem) marker.getTag();
+            } else if (marker.getPosition() != null) {
+                for (HospitalItem h : hospitals) {
+                    if (Math.abs(h.lat - marker.getPosition().latitude) < 0.0005 &&
+                        Math.abs(h.lng - marker.getPosition().longitude) < 0.0005) {
+                        item = h;
+                        break;
+                    }
+                }
+            }
+
+            if (item != null) {
+                showMarkerCallout(item, marker.getPosition());
+                return true;
+            }
+            return false;
+        });
+
+        map.setOnCameraMoveListener(this::updateCalloutPosition);
+
+        map.setOnMapClickListener(latLng -> hideMarkerCallout());
+
+        requestLocationIfNeeded(false);
+    }
+
+    private void applySavedMapType() {
+        if (map == null) return;
+        try {
+            boolean satellite = UserPrefs.isMapTypeSatellite(this);
+            map.setMapType(satellite ? GoogleMap.MAP_TYPE_SATELLITE : GoogleMap.MAP_TYPE_NORMAL);
+            applyResQTapMapStyle(!satellite);
+            map.setTrafficEnabled(UserPrefs.isMapTrafficEnabled(this));
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void applyResQTapMapStyle(boolean enabled) {
+        if (map == null) return;
+        try {
+            map.setMapStyle(null);
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void applyMapControlsBottomOffset() {
+        if (mapControls == null) return;
+        ViewCompat.setOnApplyWindowInsetsListener(mapControls, (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            int peek = 0;
+            try {
+                if (sheetBehavior != null) peek = sheetBehavior.getPeekHeight();
+            } catch (Exception ignored) {
+            }
+            if (peek <= 0) peek = dp(this, 138);
+
+            ViewGroup.LayoutParams lp = v.getLayoutParams();
+            if (lp instanceof androidx.constraintlayout.widget.ConstraintLayout.LayoutParams) {
+                androidx.constraintlayout.widget.ConstraintLayout.LayoutParams clp = (androidx.constraintlayout.widget.ConstraintLayout.LayoutParams) lp;
+
+                clp.bottomMargin = dp(this, 16) + peek;
+                v.setLayoutParams(clp);
+            }
+            return insets;
+        });
+        ViewCompat.requestApplyInsets(mapControls);
+    }
+
+    private static int dp(Context ctx, int dp) {
+        float density = ctx.getResources().getDisplayMetrics().density;
+        return Math.round(dp * density);
+    }
+
+    private static float dp(Context ctx, float dp) {
+        return dp * ctx.getResources().getDisplayMetrics().density;
+    }
+
+    private void toggleMapType() {
+        MapTypeBottomSheet.show(this, map);
+    }
+
+    private void requestLocationIfNeeded(boolean userInitiated) {
+        if (map == null) return;
+        if (!GpsUtils.isGpsEnabled(this)) {
+            if (userInitiated || pendingSearch) maybePromptEnableGps();
+            return;
+        }
+        if (PermissionUtils.hasAnyLocation(this)) {
+            enableMyLocationAndCenter(userInitiated);
+        } else {
+            locationPerms.launch(new String[]{
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+            });
+        }
+    }
+
+    private void onLocationPermissionResult(Map<String, Boolean> result) {
+        Boolean fine = result.get(Manifest.permission.ACCESS_FINE_LOCATION);
+        Boolean coarse = result.get(Manifest.permission.ACCESS_COARSE_LOCATION);
+        boolean granted = Boolean.TRUE.equals(fine) || Boolean.TRUE.equals(coarse);
+        if (!granted) {
+            Toast.makeText(this, R.string.nearby_hospital_need_location, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        enableMyLocationAndCenter(true);
+        if (pendingSearch) fetchNearbyHospitals();
+    }
+
+    private void enableMyLocationAndCenter(boolean userInitiated) {
+        if (map == null) return;
+        if (!PermissionUtils.hasAnyLocation(this)) return;
+        if (isNavigating()) {
+            if (currentLatLng != null) upsertMyLocationMarker(currentLatLng);
+            return;
+        }
+        try {
+            fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
+                if (map == null) return;
+                if (location != null) {
+                    currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                    if (userInitiated || !hasAutoCentered) {
+                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f));
+                        hasAutoCentered = true;
+                    }
+                    upsertMyLocationMarker(currentLatLng);
+                    return;
+                }
+                cancellationTokenSource = new CancellationTokenSource();
+                fusedLocationClient.getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, cancellationTokenSource.getToken())
+                        .addOnSuccessListener(current -> {
+                            if (current == null || map == null) return;
+                            currentLatLng = new LatLng(current.getLatitude(), current.getLongitude());
+                            if (userInitiated || !hasAutoCentered) {
+                                map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f));
+                                hasAutoCentered = true;
+                            }
+                            upsertMyLocationMarker(currentLatLng);
+                        });
+            });
+        } catch (SecurityException ignored) {
+        }
+    }
+
+    private void fetchNearbyHospitals() {
+        if (!PermissionUtils.hasAnyLocation(this)) {
+            Toast.makeText(this, R.string.nearby_hospital_need_location, Toast.LENGTH_SHORT).show();
+            requestLocationIfNeeded(true);
+            return;
+        }
+        if (!GpsUtils.isGpsEnabled(this)) {
+            maybePromptEnableGps();
+            return;
+        }
+        if (sheetBehavior != null) sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+
+        if (status != null) {
+            status.setText(R.string.nearby_hospital_loading);
+            status.setVisibility(View.VISIBLE);
+        }
+
+        hospitals.clear();
+        displayItems.clear();
+        if (listAdapter != null) listAdapter.notifyDataSetChanged();
+        clearHospitalMarkers();
+
+        if (currentLatLng != null) {
+            upsertMyLocationMarker(currentLatLng);
+            doNearbySearch(currentLatLng);
+            return;
+        }
+
+        try {
+            fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
+                if (location != null) {
+                    currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                    upsertMyLocationMarker(currentLatLng);
+                    doNearbySearch(currentLatLng);
+                    return;
+                }
+                cancellationTokenSource = new CancellationTokenSource();
+                fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cancellationTokenSource.getToken())
+                        .addOnSuccessListener(current -> {
+                            if (current == null) {
+                                if (status != null) status.setText(R.string.nearby_hospital_need_location);
+                                return;
+                            }
+                            currentLatLng = new LatLng(current.getLatitude(), current.getLongitude());
+                            upsertMyLocationMarker(currentLatLng);
+                            doNearbySearch(currentLatLng);
+                        });
+            });
+        } catch (SecurityException e) {
+            if (status != null) status.setText(R.string.nearby_hospital_need_location);
+        }
+    }
+
+    private void doNearbySearch(LatLng center) {
+        String apiKey = getString(R.string.google_maps_key);
+        if (apiKey == null || apiKey.contains("YOUR_GOOGLE_MAPS_API_KEY")) {
+            runOnUiThread(() -> {
+                if (status != null) status.setText(R.string.nearby_hospital_error_missing_api_key);
+            });
+            return;
+        }
+
+        final String category = currentCategory == null ? "all" : currentCategory;
+        executeGooglePlacesSearch(center, apiKey, category, new ArrayList<>());
+    }
+
+    private void executeGooglePlacesSearch(LatLng center, String apiKey, String category, ArrayList<HospitalItem> initialList) {
+        executor.execute(() -> {
+            try {
+                ArrayList<HospitalItem> combined = new ArrayList<>();
+                if (initialList != null && !initialList.isEmpty()) {
+                    combined.addAll(initialList);
+                }
+                PlacesResponse lastDenied = null;
+
+                if ("all".equalsIgnoreCase(category)) {
+                    // 1. Bomba / Fire station search (Keutamaan 1)
+                    PlacesResponse fResp = fetchPlacesNearby(center, apiKey, "fire_station", null, "fire");
+                    if (fResp.isDenied()) lastDenied = fResp;
+                    else combined.addAll(fResp.items);
+
+                    // 2. Hospital / Medic search (Keutamaan 2)
+                    PlacesResponse hResp = fetchPlacesNearby(center, apiKey, "hospital", null, "hospital");
+                    if (hResp.isDenied()) lastDenied = hResp;
+                    else combined.addAll(hResp.items);
+
+                    // 3. Polis / Police search (Keutamaan 3)
+                    PlacesResponse pResp = fetchPlacesNearby(center, apiKey, "police", null, "police");
+                    if (pResp.isDenied()) lastDenied = pResp;
+                    else combined.addAll(pResp.items);
+
+                    if (combined.isEmpty() && lastDenied != null) {
+                        PlacesResponse finalDenied = lastDenied;
+                        runOnUiThread(() -> showPlacesDenied(finalDenied));
+                        return;
+                    }
+                    runOnUiThread(() -> applyHospitals(combined));
+                } else if ("police".equalsIgnoreCase(category)) {
+                    PlacesResponse resp = fetchPlacesNearby(center, apiKey, "police", null, "police");
+                    if (resp.isDenied()) {
+                        if (combined.isEmpty()) {
+                            runOnUiThread(() -> showPlacesDenied(resp));
+                            return;
+                        }
+                    } else {
+                        combined.addAll(resp.items);
+                    }
+                    runOnUiThread(() -> applyHospitals(combined));
+                } else if ("fire".equalsIgnoreCase(category)) {
+                    PlacesResponse resp = fetchPlacesNearby(center, apiKey, "fire_station", null, "fire");
+                    if (resp.isDenied()) {
+                        if (combined.isEmpty()) {
+                            runOnUiThread(() -> showPlacesDenied(resp));
+                            return;
+                        }
+                    } else {
+                        combined.addAll(resp.items);
+                    }
+                    runOnUiThread(() -> applyHospitals(combined));
+                } else {
+                    // Default hospital
+                    PlacesResponse first = fetchPlacesNearby(center, apiKey, "hospital", null, "hospital");
+                    if (first.isDenied()) {
+                        if (combined.isEmpty()) {
+                            runOnUiThread(() -> showPlacesDenied(first));
+                            return;
+                        }
+                    } else if (first.isOkWithResults()) {
+                        combined.addAll(first.items);
+                    } else {
+                        PlacesResponse fallback = fetchPlacesNearby(center, apiKey, "health", null, "hospital");
+                        if (!fallback.isDenied() && fallback.isOkWithResults()) {
+                            combined.addAll(fallback.items);
+                        }
+                    }
+                    runOnUiThread(() -> applyHospitals(combined));
+                }
+            } catch (Exception e) {
+                if (initialList != null && !initialList.isEmpty()) {
+                    runOnUiThread(() -> applyHospitals(initialList));
+                } else {
+                    runOnUiThread(() -> {
+                        if (status != null) status.setText(R.string.nearby_hospital_error_failed_load);
+                    });
+                }
+                pendingSearch = false;
+            }
+        });
+    }
+
+    private static final class PlacesResponse {
+        final String status;
+        final String errorMessage;
+        final ArrayList<HospitalItem> items;
+
+        PlacesResponse(String status, String errorMessage, ArrayList<HospitalItem> items) {
+            this.status = status == null ? "" : status;
+            this.errorMessage = errorMessage == null ? "" : errorMessage;
+            this.items = items == null ? new ArrayList<>() : items;
+        }
+
+        boolean isDenied() {
+            return "REQUEST_DENIED".equalsIgnoreCase(status) || "INVALID_REQUEST".equalsIgnoreCase(status);
+        }
+
+        boolean isOkWithResults() {
+            return "OK".equalsIgnoreCase(status) && !items.isEmpty();
+        }
+    }
+
+    /** Ambil data PlacesNearby mengikut jenis dan kategori item. */
+    private PlacesResponse fetchPlacesNearby(LatLng center, String apiKey, String type, String keyword, String itemCategory) throws Exception {
+        String location = center.latitude + "," + center.longitude;
+        StringBuilder url = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=");
+        url.append(URLEncoder.encode(location, StandardCharsets.UTF_8.name()));
+        url.append("&radius=").append(SEARCH_RADIUS_METERS);
+        if (type != null && !type.trim().isEmpty()) {
+            url.append("&type=").append(URLEncoder.encode(type, StandardCharsets.UTF_8.name()));
+        }
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            url.append("&keyword=").append(URLEncoder.encode(keyword, StandardCharsets.UTF_8.name()));
+        }
+        url.append("&language=").append(URLEncoder.encode(Locale.getDefault().getLanguage(), StandardCharsets.UTF_8.name()));
+        url.append("&key=").append(URLEncoder.encode(apiKey, StandardCharsets.UTF_8.name()));
+
+        HttpURLConnection conn = (HttpURLConnection) new URL(url.toString()).openConnection();
+        conn.setRequestMethod("GET");
+        conn.setConnectTimeout(10000);
+        conn.setReadTimeout(15000);
+
+        int code = conn.getResponseCode();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(
+                code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream(),
+                StandardCharsets.UTF_8
+        ));
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) sb.append(line);
+        reader.close();
+
+        JSONObject root = new JSONObject(sb.toString());
+        String status = root.optString("status", "");
+        String error = root.optString("error_message", "");
+
+        JSONArray results = root.optJSONArray("results");
+        ArrayList<HospitalItem> found = new ArrayList<>();
+        if (results != null) {
+            for (int i = 0; i < results.length() && i < 15; i++) {
+                JSONObject r = results.getJSONObject(i);
+                String defaultName = "hospital".equals(itemCategory) ? getString(R.string.filter_hospital)
+                        : ("police".equals(itemCategory) ? getString(R.string.filter_police) : getString(R.string.filter_fire));
+                String name = r.optString("name", defaultName);
+                String address = r.optString("vicinity", "");
+                JSONObject geometry = r.optJSONObject("geometry");
+                JSONObject loc = geometry == null ? null : geometry.optJSONObject("location");
+                if (loc == null) continue;
+                double lat = loc.optDouble("lat", 0);
+                double lng = loc.optDouble("lng", 0);
+                found.add(new HospitalItem(name, address, lat, lng, itemCategory));
+            }
+        }
+        return new PlacesResponse(status, error, found);
+    }
+
+    /** Paparkan PlacesDenied. */
+    private void showPlacesDenied(PlacesResponse response) {
+        if (status != null) status.setVisibility(View.VISIBLE);
+        String msg = "Places API request denied.";
+        if (!response.errorMessage.trim().isEmpty()) {
+            msg += "\n" + response.errorMessage.trim();
+        } else if (!response.status.trim().isEmpty()) {
+            msg += "\nStatus: " + response.status.trim();
+        }
+        msg += "\n\nFix: Enable \"Places API\" in Google Cloud + use a Web Service key (not Android-restricted).";
+        if (status != null) status.setText(msg);
+        hospitals.clear();
+        displayItems.clear();
+        if (listAdapter != null) listAdapter.notifyDataSetChanged();
+        clearHospitalMarkers();
+        pendingSearch = false;
+    }
+
+    private void applyHospitals(ArrayList<HospitalItem> found) {
+        hospitals.clear();
+        displayItems.clear();
+        if (found == null || found.isEmpty()) {
+            if (status != null) {
+                status.setText(R.string.nearby_hospital_no_results);
+                status.setVisibility(View.VISIBLE);
+            }
+            if (listAdapter != null) listAdapter.notifyDataSetChanged();
+            clearHospitalMarkers();
+            pendingSearch = false;
+            return;
+        }
+
+        // 1. Kira jarak & buang duplikasi
+        ArrayList<HospitalItem> allCandidates = new ArrayList<>();
+        java.util.HashSet<String> seenKeys = new java.util.HashSet<>();
+        for (HospitalItem h : found) {
+            if (currentLatLng != null) {
+                h.distanceMeters = distanceMeters(currentLatLng, h.lat, h.lng);
+            }
+            String key = (h.name == null ? "" : h.name.trim().toLowerCase()) + "_" + Math.round(h.lat * 1000) + "_" + Math.round(h.lng * 1000);
+            if (seenKeys.add(key)) {
+                allCandidates.add(h);
+            }
+        }
+
+        // 2. Susun SEMUA calon mengikut jarak paling dekat dahulu
+        Collections.sort(allCandidates, (a, b) -> {
+            double distA = a.distanceMeters < 0 ? Double.MAX_VALUE : a.distanceMeters;
+            double distB = b.distanceMeters < 0 ? Double.MAX_VALUE : b.distanceMeters;
+            return Double.compare(distA, distB);
+        });
+
+        // 3. Tapis radius pintar: utamakan 5 km, jika sedikit kembangkan ke 10 km
+        ArrayList<HospitalItem> radiusFiltered = new ArrayList<>();
+        for (HospitalItem h : allCandidates) {
+            if (h.distanceMeters >= 0 && h.distanceMeters <= 5000) {
+                radiusFiltered.add(h);
+            }
+        }
+        if (radiusFiltered.size() < 3) {
+            radiusFiltered.clear();
+            for (HospitalItem h : allCandidates) {
+                if (h.distanceMeters >= 0 && h.distanceMeters <= 10000) {
+                    radiusFiltered.add(h);
+                }
+            }
+        }
+        if (radiusFiltered.isEmpty()) {
+            int take = Math.min(3, allCandidates.size());
+            for (int i = 0; i < take; i++) {
+                radiusFiltered.add(allCandidates.get(i));
+            }
+        }
+
+        // 4. Hadkan kepada senarai terdekat sahaja (Top nearest)
+        ArrayList<HospitalItem> topNearest = new ArrayList<>();
+        if ("all".equalsIgnoreCase(currentCategory)) {
+            int fireCount = 0;
+            int hospitalCount = 0;
+            int policeCount = 0;
+            for (HospitalItem h : radiusFiltered) {
+                if ("fire".equalsIgnoreCase(h.category)) {
+                    if (fireCount < MAX_RESULTS_ALL_PER_CAT) {
+                        topNearest.add(h);
+                        fireCount++;
+                    }
+                } else if ("police".equalsIgnoreCase(h.category)) {
+                    if (policeCount < MAX_RESULTS_ALL_PER_CAT) {
+                        topNearest.add(h);
+                        policeCount++;
+                    }
+                } else {
+                    if (hospitalCount < MAX_RESULTS_ALL_PER_CAT) {
+                        topNearest.add(h);
+                        hospitalCount++;
+                    }
+                }
+            }
+        } else {
+            int count = 0;
+            for (HospitalItem h : radiusFiltered) {
+                topNearest.add(h);
+                count++;
+                if (count >= MAX_RESULTS_SINGLE_CAT) break;
+            }
+        }
+
+        // Susun mengikut keutamaan kategori (Bomba -> Hospital -> Polis) jika mod "all", dan jarak terdekat
+        Collections.sort(topNearest, (a, b) -> {
+            if ("all".equalsIgnoreCase(currentCategory)) {
+                int pA = getCategoryPriority(a.category);
+                int pB = getCategoryPriority(b.category);
+                if (pA != pB) return Integer.compare(pA, pB);
+            }
+            double distA = a.distanceMeters < 0 ? Double.MAX_VALUE : a.distanceMeters;
+            double distB = b.distanceMeters < 0 ? Double.MAX_VALUE : b.distanceMeters;
+            return Double.compare(distA, distB);
+        });
+
+        hospitals.addAll(topNearest);
+        rebuildDisplayItems();
+        if (listAdapter != null) listAdapter.notifyDataSetChanged();
+
+        if (hospitals.isEmpty()) {
+            if (status != null) {
+                status.setText(R.string.nearby_hospital_no_results);
+                status.setVisibility(View.VISIBLE);
+            }
+        } else {
+            if (status != null) status.setVisibility(View.GONE);
+        }
+
+        if (map != null) {
+            clearHospitalMarkers();
+            if (currentLatLng != null) upsertMyLocationMarker(currentLatLng);
+            for (HospitalItem h : hospitals) {
+                BitmapDescriptor iconDesc = getServiceMarkerDescriptor(h.category);
+                Marker m = map.addMarker(new MarkerOptions()
+                        .position(new LatLng(h.lat, h.lng))
+                        .title(h.name)
+                        .snippet(h.address)
+                        .icon(iconDesc)
+                        .anchor(0.5f, 0.922f));
+                if (m != null) {
+                    m.setTag(h);
+                    hospitalMarkers.add(m);
+                }
+            }
+            if (currentLatLng != null) {
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f));
+            }
+        }
+        if (sheetBehavior != null) {
+            sheetBehavior.setPeekHeight(dp(this, 138));
+            sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        }
+        pendingSearch = false;
+    }
+
+    /**
+     * Paparkan kad maklumat timbul (Callout Popup) di atas pin penanda mengikut gaya admin dashboard
+     * apabila marker ditekan, dan bukannya terus membuka navigasi arah.
+     */
+    private void showMarkerCallout(HospitalItem item, LatLng pos) {
+        if (item == null || pos == null || markerCalloutLayout == null) return;
+        selectedCalloutHospital = item;
+        selectedCalloutLatLng = pos;
+
+        if (calloutBtnDirections != null) calloutBtnDirections.setVisibility(View.VISIBLE);
+        if (calloutUserActions != null) calloutUserActions.setVisibility(View.GONE);
+        if (calloutStatusLabel != null) calloutStatusLabel.setText(R.string.marker_info_status_label);
+        if (calloutDistanceLabel != null) calloutDistanceLabel.setText(R.string.marker_info_distance_label);
+        if (calloutStatus != null) {
+            calloutStatus.setText(R.string.marker_info_status_active);
+            calloutStatus.setTextColor(ContextCompat.getColor(this, R.color.success_green));
+        }
+
+        if (calloutTitle != null) {
+            calloutTitle.setText(item.name != null ? item.name : "");
+        }
+        if (calloutAddress != null) {
+            if (item.address != null && !item.address.trim().isEmpty()) {
+                calloutAddress.setText(item.address.trim());
+                calloutAddress.setVisibility(View.VISIBLE);
+            } else {
+                calloutAddress.setVisibility(View.GONE);
+            }
+        }
+
+        if (calloutDistance != null) {
+            if (item.distanceMeters >= 0) {
+                calloutDistance.setText(formatDistance(item.distanceMeters));
+            } else if (currentLatLng != null) {
+                double d = distanceMeters(currentLatLng, item.lat, item.lng);
+                calloutDistance.setText(formatDistance(d));
+            } else {
+                calloutDistance.setText("—");
+            }
+        }
+
+        int logoRes = R.drawable.logo_kkm;
+        int strokeColor = Color.parseColor("#E53935");
+        int bgColor = Color.parseColor("#FFF0F2");
+
+        if ("police".equalsIgnoreCase(item.category)) {
+            logoRes = R.drawable.logo_pdrm;
+            strokeColor = Color.parseColor("#1565C0");
+            bgColor = Color.parseColor("#F0F4F9");
+        } else if ("fire".equalsIgnoreCase(item.category)) {
+            logoRes = R.drawable.logo_bomba;
+            strokeColor = Color.parseColor("#E65100");
+            bgColor = Color.parseColor("#FFF7ED");
+        }
+
+        if (calloutLogo != null) {
+            calloutLogo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            calloutLogo.setImageTintList(null);
+            calloutLogo.setImageResource(logoRes);
+        }
+        if (calloutLogoRing != null) {
+            calloutLogoRing.setStrokeColor(strokeColor);
+            calloutLogoRing.setCardBackgroundColor(bgColor);
+        }
+
+        markerCalloutLayout.setVisibility(View.VISIBLE);
+        markerCalloutLayout.setAlpha(0f);
+        markerCalloutLayout.animate().alpha(1f).setDuration(180).start();
+
+        updateCalloutPosition();
+
+        if (map != null) {
+            map.animateCamera(CameraUpdateFactory.newLatLng(pos));
+        }
+    }
+
+    /**
+     * Paparkan kad maklumat apabila marker lokasi pengguna ditekan,
+     * menggantikan tooltip ringkas "You" dengan kad maklumat penuh profil & koordinat pengguna.
+     */
+    private void showUserMarkerCallout(LatLng pos) {
+        if (pos == null || markerCalloutLayout == null) return;
+        selectedCalloutHospital = null;
+        selectedCalloutLatLng = pos;
+
+        if (calloutBtnDirections != null) calloutBtnDirections.setVisibility(View.GONE);
+        if (calloutUserActions != null) calloutUserActions.setVisibility(View.VISIBLE);
+
+        String userName = UserPrefs.getName(this);
+        if (userName == null || userName.trim().isEmpty()) {
+            userName = getString(R.string.user_marker_title_default);
+        }
+        if (calloutTitle != null) {
+            calloutTitle.setText(userName.trim());
+        }
+
+        if (calloutStatusLabel != null) {
+            calloutStatusLabel.setText(getString(R.string.user_marker_status_label) + " ");
+        }
+        if (calloutStatus != null) {
+            calloutStatus.setText(getString(R.string.user_marker_status_active));
+            calloutStatus.setTextColor(ContextCompat.getColor(this, R.color.success_green));
+        }
+
+        if (calloutDistanceLabel != null) {
+            calloutDistanceLabel.setText(getString(R.string.user_marker_coordinates_label) + " ");
+        }
+        final String coordsStr = String.format(Locale.US, "%.5f, %.5f", pos.latitude, pos.longitude);
+        if (calloutDistance != null) {
+            calloutDistance.setText(coordsStr);
+        }
+
+        if (calloutAddress != null) {
+            calloutAddress.setText(getString(R.string.user_marker_locating_address));
+            calloutAddress.setVisibility(View.VISIBLE);
+        }
+
+        // Paparkan gambar profil pengguna pada ring callout
+        if (calloutLogo != null) {
+            calloutLogo.setImageTintList(null);
+            calloutLogo.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            Bitmap b = decodeBase64Avatar(myPhotoB64);
+            if (b != null) {
+                calloutLogo.setImageBitmap(b);
+            } else if (myPhotoUri != null && !myPhotoUri.isEmpty()) {
+                Bitmap uBmp = loadProfileBitmap(this, myPhotoUri);
+                if (uBmp != null) {
+                    calloutLogo.setImageBitmap(uBmp);
+                } else {
+                    calloutLogo.setImageResource(R.drawable.ic_avatar);
+                }
+            } else {
+                calloutLogo.setImageResource(R.drawable.ic_avatar);
+            }
+        }
+        if (calloutLogoRing != null) {
+            calloutLogoRing.setStrokeColor(Color.parseColor("#4CAF50"));
+            calloutLogoRing.setCardBackgroundColor(Color.WHITE);
+        }
+
+        markerCalloutLayout.setVisibility(View.VISIBLE);
+        markerCalloutLayout.setAlpha(0f);
+        markerCalloutLayout.animate().alpha(1f).setDuration(180).start();
+
+        updateCalloutPosition();
+
+        if (map != null) {
+            map.animateCamera(CameraUpdateFactory.newLatLng(pos));
+        }
+
+        // Cari alamat geocoded secara latar belakang (background thread)
+        final LatLng targetPos = pos;
+        executor.execute(() -> {
+            String addr = reverseGeocodeLabel(targetPos.latitude, targetPos.longitude);
+            runOnUiThread(() -> {
+                if (calloutAddress != null && selectedCalloutLatLng != null &&
+                        selectedCalloutLatLng.latitude == targetPos.latitude &&
+                        selectedCalloutLatLng.longitude == targetPos.longitude) {
+                    if (addr != null && !addr.trim().isEmpty()) {
+                        calloutAddress.setText(addr.trim());
+                    } else {
+                        calloutAddress.setText(coordsStr);
+                    }
+                }
+            });
+        });
+    }
+
+    private String reverseGeocodeLabel(double lat, double lng) {
+        try {
+            if (!android.location.Geocoder.isPresent()) return "";
+        } catch (Exception ignored) {
+            return "";
+        }
+        try {
+            android.location.Geocoder g = new android.location.Geocoder(this, java.util.Locale.getDefault());
+            java.util.List<android.location.Address> list = g.getFromLocation(lat, lng, 1);
+            if (list == null || list.isEmpty()) return "";
+            android.location.Address a = list.get(0);
+            String road = safeStr(a.getThoroughfare());
+            String sub = safeStr(a.getSubThoroughfare());
+            String locality = safeStr(a.getLocality());
+            String admin = safeStr(a.getAdminArea());
+            String feature = safeStr(a.getFeatureName());
+
+            StringBuilder sb = new StringBuilder();
+            if (!road.isEmpty()) {
+                sb.append(road);
+                if (!sub.isEmpty()) sb.append(" ").append(sub);
+            } else if (!feature.isEmpty()) {
+                sb.append(feature);
+            }
+            if (!locality.isEmpty()) {
+                if (sb.length() > 0) sb.append(", ");
+                sb.append(locality);
+            } else if (!admin.isEmpty()) {
+                if (sb.length() > 0) sb.append(", ");
+                sb.append(admin);
+            }
+            return sb.toString();
+        } catch (Exception ignored) {
+            return "";
+        }
+    }
+
+    private static String safeStr(String s) {
+        return s == null ? "" : s.trim();
+    }
+
+    private void hideMarkerCallout() {
+        if (markerCalloutLayout != null && markerCalloutLayout.getVisibility() == View.VISIBLE) {
+            markerCalloutLayout.animate().alpha(0f).setDuration(120).withEndAction(() -> {
+                markerCalloutLayout.setVisibility(View.GONE);
+                selectedCalloutLatLng = null;
+                selectedCalloutHospital = null;
+            }).start();
+        }
+    }
+
+    private void updateCalloutPosition() {
+        if (map == null || markerCalloutLayout == null || selectedCalloutLatLng == null) return;
+        if (markerCalloutLayout.getVisibility() != View.VISIBLE) return;
+
+        try {
+            android.graphics.Point screenPt = map.getProjection().toScreenLocation(selectedCalloutLatLng);
+            if (screenPt == null) return;
+
+            int w = markerCalloutLayout.getWidth();
+            int h = markerCalloutLayout.getHeight();
+            if (w == 0 || h == 0) {
+                markerCalloutLayout.measure(
+                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+                );
+                w = markerCalloutLayout.getMeasuredWidth();
+                h = markerCalloutLayout.getMeasuredHeight();
+            }
+
+            // Pin marker adalah 50dp tinggi + 3dp bayang, tip anchor di (0.5f, 0.94f).
+            // Segitiga penunjuk callout berada tepat di atas kepala pin marker.
+            float pinTopOffset = dp(this, 54);
+            float targetX = screenPt.x - (w / 2f);
+            float targetY = screenPt.y - pinTopOffset - h;
+
+            markerCalloutLayout.setX(targetX);
+            markerCalloutLayout.setY(targetY);
+        } catch (Exception ignored) {
+        }
+    }
+
+    /**
+     * In-App Direction Navigation.
+     * Melukis laluan terus di atas peta Google Map dalam aplikasi ResQTap tanpa melencong ke Google Maps luar.
+     */
+    private void openDirections(HospitalItem item) {
+        if (item == null) return;
+        hideMarkerCallout();
+        activeNavHospital = item;
+
+        // 1. Sorokkan terus bottom sheet senarai supaya peta luas sepenuhnya dan tidak terlindung
+        if (sheetBehavior != null) {
+            sheetBehavior.setHideable(true);
+            sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        }
+        if (bottomSheetView != null) {
+            bottomSheetView.setVisibility(View.GONE);
+        }
+        updateMapControlsForNavigation(true);
+
+        // 2. Paparkan kad maklumat navigasi di bawah skrin
+        if (cardNavigationInfo != null) {
+            updateNavMapTypeSelectionUi();
+            cardNavigationInfo.setVisibility(View.VISIBLE);
+            if (navSheetBehavior != null) {
+                navSheetBehavior.setHideable(false);
+                navSheetBehavior.setPeekHeight(getNavSheetPeekHeight());
+                navSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }
+            if (navDestinationName != null) navDestinationName.setText(item.name);
+            if (navAddress != null) navAddress.setText(item.address == null ? "" : item.address);
+            if (navStatusBadge != null) navStatusBadge.setText(R.string.marker_info_status_active);
+
+            String agency = "KKM";
+            if ("police".equalsIgnoreCase(item.category)) {
+                agency = "PDRM";
+            } else if ("fire".equalsIgnoreCase(item.category)) {
+                agency = "Bomba";
+            }
+            if (navCategoryBadge != null) {
+                navCategoryBadge.setText(" • " + agency);
+            }
+
+            int iconRes = R.drawable.logo_kkm;
+            int bgTint = Color.parseColor("#FFF0F2");
+
+            if ("police".equalsIgnoreCase(item.category)) {
+                iconRes = R.drawable.logo_pdrm;
+                bgTint = Color.parseColor("#F0F4F9");
+            } else if ("fire".equalsIgnoreCase(item.category)) {
+                iconRes = R.drawable.logo_bomba;
+                bgTint = Color.parseColor("#FFF7ED");
+            }
+
+            if (navCategoryIcon != null) {
+                navCategoryIcon.setImageTintList(null);
+                navCategoryIcon.setImageResource(iconRes);
+            }
+            if (navIconCard != null) {
+                navIconCard.setCardBackgroundColor(bgTint);
+            }
+            updateToggle3DIcon();
+        }
+
+        // Gantikan kad atas dan bar filter dengan Capsule Estimated Arrival semasa navigasi
+        if (searchCard != null) {
+            searchCard.setVisibility(View.GONE);
+        }
+        if (scrollCategoryFilters != null) {
+            scrollCategoryFilters.setVisibility(View.GONE);
+        } else {
+            View scf = findViewById(R.id.scroll_category_filters);
+            if (scf != null) scf.setVisibility(View.GONE);
+        }
+        if (capsuleEstimatedArrival != null) {
+            capsuleEstimatedArrival.setVisibility(View.VISIBLE);
+            if (capsuleEtaValue != null) {
+                capsuleEtaValue.setText(R.string.nav_calculating_route);
+            }
+            int iconRes = R.drawable.logo_kkm;
+            int bgTint = Color.parseColor("#FFF0F2");
+
+            if ("police".equalsIgnoreCase(item.category)) {
+                iconRes = R.drawable.logo_pdrm;
+                bgTint = Color.parseColor("#F0F4F9");
+            } else if ("fire".equalsIgnoreCase(item.category)) {
+                iconRes = R.drawable.logo_bomba;
+                bgTint = Color.parseColor("#FFF7ED");
+            }
+
+            if (capsuleIcon != null) {
+                capsuleIcon.setImageTintList(null);
+                capsuleIcon.setImageResource(iconRes);
+            }
+            if (capsuleIconCard != null) {
+                capsuleIconCard.setCardBackgroundColor(bgTint);
+            }
+        }
+
+        // 3. Pastikan koordinat pengguna tersedia
+        LatLng target = new LatLng(item.lat, item.lng);
+        if (currentLatLng == null) {
+            if (map != null) {
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(target, 16f));
+            }
+            Toast.makeText(this, R.string.nav_getting_gps, Toast.LENGTH_SHORT).show();
+            requestLocationIfNeeded(true);
+            return;
+        }
+
+        // 4. Animasi penukaran ikon profil pengguna kepada Direction Icon 3D dan mulakan tracking GPS
+        currentNavBearing = calculateBearing(currentLatLng, target);
+        animateMarkerSwitch(true, currentNavBearing);
+        startNavigationLocationUpdates();
+
+        // Segera bawa kamera ke pandangan navigasi 3D jarak dekat (Close-up 3D Cockpit View)
+        if (map != null) {
+            int padTop = dp(this, 200);
+            int padBottom = dp(this, 60);
+            map.setPadding(0, padTop, 0, padBottom);
+            com.google.android.gms.maps.model.CameraPosition initialNavCam = new com.google.android.gms.maps.model.CameraPosition.Builder()
+                    .target(currentLatLng)
+                    .zoom(19.8f)
+                    .bearing(currentNavBearing)
+                    .tilt(58f)
+                    .build();
+            map.animateCamera(CameraUpdateFactory.newCameraPosition(initialNavCam), 900, null);
+        }
+
+        // 5. Lukis laluan navigasi polyline secara in-app
+        fetchAndDrawInAppRoute(currentLatLng, target, item);
+    }
+
+    private void fetchAndDrawInAppRoute(LatLng origin, LatLng dest, HospitalItem item) {
+        executor.execute(() -> {
+            RouteResult result = tryFetchOsrmRoute(origin, dest);
+            runOnUiThread(() -> {
+                if (isFinishing() || isDestroyed() || map == null) return;
+
+                clearNavigationRoute();
+
+                ArrayList<LatLng> pts = new ArrayList<>();
+                int routeColor = ContextCompat.getColor(NearbyHospitalActivity.this, R.color.brand_primary);
+                if ("police".equalsIgnoreCase(item.category)) {
+                    routeColor = Color.parseColor("#1E88E5");
+                } else if ("fire".equalsIgnoreCase(item.category)) {
+                    routeColor = Color.parseColor("#FB8C00");
+                }
+
+                if (result != null && result.points != null && result.points.size() >= 2) {
+                    pts.addAll(result.points);
+                    int min = (int) Math.round(result.durationSeconds / 60.0);
+                    if (min < 1) min = 1;
+                    double km = result.distanceMeters / 1000.0;
+                    String distStr = km < 1.0 ? String.format(Locale.US, "%d m", Math.round(result.distanceMeters)) : String.format(Locale.US, "%.1f km", km);
+
+                    Calendar cal = Calendar.getInstance();
+                    cal.add(Calendar.MINUTE, min);
+                    SimpleDateFormat timeFormat = new SimpleDateFormat("h:mm a", Locale.getDefault());
+                    String arrivalClockTime = timeFormat.format(cal.getTime());
+
+                    if (capsuleEtaValue != null) {
+                        capsuleEtaValue.setText(arrivalClockTime + " • " + min + " min (" + distStr + ")");
+                    }
+                } else {
+                    pts.add(origin);
+                    pts.add(dest);
+                    double dist = distanceMeters(origin, dest.latitude, dest.longitude);
+                    int min = (int) Math.max(1, Math.round((dist / 1000.0) / 40.0 * 60.0));
+                    String distStr = dist < 1000 ? String.format(Locale.US, "%d m", Math.round(dist)) : String.format(Locale.US, "%.1f km", dist / 1000.0);
+
+                    Calendar cal = Calendar.getInstance();
+                    cal.add(Calendar.MINUTE, min);
+                    SimpleDateFormat timeFormat = new SimpleDateFormat("h:mm a", Locale.getDefault());
+                    String arrivalClockTime = timeFormat.format(cal.getTime());
+
+                    if (capsuleEtaValue != null) {
+                        capsuleEtaValue.setText(arrivalClockTime + " • " + min + " min (" + distStr + ")");
+                    }
+                }
+
+                // Shadow line
+                PolylineOptions shadowOptions = new PolylineOptions()
+                        .addAll(pts)
+                        .width(dp(NearbyHospitalActivity.this, 8))
+                        .color(Color.argb(80, 0, 0, 0))
+                        .startCap(new RoundCap())
+                        .endCap(new RoundCap())
+                        .jointType(JointType.ROUND)
+                        .zIndex(20f);
+                routeShadowPolyline = map.addPolyline(shadowOptions);
+
+                // Main route line
+                PolylineOptions routeOptions = new PolylineOptions()
+                        .addAll(pts)
+                        .width(dp(NearbyHospitalActivity.this, 6))
+                        .color(routeColor)
+                        .startCap(new RoundCap())
+                        .endCap(new RoundCap())
+                        .jointType(JointType.ROUND)
+                        .zIndex(21f);
+                routePolyline = map.addPolyline(routeOptions);
+
+                // Save current points for toggle and updates
+                currentRoutePoints.clear();
+                currentRoutePoints.addAll(pts);
+
+                // Default to 3D Navigation mode
+                isNavigating3D = true;
+                updateToggle3DIcon();
+                animateTo3DNavigation(origin, pts);
+            });
+        });
+    }
+
+    private void animateTo3DNavigation(LatLng userPos, List<LatLng> points) {
+        if (map == null || userPos == null) return;
+        try {
+            float bearing = 0f;
+            LatLng startPt = userPos;
+            LatLng nextPt = (points != null && !points.isEmpty()) ? points.get(0) : null;
+
+            if (points != null && points.size() > 1 && nextPt != null) {
+                if (Math.abs(startPt.latitude - nextPt.latitude) < 0.00001 &&
+                    Math.abs(startPt.longitude - nextPt.longitude) < 0.00001) {
+                    nextPt = points.get(1);
+                }
+            }
+
+            if (nextPt != null) {
+                bearing = calculateBearing(startPt, nextPt);
+            }
+            currentNavBearing = bearing;
+            smoothRotateMarkerTo(bearing);
+
+            // Pad camera supaya anak panah berada di bahagian bawah-tengah skrin (mcm Google Maps)
+            int padTop = dp(this, 200);
+            int padBottom = dp(this, 60);
+            map.setPadding(0, padTop, 0, padBottom);
+
+            com.google.android.gms.maps.model.CameraPosition cameraPosition = new com.google.android.gms.maps.model.CameraPosition.Builder()
+                    .target(userPos)
+                    .zoom(19.8f)
+                    .bearing(bearing)
+                    .tilt(58f)
+                    .build();
+
+            map.stopAnimation();
+            map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000, null);
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void zoomToFullRoute() {
+        if (map == null || currentRoutePoints.isEmpty()) return;
+        try {
+            LatLngBounds.Builder b = new LatLngBounds.Builder();
+            for (LatLng p : currentRoutePoints) {
+                b.include(p);
+            }
+            int padLeft = dp(this, 40);
+            int padTop = dp(this, 120);
+            int padRight = dp(this, 40);
+            int padBottom = dp(this, 160);
+            map.setPadding(padLeft, padTop, padRight, padBottom);
+            int padding = dp(this, 40);
+
+            com.google.android.gms.maps.model.CameraPosition overviewPos = new com.google.android.gms.maps.model.CameraPosition.Builder()
+                    .target(b.build().getCenter())
+                    .zoom(map.getCameraPosition().zoom)
+                    .bearing(0f)
+                    .tilt(0f)
+                    .build();
+            map.stopAnimation();
+            map.animateCamera(CameraUpdateFactory.newLatLngBounds(b.build(), padding));
+        } catch (Exception e) {
+            if (activeNavHospital != null) {
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(activeNavHospital.lat, activeNavHospital.lng), 15f));
+            }
+        }
+    }
+
+    private void toggle3DNavigationMode() {
+        if (map == null) return;
+        isNavigating3D = !isNavigating3D;
+        animateNavigationButton(btnToggle3d);
+        updateToggle3DIcon();
+        if (isNavigating3D) {
+            LatLng origin = currentLatLng != null ? currentLatLng : (!currentRoutePoints.isEmpty() ? currentRoutePoints.get(0) : null);
+            if (origin != null) {
+                animateTo3DNavigation(origin, currentRoutePoints);
+            }
+        } else {
+            zoomToFullRoute();
+        }
+    }
+
+    private void animateNavigationButton(View view) {
+        if (view == null) return;
+        try {
+            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+        } catch (Exception ignored) {}
+
+        view.animate().cancel();
+        view.setScaleX(0.76f);
+        view.setScaleY(0.76f);
+        view.animate()
+                .scaleX(1.0f)
+                .scaleY(1.0f)
+                .rotationBy(360f)
+                .setDuration(450)
+                .setInterpolator(new OvershootInterpolator(2.2f))
+                .start();
+    }
+
+    private void animateButtonClick(View view) {
+        if (view == null) return;
+        try {
+            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+        } catch (Exception ignored) {}
+
+        view.animate().cancel();
+        view.setScaleX(0.82f);
+        view.setScaleY(0.82f);
+        view.animate()
+                .scaleX(1.0f)
+                .scaleY(1.0f)
+                .setDuration(280)
+                .setInterpolator(new OvershootInterpolator(2.0f))
+                .start();
+    }
+
+    private void animateCapsuleClick(View view) {
+        if (view == null) return;
+        try {
+            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+        } catch (Exception ignored) {}
+
+        view.animate().cancel();
+        view.setScaleX(0.94f);
+        view.setScaleY(0.94f);
+        view.animate()
+                .scaleX(1.0f)
+                .scaleY(1.0f)
+                .setDuration(280)
+                .setInterpolator(new OvershootInterpolator(1.8f))
+                .start();
+    }
+
+    private void updateToggle3DIcon() {
+        if (btnToggle3d == null) return;
+        if (isNavigating3D) {
+            btnToggle3d.setIconResource(R.drawable.ic_route_overview);
+            btnToggle3d.setIconTint(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.text_primary)));
+            btnToggle3d.setContentDescription(getString(R.string.nav_overview));
+            if (tvToggle3dLabel != null) {
+                tvToggle3dLabel.setText(R.string.nav_overview);
+            }
+        } else {
+            btnToggle3d.setIconResource(R.drawable.ic_navigation_3d);
+            btnToggle3d.setIconTint(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.brand_primary)));
+            btnToggle3d.setContentDescription(getString(R.string.nav_recenter));
+            if (tvToggle3dLabel != null) {
+                tvToggle3dLabel.setText(R.string.nav_recenter);
+            }
+        }
+    }
+
+    private int getNavSheetPeekHeight() {
+        int peek = dp(this, 132);
+        try {
+            if (cardNavigationInfo != null && ViewCompat.getRootWindowInsets(cardNavigationInfo) != null) {
+                Insets insets = ViewCompat.getRootWindowInsets(cardNavigationInfo).getInsets(WindowInsetsCompat.Type.systemBars());
+                peek += insets.bottom;
+            }
+        } catch (Exception ignored) {}
+        return peek;
+    }
+
+    private void setupNavSheetSwipeAndOptions() {
+        if (cardNavigationInfo != null) {
+            navSheetBehavior = BottomSheetBehavior.from(cardNavigationInfo);
+            navSheetBehavior.setFitToContents(true);
+            navSheetBehavior.setHideable(true);
+            navSheetBehavior.setSkipCollapsed(false);
+            navSheetBehavior.setPeekHeight(getNavSheetPeekHeight());
+            navSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+
+            navSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+                @Override
+                public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                    if (newState == BottomSheetBehavior.STATE_EXPANDED) {
+                        try {
+                            bottomSheet.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                        } catch (Exception ignored) {}
+                        updateNavMapTypeSelectionUi();
+                    } else if (newState == BottomSheetBehavior.STATE_HIDDEN && isNavigating()) {
+                        navSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                    }
+                }
+
+                @Override
+                public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                }
+            });
+        }
+
+        GestureDetector gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
+            private static final int SWIPE_THRESHOLD = 20;
+            private static final int SWIPE_VELOCITY_THRESHOLD = 40;
+
+            @Override
+            public boolean onDown(MotionEvent e) {
+                return true;
+            }
+
+            @Override
+            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                if (e1 == null || e2 == null) return false;
+                float diffY = e2.getY() - e1.getY();
+                float diffX = e2.getX() - e1.getX();
+                if (Math.abs(diffY) > Math.abs(diffX)) {
+                    if (diffY < -SWIPE_THRESHOLD || velocityY < -SWIPE_VELOCITY_THRESHOLD) {
+                        // Swipe UP -> Buka option
+                        if (navSheetBehavior != null && navSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
+                            navSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                            try {
+                                cardNavigationInfo.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                            } catch (Exception ignored) {}
+                        }
+                        return true;
+                    } else if (diffY > SWIPE_THRESHOLD || velocityY > SWIPE_VELOCITY_THRESHOLD) {
+                        // Swipe DOWN -> Tutup option
+                        if (navSheetBehavior != null && navSheetBehavior.getState() != BottomSheetBehavior.STATE_COLLAPSED) {
+                            navSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                            try {
+                                cardNavigationInfo.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                            } catch (Exception ignored) {}
+                        }
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            @Override
+            public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+                if (Math.abs(distanceY) > Math.abs(distanceX)) {
+                    if (distanceY > 18) {
+                        // Finger dragging UP
+                        if (navSheetBehavior != null && navSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
+                            navSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                            try {
+                                cardNavigationInfo.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                            } catch (Exception ignored) {}
+                        }
+                        return true;
+                    } else if (distanceY < -18) {
+                        // Finger dragging DOWN
+                        if (navSheetBehavior != null && navSheetBehavior.getState() != BottomSheetBehavior.STATE_COLLAPSED) {
+                            navSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                            try {
+                                cardNavigationInfo.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                            } catch (Exception ignored) {}
+                        }
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+
+        View.OnTouchListener swipeOnlyTouchListener = (v, event) -> {
+            gestureDetector.onTouchEvent(event);
+            return true;
+        };
+
+        if (navSheetHeader != null) {
+            navSheetHeader.setOnTouchListener(swipeOnlyTouchListener);
+        }
+        if (navSheetHandle != null) {
+            navSheetHandle.setOnTouchListener(swipeOnlyTouchListener);
+        }
+
+        if (navCardAuto != null) {
+            navCardAuto.setOnClickListener(v -> {
+                animateButtonClick(v);
+                if (map != null) {
+                    map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+                }
+                UserPrefs.setMapTypeSatellite(this, false);
+                setNavCardSelected(navCardAuto, navCheckAuto, true);
+                setNavCardSelected(navCardStreet, navCheckStreet, false);
+                setNavCardSelected(navCardSatellite, navCheckSatellite, false);
+            });
+        }
+        if (navCardStreet != null) {
+            navCardStreet.setOnClickListener(v -> {
+                animateButtonClick(v);
+                if (map != null) {
+                    map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+                }
+                UserPrefs.setMapTypeSatellite(this, false);
+                setNavCardSelected(navCardAuto, navCheckAuto, false);
+                setNavCardSelected(navCardStreet, navCheckStreet, true);
+                setNavCardSelected(navCardSatellite, navCheckSatellite, false);
+            });
+        }
+        if (navCardSatellite != null) {
+            navCardSatellite.setOnClickListener(v -> {
+                animateButtonClick(v);
+                if (map != null) {
+                    map.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+                }
+                UserPrefs.setMapTypeSatellite(this, true);
+                setNavCardSelected(navCardAuto, navCheckAuto, false);
+                setNavCardSelected(navCardStreet, navCheckStreet, false);
+                setNavCardSelected(navCardSatellite, navCheckSatellite, true);
+            });
+        }
+
+        if (navSwitchTraffic != null) {
+            navSwitchTraffic.setChecked(UserPrefs.isMapTrafficEnabled(this));
+            navSwitchTraffic.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                UserPrefs.setMapTrafficEnabled(this, isChecked);
+                if (map != null) {
+                    try {
+                        map.setTrafficEnabled(isChecked);
+                    } catch (Exception ignored) {}
+                }
+            });
+        }
+        if (navCardTraffic != null) {
+            navCardTraffic.setOnClickListener(v -> {
+                animateButtonClick(v);
+                if (navSwitchTraffic != null) {
+                    navSwitchTraffic.setChecked(!navSwitchTraffic.isChecked());
+                }
+            });
+        }
+    }
+
+    private void updateNavMapTypeSelectionUi() {
+        if (map == null) return;
+        int type = map.getMapType();
+        boolean isSat = (type == GoogleMap.MAP_TYPE_SATELLITE || type == GoogleMap.MAP_TYPE_HYBRID);
+
+        setNavCardSelected(navCardAuto, navCheckAuto, false);
+        setNavCardSelected(navCardStreet, navCheckStreet, !isSat);
+        setNavCardSelected(navCardSatellite, navCheckSatellite, isSat);
+
+        if (navSwitchTraffic != null) {
+            navSwitchTraffic.setChecked(UserPrefs.isMapTrafficEnabled(this));
+        }
+    }
+
+    private void setNavCardSelected(MaterialCardView card, ImageView check, boolean selected) {
+        if (card != null) {
+            int stroke = selected ? R.color.brand_primary : R.color.divider;
+            try {
+                card.setStrokeColor(ContextCompat.getColor(this, stroke));
+            } catch (Exception ignored) {}
+        }
+        if (check != null) {
+            check.setVisibility(selected ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    private float calculateBearing(LatLng start, LatLng end) {
+        double lat1 = Math.toRadians(start.latitude);
+        double lng1 = Math.toRadians(start.longitude);
+        double lat2 = Math.toRadians(end.latitude);
+        double lng2 = Math.toRadians(end.longitude);
+
+        double dLng = lng2 - lng1;
+
+        double y = Math.sin(dLng) * Math.cos(lat2);
+        double x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
+
+        double bearing = Math.toDegrees(Math.atan2(y, x));
+        return (float) ((bearing + 360) % 360);
+    }
+
+    private void stopNavigation() {
+        stopNavigationLocationUpdates();
+        clearNavigationRoute();
+        currentRoutePoints.clear();
+        activeNavHospital = null;
+        isNavigating3D = false;
+        currentNavBearing = 0f;
+        animateMarkerSwitch(false, 0f);
+        if (cardNavigationInfo != null) {
+            if (navSheetBehavior != null) {
+                navSheetBehavior.setHideable(true);
+                navSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+            }
+            cardNavigationInfo.setVisibility(View.GONE);
+        }
+        if (searchCard != null) {
+            searchCard.setVisibility(View.VISIBLE);
+        }
+        if (capsuleEstimatedArrival != null) {
+            capsuleEstimatedArrival.setVisibility(View.GONE);
+        }
+        if (scrollCategoryFilters != null) {
+            scrollCategoryFilters.setVisibility(View.VISIBLE);
+        } else {
+            View scf = findViewById(R.id.scroll_category_filters);
+            if (scf != null) scf.setVisibility(View.VISIBLE);
+        }
+        if (bottomSheetView != null) {
+            bottomSheetView.setVisibility(View.VISIBLE);
+            if (sheetBehavior != null) {
+                sheetBehavior.setHideable(false);
+                sheetBehavior.setPeekHeight(dp(this, 138));
+                sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }
+        }
+        updateMapControlsForNavigation(false);
+        if (map != null) {
+            map.setPadding(0, 0, 0, 0);
+            if (currentLatLng != null) {
+                com.google.android.gms.maps.model.CameraPosition resetPos = new com.google.android.gms.maps.model.CameraPosition.Builder()
+                        .target(currentLatLng)
+                        .zoom(15f)
+                        .bearing(0f)
+                        .tilt(0f)
+                        .build();
+                map.animateCamera(CameraUpdateFactory.newCameraPosition(resetPos));
+            }
+        }
+    }
+
+    private void updateMapControlsForNavigation(boolean isNavigating) {
+        if (mapControls == null) return;
+        if (isNavigating) {
+            mapControls.setVisibility(View.GONE);
+        } else {
+            mapControls.setVisibility(View.VISIBLE);
+            ViewGroup.LayoutParams lp = mapControls.getLayoutParams();
+            if (lp instanceof androidx.constraintlayout.widget.ConstraintLayout.LayoutParams) {
+                androidx.constraintlayout.widget.ConstraintLayout.LayoutParams clp = (androidx.constraintlayout.widget.ConstraintLayout.LayoutParams) lp;
+                int peek = 0;
+                try {
+                    if (sheetBehavior != null) peek = sheetBehavior.getPeekHeight();
+                } catch (Exception ignored) {}
+                if (peek <= 0) peek = dp(this, 138);
+                clp.bottomMargin = dp(this, 16) + peek;
+                mapControls.setLayoutParams(clp);
+            }
+        }
+    }
+
+    private void clearNavigationRoute() {
+        if (routePolyline != null) {
+            try { routePolyline.remove(); } catch (Exception ignored) {}
+            routePolyline = null;
+        }
+        if (routeShadowPolyline != null) {
+            try { routeShadowPolyline.remove(); } catch (Exception ignored) {}
+            routeShadowPolyline = null;
+        }
+    }
+
+    private void launchExternalGoogleMaps(HospitalItem item) {
+        if (item == null) return;
+        Uri uri = Uri.parse("google.navigation:q=" + item.lat + "," + item.lng + "&mode=d");
+        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        intent.setPackage("com.google.android.apps.maps");
+        try {
+            startActivity(intent);
+        } catch (Exception e) {
+            startActivity(new Intent(Intent.ACTION_VIEW, uri));
+        }
+    }
+
+    private static final class RouteResult {
+        double distanceMeters = 0;
+        double durationSeconds = 0;
+        final ArrayList<LatLng> points = new ArrayList<>();
+    }
+
+    private RouteResult tryFetchOsrmRoute(LatLng origin, LatLng dest) {
+        String urlStr = "https://router.project-osrm.org/route/v1/driving/"
+                + origin.longitude + "," + origin.latitude + ";"
+                + dest.longitude + "," + dest.latitude
+                + "?overview=full&geometries=geojson";
+        try {
+            HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(5000);
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("User-Agent", "ResQTap/1.0 (Android)");
+            if (conn.getResponseCode() == 200) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) sb.append(line);
+                    return parseOsrmResponse(sb.toString());
+                }
+            }
+        } catch (Exception ignored) {}
+        return null;
+    }
+
+    private RouteResult parseOsrmResponse(String jsonStr) {
+        RouteResult res = new RouteResult();
+        try {
+            JSONObject root = new JSONObject(jsonStr);
+            if ("Ok".equalsIgnoreCase(root.optString("code"))) {
+                JSONArray routes = root.optJSONArray("routes");
+                if (routes != null && routes.length() > 0) {
+                    JSONObject r = routes.getJSONObject(0);
+                    res.distanceMeters = r.optDouble("distance", 0);
+                    res.durationSeconds = r.optDouble("duration", 0);
+                    JSONObject geom = r.optJSONObject("geometry");
+                    if (geom != null) {
+                        JSONArray coords = geom.optJSONArray("coordinates");
+                        if (coords != null) {
+                            for (int i = 0; i < coords.length(); i++) {
+                                JSONArray pt = coords.getJSONArray(i);
+                                res.points.add(new LatLng(pt.getDouble(1), pt.getDouble(0)));
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        return res;
+    }
+
+    /** Padam atau bersihkan HospitalMarkers. */
+    private void clearHospitalMarkers() {
+        hideMarkerCallout();
+        for (Marker m : hospitalMarkers) {
+            try {
+                if (m != null) m.remove();
+            } catch (Exception ignored) {
+            }
+        }
+        hospitalMarkers.clear();
+    }
+
+    private boolean isNavigating() {
+        return activeNavHospital != null;
+    }
+
+    private void upsertMyLocationMarker(LatLng pos) {
+        if (map == null || pos == null) return;
+        if (markerTransitionAnimator != null && markerTransitionAnimator.isRunning()) {
+            if (myLocationMarker != null) myLocationMarker.setPosition(pos);
+            return;
+        }
+
+        boolean navigating = isNavigating();
+        Bitmap icon = navigating ? getNavigationDirectionBitmap() : buildSelfMarkerBitmap();
+        float rot = navigating ? currentNavBearing : 0f;
+
+        if (myLocationMarker == null) {
+            myLocationMarker = map.addMarker(new MarkerOptions()
+                    .position(pos)
+                    .icon(BitmapDescriptorFactory.fromBitmap(icon))
+                    .anchor(0.5f, 0.5f)
+                    .flat(false)
+                    .rotation(rot)
+                    .zIndex(navigating ? 100f : 10f));
+        } else {
+            myLocationMarker.setPosition(pos);
+            myLocationMarker.setIcon(BitmapDescriptorFactory.fromBitmap(icon));
+            myLocationMarker.setAnchor(0.5f, 0.5f);
+            myLocationMarker.setFlat(false);
+            myLocationMarker.setRotation(rot);
+            myLocationMarker.setZIndex(navigating ? 100f : 10f);
+        }
+    }
+
+    /**
+     * Animasi peralihan lancar antara Profile Avatar dan Ikon Navigasi 3D.
+     * Menggunakan pop-shrink kemudian pop-grow dengan pantulan spring (OvershootInterpolator) & putaran haluan.
+     */
+    private void animateMarkerSwitch(boolean toNavigation, float targetBearing) {
+        if (myLocationMarker == null || map == null) {
+            if (currentLatLng != null) upsertMyLocationMarker(currentLatLng);
+            return;
+        }
+
+        if (markerTransitionAnimator != null && markerTransitionAnimator.isRunning()) {
+            markerTransitionAnimator.cancel();
+        }
+        if (markerRotationAnimator != null && markerRotationAnimator.isRunning()) {
+            markerRotationAnimator.cancel();
+        }
+
+        if (toNavigation) {
+            navigationDirectionBitmap = buildNavigationDirectionBitmap(this);
+        }
+        final Bitmap avatarBmp = buildSelfMarkerBitmap();
+        final Bitmap navBmp = getNavigationDirectionBitmap();
+        final float startRot = myLocationMarker.getRotation();
+        final float endRot = toNavigation ? targetBearing : 0f;
+
+        markerTransitionAnimator = ValueAnimator.ofFloat(0f, 1f);
+        markerTransitionAnimator.setDuration(420);
+        markerTransitionAnimator.setInterpolator(new LinearInterpolator());
+
+        final AccelerateInterpolator shrinkInterp = new AccelerateInterpolator(1.5f);
+        final OvershootInterpolator growInterp = new OvershootInterpolator(1.4f);
+        final boolean[] switched = new boolean[]{false};
+
+        markerTransitionAnimator.addUpdateListener(anim -> {
+            if (myLocationMarker == null) return;
+            float val = (float) anim.getAnimatedValue();
+
+            if (val < 0.38f) {
+                // Fasa 1: Mengecutkan ikon semasa (1.0 -> 0.05)
+                float shrinkProgress = val / 0.38f;
+                float scale = Math.max(0.05f, 1f - shrinkInterp.getInterpolation(shrinkProgress));
+                Bitmap currentBase = toNavigation ? avatarBmp : navBmp;
+                Bitmap scaled = scaleBitmap(currentBase, scale);
+                if (scaled != null) {
+                    try { myLocationMarker.setIcon(BitmapDescriptorFactory.fromBitmap(scaled)); } catch (Exception ignored) {}
+                }
+            } else {
+                // Fasa 2: Tukar sifat marker dan kembangkan ikon baharu dengan kesan pop spring (0.05 -> 1.0)
+                if (!switched[0]) {
+                    switched[0] = true;
+                    myLocationMarker.setFlat(false);
+                    myLocationMarker.setZIndex(toNavigation ? 100f : 10f);
+                }
+
+                float growProgress = (val - 0.38f) / 0.62f;
+                float scale = Math.max(0.05f, growInterp.getInterpolation(growProgress));
+
+                float rot = interpolateRotation(startRot, endRot, growProgress);
+                myLocationMarker.setRotation(rot);
+
+                Bitmap targetBase = toNavigation ? navBmp : avatarBmp;
+                Bitmap scaled = scaleBitmap(targetBase, scale);
+                if (scaled != null) {
+                    try { myLocationMarker.setIcon(BitmapDescriptorFactory.fromBitmap(scaled)); } catch (Exception ignored) {}
+                }
+            }
+        });
+
+        markerTransitionAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(android.animation.Animator animation) {
+                if (myLocationMarker == null) return;
+                myLocationMarker.setFlat(false);
+                myLocationMarker.setZIndex(toNavigation ? 100f : 10f);
+                myLocationMarker.setRotation(toNavigation ? targetBearing : 0f);
+                Bitmap finalBmp = toNavigation ? navBmp : avatarBmp;
+                if (finalBmp != null) {
+                    try { myLocationMarker.setIcon(BitmapDescriptorFactory.fromBitmap(finalBmp)); } catch (Exception ignored) {}
+                }
+            }
+        });
+
+        markerTransitionAnimator.start();
+    }
+
+    private void smoothRotateMarkerTo(float targetBearing) {
+        if (myLocationMarker == null) return;
+        if (markerTransitionAnimator != null && markerTransitionAnimator.isRunning()) return;
+
+        if (markerRotationAnimator != null && markerRotationAnimator.isRunning()) {
+            markerRotationAnimator.cancel();
+        }
+
+        final float startRot = myLocationMarker.getRotation();
+        markerRotationAnimator = ValueAnimator.ofFloat(0f, 1f);
+        markerRotationAnimator.setDuration(260);
+        markerRotationAnimator.setInterpolator(new DecelerateInterpolator());
+        markerRotationAnimator.addUpdateListener(anim -> {
+            if (myLocationMarker == null) return;
+            float f = (float) anim.getAnimatedValue();
+            myLocationMarker.setRotation(interpolateRotation(startRot, targetBearing, f));
+        });
+        markerRotationAnimator.start();
+    }
+
+    private static float interpolateRotation(float from, float to, float progress) {
+        float diff = (to - from) % 360f;
+        if (diff > 180f) diff -= 360f;
+        if (diff < -180f) diff += 360f;
+        return (from + diff * Math.min(1f, Math.max(0f, progress)) + 360f) % 360f;
+    }
+
+    private static Bitmap scaleBitmap(Bitmap src, float scale) {
+        if (src == null || src.isRecycled()) return null;
+        float s = Math.min(1.3f, Math.max(0.05f, scale));
+        int w = Math.max(1, Math.round(src.getWidth() * s));
+        int h = Math.max(1, Math.round(src.getHeight() * s));
+        try {
+            return Bitmap.createScaledBitmap(src, w, h, true);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private Bitmap getNavigationDirectionBitmap() {
+        if (navigationDirectionBitmap == null || navigationDirectionBitmap.isRecycled()) {
+            navigationDirectionBitmap = buildNavigationDirectionBitmap(this);
+        }
+        return navigationDirectionBitmap;
+    }
+
+    /**
+     * 3D Navigation Direction Arrow / Chevron Icon (ResQTap Hot Pink 3D Style).
+     * Reka bentuk 3D timbul ultra-rounded (bucu bulat penuh) kemas di dalam bulatan bayang.
+     */
+    private static Bitmap buildNavigationDirectionBitmap(Context ctx) {
+        final int sizePx = dp(ctx, 72);
+        Bitmap bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+
+        float cx = sizePx / 2f;
+        float cy = sizePx / 2f;
+
+        // 1. Bayang Bulatan Sentuhan Jalan Raya (Ambient Ground Shadow Disc)
+        // Bulatan asas dibuat kemas dan jelas di atas jalan raya (diameter 50dp)
+        float discRadius = dp(ctx, 25f);
+        Paint haloPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        haloPaint.setColor(Color.parseColor("#34271724"));
+        haloPaint.setStyle(Paint.Style.FILL);
+        canvas.drawCircle(cx, cy + dp(ctx, 1.8f), discRadius, haloPaint);
+
+        Paint haloInnerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        haloInnerPaint.setColor(Color.parseColor("#330F020B"));
+        haloInnerPaint.setStyle(Paint.Style.FILL);
+        canvas.drawCircle(cx, cy + dp(ctx, 2.8f), dp(ctx, 17f), haloInnerPaint);
+
+        // 2. Dimensi & Rangka Asas Anak Panah (Kecil di dalam bulatan, bucu bulat penuh)
+        // W = 26dp, H = 29dp (Jarak maksimum dari tengah ~19.5dp, jauh daripada sempadan bulatan 25dp)
+        float W = dp(ctx, 26f);
+        float H = dp(ctx, 29f);
+        float notch = dp(ctx, 8.5f);
+        float R = dp(ctx, 4.5f); // Jejari kebulatan bucu (Radius 4.5dp = diameter kubah 9.0dp bulat licin)
+
+        // 3. Lapisan Ketebalan 3D Vertikal (Multi-Layer Extrusion Walls)
+        // 3A. Dasar Gelap Bawah
+        Path baseSkeletonBottom = createChevronSkeleton(cx, cy + dp(ctx, 3.8f), W, H, notch, R);
+        Paint paintBottom = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paintBottom.setColor(Color.parseColor("#4A0028"));
+        drawRoundedChevron(canvas, baseSkeletonBottom, R * 2f, paintBottom);
+
+        // 3B. Dinding Sisi Tengah
+        Path baseSkeletonMid = createChevronSkeleton(cx, cy + dp(ctx, 2.0f), W, H, notch, R);
+        Paint paintMid = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paintMid.setColor(Color.parseColor("#880E4F"));
+        drawRoundedChevron(canvas, baseSkeletonMid, R * 2f, paintMid);
+
+        // 3C. Chamfer Rim
+        Path baseSkeletonTop = createChevronSkeleton(cx, cy + dp(ctx, 0.8f), W, H, notch, R);
+        Paint paintTop = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paintTop.setColor(Color.parseColor("#F8BBD0"));
+        drawRoundedChevron(canvas, baseSkeletonTop, R * 2f, paintTop);
+
+        // 4. Bingkai Putih Timbul 3D dengan bucu bulat penuh (Smooth White Rounded Frame)
+        Path outerSkeleton = createChevronSkeleton(cx, cy, W, H, notch, R);
+        Paint whitePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        whitePaint.setColor(Color.WHITE);
+        whitePaint.setShadowLayer(dp(ctx, 2.5f), 0f, dp(ctx, 1.2f), 0x30000000);
+        drawRoundedChevron(canvas, outerSkeleton, R * 2f, whitePaint);
+
+        // 5. Badan Utama Anak Panah Merah / Hot Pink Berbucu Bulat (Rounded Pink Core)
+        float innerW = W - dp(ctx, 5.5f);
+        float innerH = H - dp(ctx, 5.5f);
+        float innerNotch = notch - dp(ctx, 1.6f);
+        float innerR = R - dp(ctx, 1.0f); // ~3.5dp jejari (kubah bulat ~7dp)
+        float innerCy = cy - dp(ctx, 0.4f);
+
+        // 5A. Bayang alur dalam
+        Path innerSkeletonShadow = createChevronSkeleton(cx, innerCy + dp(ctx, 0.8f), innerW, innerH, innerNotch, innerR);
+        Paint shadowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        shadowPaint.setColor(Color.parseColor("#5A002C"));
+        drawRoundedChevron(canvas, innerSkeletonShadow, innerR * 2f, shadowPaint);
+
+        // 5B. Teras Hot Pink Dwi-Prisma dengan Bucu Bulat Penuh (Zero sharp points!)
+        Path innerSkeleton = createChevronSkeleton(cx, innerCy, innerW, innerH, innerNotch, innerR);
+        Paint corePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        LinearGradient dualFacetGradient = new LinearGradient(
+                cx - (innerW / 2f), innerCy,
+                cx + (innerW / 2f), innerCy,
+                new int[] {
+                        Color.parseColor("#FF2E93"), // Sayap Kiri: Neon Hot Pink
+                        Color.parseColor("#FF0077"), // Sayap Kiri tengah: Vibrant Hot Pink
+                        Color.parseColor("#C2185B"), // Sayap Kanan tengah: Deep Magenta
+                        Color.parseColor("#880E4F")  // Sayap Kanan luar: Dark Crimson
+                },
+                new float[] { 0.0f, 0.499f, 0.501f, 1.0f },
+                Shader.TileMode.CLAMP
+        );
+        corePaint.setShader(dualFacetGradient);
+        drawRoundedChevron(canvas, innerSkeleton, innerR * 2f, corePaint);
+
+        // 5C. Garis Rabung 3D Tengah
+        Paint spinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        spinePaint.setColor(Color.argb(70, 255, 255, 255));
+        spinePaint.setStrokeWidth(dp(ctx, 0.8f));
+        spinePaint.setStyle(Paint.Style.STROKE);
+        float topInnerY = innerCy - (innerH / 2f);
+        float bottomInnerNotchY = innerCy + (innerH / 2f) - innerNotch;
+        canvas.drawLine(cx, topInnerY, cx, bottomInnerNotchY, spinePaint);
+
+        // 6. Kilauan Kubah Muncung Bulat (Glossy Specular Sheen on Rounded Dome)
+        Paint glossPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        glossPaint.setColor(Color.argb(160, 255, 255, 255));
+        glossPaint.setStyle(Paint.Style.FILL);
+        float glossTopY = innerCy - (innerH / 2f) + innerR * 0.7f;
+        canvas.drawCircle(cx, glossTopY, innerR * 0.55f, glossPaint);
+
+        return bitmap;
+    }
+
+    /**
+     * Melukis bentuk chevron dengan bucu bulat sempurna (Minkowski sum / Skia native round join & cap).
+     * Kaedah ini menjamin semua bucu (muncung, sayap, lekuk) dibundarkan secara bulat tanpa sebarang bucu tajam.
+     */
+    private static void drawRoundedChevron(Canvas canvas, Path skeleton, float strokeWidth, Paint paint) {
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
+        paint.setStrokeWidth(strokeWidth);
+        paint.setStrokeJoin(Paint.Join.ROUND);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        canvas.drawPath(skeleton, paint);
+    }
+
+    /**
+     * Membina rangka (skeleton) chevron yang diselaraskan untuk penebalan bucu bulat (stroke join round).
+     */
+    private static Path createChevronSkeleton(float cx, float cy, float width, float height, float notchDepth, float cornerRadius) {
+        Path path = new Path();
+        float topY = cy - (height / 2f) + cornerRadius;
+        float bottomY = cy + (height / 2f) - cornerRadius;
+        float leftX = cx - (width / 2f) + cornerRadius;
+        float rightX = cx + (width / 2f) - cornerRadius;
+        float notchY = cy + (height / 2f) - notchDepth + (cornerRadius * 0.6f);
+
+        path.moveTo(cx, topY);
+        path.lineTo(rightX, bottomY);
+        path.lineTo(cx, notchY);
+        path.lineTo(leftX, bottomY);
+        path.close();
+        return path;
+    }
+
+    private void startNavigationLocationUpdates() {
+        if (!PermissionUtils.hasAnyLocation(this)) return;
+        if (navLocationCallback != null) return;
+
+        navLocationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(@NonNull LocationResult locationResult) {
+                if (locationResult == null || !isNavigating() || map == null) return;
+                Location loc = locationResult.getLastLocation();
+                if (loc == null) return;
+
+                currentLatLng = new LatLng(loc.getLatitude(), loc.getLongitude());
+                float bearing = (loc.hasBearing() && loc.getSpeed() > 0.5f) ? loc.getBearing() : currentNavBearing;
+
+                if (!currentRoutePoints.isEmpty()) {
+                    bearing = computeBearingAlongRoute(currentLatLng, currentRoutePoints, bearing);
+                }
+                currentNavBearing = bearing;
+                upsertMyLocationMarker(currentLatLng);
+
+                if (isNavigating3D) {
+                    smoothRotateMarkerTo(currentNavBearing);
+                    com.google.android.gms.maps.model.CameraPosition cameraPosition = new com.google.android.gms.maps.model.CameraPosition.Builder()
+                            .target(currentLatLng)
+                            .zoom(19.8f)
+                            .bearing(currentNavBearing)
+                            .tilt(58f)
+                            .build();
+                    map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 900, null);
+                }
+            }
+        };
+
+        try {
+            LocationRequest req = new LocationRequest.Builder(
+                    Priority.PRIORITY_HIGH_ACCURACY, 2000L
+            ).setMinUpdateIntervalMillis(1000L).build();
+
+            fusedLocationClient.requestLocationUpdates(req, navLocationCallback, android.os.Looper.getMainLooper());
+        } catch (SecurityException ignored) {
+        }
+    }
+
+    private void stopNavigationLocationUpdates() {
+        if (navLocationCallback != null && fusedLocationClient != null) {
+            try {
+                fusedLocationClient.removeLocationUpdates(navLocationCallback);
+            } catch (Exception ignored) {}
+            navLocationCallback = null;
+        }
+    }
+
+    private float computeBearingAlongRoute(LatLng currentPos, List<LatLng> points, float fallbackBearing) {
+        if (points == null || points.isEmpty() || currentPos == null) return fallbackBearing;
+
+        int closestIdx = 0;
+        double minDistance = Double.MAX_VALUE;
+        for (int i = 0; i < points.size(); i++) {
+            double d = distanceMeters(currentPos, points.get(i).latitude, points.get(i).longitude);
+            if (d < minDistance) {
+                minDistance = d;
+                closestIdx = i;
+            }
+        }
+
+        int targetIdx = Math.min(closestIdx + 1, points.size() - 1);
+        if (targetIdx == closestIdx && targetIdx > 0) {
+            return calculateBearing(points.get(targetIdx - 1), points.get(targetIdx));
+        }
+
+        LatLng targetPt = points.get(targetIdx);
+        double dToTarget = distanceMeters(currentPos, targetPt.latitude, targetPt.longitude);
+        if (dToTarget > 2.0) {
+            return calculateBearing(currentPos, targetPt);
+        }
+        return fallbackBearing;
+    }
+
+    private void maybePromptEnableGps() {
+        if (gpsDialogShown) return;
+        if (GpsUtils.isGpsEnabled(this)) return;
+        gpsDialogShown = true;
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.nearby_hospital_enable_location_title)
+                .setMessage(R.string.nearby_hospital_enable_location_msg)
+                .setPositiveButton(R.string.nearby_hospital_enable_location_action, (d, which) -> {
+                    try {
+                        startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                    } catch (Exception ignored) {
+                    }
+                })
+                .setNegativeButton(R.string.cancel, (d, which) -> d.dismiss())
+                .show();
+    }
+
+    private static double distanceMeters(LatLng from, double toLat, double toLng) {
+        if (from == null) return -1d;
+        try {
+            float[] out = new float[1];
+            Location.distanceBetween(from.latitude, from.longitude, toLat, toLng, out);
+            return out[0];
+        } catch (Exception ignored) {
+            return -1d;
+        }
+    }
+
+    private String formatDistance(double meters) {
+        if (meters < 0) return "";
+        if (meters < 1000) return String.format(Locale.getDefault(), "%.0f m", meters);
+        return String.format(Locale.getDefault(), "%.1f km", (meters / 1000d));
+    }
+
+    private Bitmap buildSelfMarkerBitmap() {
+        Bitmap b = decodeBase64Avatar(myPhotoB64);
+        if (b != null) return buildProfileMarkerBitmapFromPhoto(this, b);
+        return buildProfileMarkerBitmap(this, myPhotoUri);
+    }
+
+    private static Bitmap decodeBase64Avatar(String b64) {
+        String s = String.valueOf(b64 == null ? "" : b64).trim();
+        if (s.isEmpty()) return null;
+        try {
+            byte[] bytes = android.util.Base64.decode(s, android.util.Base64.DEFAULT);
+            return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private static Bitmap buildProfileMarkerBitmap(Context ctx, String photoUri) {
+        final int sizePx = dp(ctx, 44);
+        final int borderPx = dp(ctx, 3);
+        final int shadowPx = dp(ctx, 4);
+
+        Bitmap src = loadProfileBitmap(ctx, photoUri);
+        if (src == null) {
+            return defaultAvatarMarkerBitmap(ctx, sizePx, borderPx, shadowPx);
+        }
+        Bitmap scaled = Bitmap.createScaledBitmap(src, sizePx, sizePx, true);
+        return circularWithBorderAndShadow(scaled, borderPx, shadowPx);
+    }
+
+    private static Bitmap buildProfileMarkerBitmapFromPhoto(Context ctx, Bitmap src) {
+        final int sizePx = dp(ctx, 44);
+        final int borderPx = dp(ctx, 3);
+        final int shadowPx = dp(ctx, 4);
+        if (src == null) return defaultAvatarMarkerBitmap(ctx, sizePx, borderPx, shadowPx);
+        Bitmap scaled = Bitmap.createScaledBitmap(src, sizePx, sizePx, true);
+        return circularWithBorderAndShadow(scaled, borderPx, shadowPx);
+    }
+
+    private static Bitmap loadProfileBitmap(Context ctx, String photoUri) {
+        String u = String.valueOf(photoUri == null ? "" : photoUri).trim();
+        if (u.isEmpty()) return null;
+        try {
+            Uri uri = Uri.parse(u);
+            try (java.io.InputStream in = ctx.getContentResolver().openInputStream(uri)) {
+                if (in == null) return null;
+                return BitmapFactory.decodeStream(in);
+            }
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private static Bitmap bitmapFromDrawable(Context ctx, int resId, int w, int h) {
+        try {
+            android.graphics.drawable.Drawable d = ContextCompat.getDrawable(ctx, resId);
+            if (d == null) return null;
+            try {
+                d = d.mutate();
+            } catch (Exception ignored) {
+            }
+            Bitmap b = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+            Canvas c = new Canvas(b);
+            d.setBounds(0, 0, w, h);
+            d.draw(c);
+            return b;
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private static Bitmap defaultAvatarMarkerBitmap(Context ctx, int sizePx, int borderPx, int shadowPx) {
+        int outSize = sizePx + (shadowPx * 2);
+        Bitmap out = Bitmap.createBitmap(outSize, outSize, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(out);
+        float cx = outSize / 2f;
+        float cy = outSize / 2f;
+        float radius = sizePx / 2f;
+
+        Paint shadow = new Paint(Paint.ANTI_ALIAS_FLAG);
+        shadow.setColor(0xFFFFFFFF);
+        shadow.setStyle(Paint.Style.FILL);
+        shadow.setShadowLayer(shadowPx, 0f, shadowPx * 0.75f, 0x55000000);
+        canvas.drawCircle(cx, cy, radius, shadow);
+
+        Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
+        fill.setColor(0xFF0B1220);
+        fill.setStyle(Paint.Style.FILL);
+        canvas.drawCircle(cx, cy, radius - (shadowPx * 0.5f), fill);
+
+        Paint border = new Paint(Paint.ANTI_ALIAS_FLAG);
+        border.setColor(0xFFFFFFFF);
+        border.setStyle(Paint.Style.STROKE);
+        border.setStrokeWidth(borderPx);
+        canvas.drawCircle(cx, cy, radius - (shadowPx * 0.5f) - (borderPx / 2f), border);
+
+        int iconSize = Math.round(sizePx * 0.72f);
+        Bitmap icon = bitmapFromDrawable(ctx, R.drawable.ic_avatar, iconSize, iconSize);
+        if (icon != null) {
+            float left = cx - (icon.getWidth() / 2f);
+            float top = cy - (icon.getHeight() / 2f);
+            canvas.drawBitmap(icon, left, top, new Paint(Paint.ANTI_ALIAS_FLAG));
+            icon.recycle();
+        }
+        return out;
+    }
+
+    private static Bitmap circularWithBorderAndShadow(Bitmap src, int borderPx, int shadowPx) {
+        int size = Math.min(src.getWidth(), src.getHeight());
+        int outSize = size + (shadowPx * 2);
+        Bitmap out = Bitmap.createBitmap(outSize, outSize, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(out);
+
+        float cx = outSize / 2f;
+        float cy = outSize / 2f;
+        float radius = (size / 2f);
+        float contentRadius = radius - borderPx;
+
+        Paint shadow = new Paint(Paint.ANTI_ALIAS_FLAG);
+        shadow.setColor(0xFFFFFFFF);
+        shadow.setStyle(Paint.Style.FILL);
+        shadow.setShadowLayer(shadowPx, 0f, shadowPx * 0.75f, 0x55000000);
+        canvas.drawCircle(cx, cy, radius, shadow);
+
+        Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
+        fill.setColor(0xFFFFFFFF);
+        fill.setStyle(Paint.Style.FILL);
+        canvas.drawCircle(cx, cy, radius - shadowPx * 0.5f, fill);
+
+        Paint imagePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        Bitmap circle = Bitmap.createBitmap(outSize, outSize, Bitmap.Config.ARGB_8888);
+        Canvas c2 = new Canvas(circle);
+
+        Paint mask = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mask.setColor(0xFF000000);
+        c2.drawCircle(cx, cy, contentRadius, mask);
+        mask.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+
+        RectF dst = new RectF(cx - contentRadius, cy - contentRadius, cx + contentRadius, cy + contentRadius);
+        c2.drawBitmap(src, null, dst, mask);
+        canvas.drawBitmap(circle, 0, 0, imagePaint);
+        circle.recycle();
+        return out;
+    }
+
+    private BitmapDescriptor hospitalMarkerDesc;
+    private BitmapDescriptor policeMarkerDesc;
+    private BitmapDescriptor fireMarkerDesc;
+
+    /** Ambil atau muat BitmapDescriptor untuk pin mengikut kategori (Hospital, Polis, Bomba). */
+    private BitmapDescriptor getServiceMarkerDescriptor(String category) {
+        if ("police".equalsIgnoreCase(category)) {
+            if (policeMarkerDesc == null) {
+                policeMarkerDesc = BitmapDescriptorFactory.fromBitmap(buildServiceMarkerBitmap(this, "police"));
+            }
+            return policeMarkerDesc;
+        } else if ("fire".equalsIgnoreCase(category)) {
+            if (fireMarkerDesc == null) {
+                fireMarkerDesc = BitmapDescriptorFactory.fromBitmap(buildServiceMarkerBitmap(this, "fire"));
+            }
+            return fireMarkerDesc;
+        } else {
+            if (hospitalMarkerDesc == null) {
+                hospitalMarkerDesc = BitmapDescriptorFactory.fromBitmap(buildServiceMarkerBitmap(this, "hospital"));
+            }
+            return hospitalMarkerDesc;
+        }
+    }
+
+    /** Bina Bitmap pin penanda tersuai dengan bentuk teardrop, sempadan putih berkualiti, dan ikon kategori di tengah. */
+    private static Bitmap buildServiceMarkerBitmap(Context ctx, String category) {
+        int widthPx = dp(ctx, 38);
+        int heightPx = dp(ctx, 50);
+        int shadowPx = dp(ctx, 3);
+
+        int totalWidth = widthPx + (shadowPx * 2);
+        int totalHeight = heightPx + (shadowPx * 2);
+
+        Bitmap bitmap = Bitmap.createBitmap(totalWidth, totalHeight, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+
+        float cx = totalWidth / 2f;
+        float radius = widthPx / 2f;
+        float cy = radius + shadowPx;
+        float tipX = cx;
+        float tipY = totalHeight - shadowPx;
+
+        int bgColor;
+        int iconRes;
+        if ("police".equalsIgnoreCase(category)) {
+            bgColor = Color.parseColor("#1565C0"); // Biru Polis
+            iconRes = R.drawable.logo_pdrm;
+        } else if ("fire".equalsIgnoreCase(category)) {
+            bgColor = Color.parseColor("#E65100"); // Jingga Bomba
+            iconRes = R.drawable.logo_bomba;
+        } else {
+            bgColor = Color.parseColor("#E53935"); // Merah Hospital
+            iconRes = R.drawable.logo_kkm;
+        }
+
+        // 1. Bayang tanah (Ground shadow) halus di bawah mata pin
+        Paint shadowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        shadowPaint.setColor(0x35000000);
+        shadowPaint.setStyle(Paint.Style.FILL);
+        canvas.drawOval(new RectF(cx - dp(ctx, 8), tipY - dp(ctx, 2), cx + dp(ctx, 8), tipY + dp(ctx, 3)), shadowPaint);
+
+        // 2. Bentuk teardrop pin map
+        Path pinPath = new Path();
+        float leftX = cx - radius;
+        float rightX = cx + radius;
+        float controlY = cy + radius * 0.45f;
+
+        pinPath.moveTo(tipX, tipY);
+        pinPath.quadTo(cx - radius * 0.85f, controlY, leftX, cy);
+        pinPath.arcTo(new RectF(leftX, cy - radius, rightX, cy + radius), 180, 180, false);
+        pinPath.quadTo(cx + radius * 0.85f, controlY, tipX, tipY);
+        pinPath.close();
+
+        // 3. Warna latar belakang pin
+        Paint fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        fillPaint.setColor(bgColor);
+        fillPaint.setStyle(Paint.Style.FILL);
+        canvas.drawPath(pinPath, fillPaint);
+
+        // 4. Sempadan putih premium
+        Paint strokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        strokePaint.setColor(Color.WHITE);
+        strokePaint.setStyle(Paint.Style.STROKE);
+        strokePaint.setStrokeWidth(dp(ctx, 2));
+        strokePaint.setStrokeJoin(Paint.Join.ROUND);
+        strokePaint.setStrokeCap(Paint.Cap.ROUND);
+        canvas.drawPath(pinPath, strokePaint);
+
+        // 5. Bulatan putih di tengah kepala pin untuk mempamerkan logo rasmi secara berkualiti
+        float innerDiscRadius = radius * 0.72f;
+        Paint innerDiscPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        innerDiscPaint.setColor(Color.WHITE);
+        innerDiscPaint.setStyle(Paint.Style.FILL);
+        canvas.drawCircle(cx, cy, innerDiscRadius, innerDiscPaint);
+
+        // 6. Ikon logo rasmi di tengah kepala pin
+        int iconSize = dp(ctx, 22);
+        Bitmap icon = bitmapFromDrawable(ctx, iconRes, iconSize, iconSize);
+        if (icon != null) {
+            float iconLeft = cx - (icon.getWidth() / 2f);
+            float iconTop = cy - (icon.getHeight() / 2f);
+            canvas.drawBitmap(icon, iconLeft, iconTop, null);
+            icon.recycle();
+        }
+
+        return bitmap;
+    }
+
+}
