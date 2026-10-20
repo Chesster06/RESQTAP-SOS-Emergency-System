@@ -15,4 +15,12 @@
         android:src="@drawable/ic_menu_location"
         android:tint="@color/about_accent" />
 
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_weight="1"
+        android:text="@string/feature_nearby_hospital"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp" />
 </LinearLayout>
