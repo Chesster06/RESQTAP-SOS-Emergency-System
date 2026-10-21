@@ -54,50 +54,6 @@ public class SupabaseManager {
 
     private SupabaseManager() {}
 
-    // =========================================================================
-    // 1. HOSPITAL & NEARBY ASSISTANCE
-    // =========================================================================
-
-    /** Ambil senarai hospital dari Supabase */
-    public void getHospitals(String category, Callback<JSONArray> callback) {
-        executor.execute(() -> {
-            try {
-                String endpoint = "/rest/v1/hospitals?select=*";
-                if (category != null && !category.equalsIgnoreCase("all")) {
-                    endpoint += "&category=eq." + category;
-                }
-                endpoint += "&order=name.asc";
-
-                String response = executeRequest("GET", endpoint, null);
-                JSONArray array = new JSONArray(response);
-                postSuccess(callback, array);
-            } catch (Exception e) {
-                Log.e(TAG, "getHospitals failed: " + e.getMessage());
-                postError(callback, e);
-            }
-        });
-    }
-
-    /** Ambil hospital terdekat menggunakan fungsi PostGIS get_nearby_hospitals */
-    public void getNearbyHospitals(double lat, double lng, double radiusMeters, String category, Callback<JSONArray> callback) {
-        executor.execute(() -> {
-            try {
-                String endpoint = "/rest/v1/rpc/get_nearby_hospitals";
-                JSONObject body = new JSONObject();
-                body.put("user_lat", lat);
-                body.put("user_lng", lng);
-                body.put("radius_meters", radiusMeters);
-                body.put("filter_category", category == null ? "all" : category);
-
-                String response = executeRequest("POST", endpoint, body.toString());
-                JSONArray array = new JSONArray(response);
-                postSuccess(callback, array);
-            } catch (Exception e) {
-                Log.e(TAG, "getNearbyHospitals failed: " + e.getMessage());
-                postError(callback, e);
-            }
-        });
-    }
 
     /** Ambil senarai sorotan berita / banner promosi dari Supabase */
     public void getHighlights(Callback<JSONArray> callback) {
@@ -114,9 +70,7 @@ public class SupabaseManager {
         });
     }
 
-    // =========================================================================
     // 2. KAD PERUBATAN (MEDICAL CARDS)
-    // =========================================================================
 
     public void getMedicalCard(String userId, Callback<JSONObject> callback) {
         executor.execute(() -> {
@@ -158,9 +112,7 @@ public class SupabaseManager {
         });
     }
 
-    // =========================================================================
     // 3. LAPORAN INSIDEN (REPORTS)
-    // =========================================================================
 
     public void submitReport(String userId, String userName, String title, String desc, String category, double lat, double lng, String address, Callback<Boolean> callback) {
         executor.execute(() -> {
@@ -186,9 +138,7 @@ public class SupabaseManager {
         });
     }
 
-    // =========================================================================
     // 4. PROFIL PENGGUNA (PROFILES)
-    // =========================================================================
 
     public void upsertProfile(String userId, String email, String fullName, String phone, String photoUrl, Callback<Boolean> callback) {
         executor.execute(() -> {
@@ -288,9 +238,7 @@ public class SupabaseManager {
         updateLiveLocation(userId, lat, lng, batteryPct, null);
     }
 
-    // =========================================================================
     // ENJIN HTTP PERHUBUNGAN REST
-    // =========================================================================
 
     /**
      * SEC-04 FIX: Fetch the current Firebase ID Token synchronously (called from executor thread).

@@ -92,7 +92,6 @@ public final class BottomNavUtils {
         });
     }
 
-    /** Fungsi untuk applyResponsiveInsets. */
     private static void applyResponsiveInsets(BottomNavigationView nav) {
         final int baseLeft = dp(nav, NAV_SIDE_MARGIN_DP);
         final int baseRight = dp(nav, NAV_SIDE_MARGIN_DP);
@@ -118,7 +117,6 @@ public final class BottomNavUtils {
         ViewCompat.requestApplyInsets(nav);
     }
 
-    /** Fungsi untuk tuneItemSpacing. */
     private static void tuneItemSpacing(BottomNavigationView nav) {
         nav.setClipChildren(false);
         nav.setClipToPadding(false);
@@ -157,7 +155,6 @@ public final class BottomNavUtils {
         });
     }
 
-    /** Fungsi untuk setClipOff. */
     private static void setClipOff(View root) {
         if (!(root instanceof ViewGroup)) return;
         ViewGroup group = (ViewGroup) root;
@@ -168,14 +165,12 @@ public final class BottomNavUtils {
         }
     }
 
-    /** Fungsi untuk findDescendantsById. */
     private static List<View> findDescendantsById(View root, int id) {
         List<View> views = new ArrayList<>();
         collectDescendantsById(root, id, views);
         return views;
     }
 
-    /** Fungsi untuk collectDescendantsById. */
     private static void collectDescendantsById(View root, int id, List<View> views) {
         if (root == null) return;
         if (root.getId() == id) views.add(root);
@@ -186,22 +181,18 @@ public final class BottomNavUtils {
         }
     }
 
-    /** Fungsi untuk asTextView. */
     private static TextView asTextView(View view) {
         return view instanceof TextView ? (TextView) view : null;
     }
 
-    /** Fungsi untuk dp. */
     private static int dp(View view, int value) {
         return Math.round(value * view.getResources().getDisplayMetrics().density);
     }
 
-    /** Fungsi untuk dp. */
     private static float dp(View view, float value) {
         return value * view.getResources().getDisplayMetrics().density;
     }
 
-    /** Fungsi untuk switchTo. */
     private static void switchTo(Activity from, Class<?> to) {
         if (from.getClass().equals(to)) return;
         Intent intent = new Intent(from, to);

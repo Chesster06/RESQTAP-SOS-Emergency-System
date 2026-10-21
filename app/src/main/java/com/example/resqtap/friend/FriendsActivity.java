@@ -72,9 +72,7 @@ public class FriendsActivity extends BaseActivity {
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,11 +128,9 @@ public class FriendsActivity extends BaseActivity {
 
         if (inputSearch != null) {
             inputSearch.addTextChangedListener(new TextWatcher() {
-                /** Fungsi untuk beforeTextChanged. */
     @Override
                 public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
-                /** Fungsi untuk onTextChanged. */
     @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
                     String query = s != null ? s.toString() : "";
@@ -147,7 +143,6 @@ public class FriendsActivity extends BaseActivity {
                     }
                 }
 
-                /** Fungsi untuk afterTextChanged. */
     @Override
                 public void afterTextChanged(Editable s) {}
             });
@@ -309,9 +304,7 @@ public class FriendsActivity extends BaseActivity {
         dialog.show();
     }
 
-    // =========================================================================
     // SEKSYEN: ONDESTROY
-    // =========================================================================
     /** Pembersihan memori, buang listener, dan tutup sambungan. */
     @Override
     protected void onDestroy() {
@@ -331,7 +324,6 @@ public class FriendsActivity extends BaseActivity {
         finish();
     }
 
-    /** Fungsi untuk safePublicId. */
     private String safePublicId(String rawUid) {
         return FirebaseFriendClient.format4DigitId(rawUid, "");
     }
@@ -382,7 +374,6 @@ public class FriendsActivity extends BaseActivity {
         });
     }
 
-    /** Fungsi untuk listenFirebaseData. */
     private void listenFirebaseData() {
         if (uid.isEmpty()) return;
 
@@ -437,7 +428,6 @@ public class FriendsActivity extends BaseActivity {
         requestsRef.addValueEventListener(requestsListener);
     }
 
-    /** Fungsi untuk stopListeners. */
     private void stopListeners() {
         try {
             if (friendsRef != null && friendsListener != null) {

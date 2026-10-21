@@ -119,7 +119,6 @@ public class RegisterActivity extends BaseActivity {
     private ShapeableImageView imgAvatar;
     private Bitmap highResAvatarBitmap = null;
 
-    /** Fungsi untuk shouldAnimateContentIn. */
     protected boolean shouldAnimateContentIn() {
         return false;
     }
@@ -1247,7 +1246,7 @@ public class RegisterActivity extends BaseActivity {
             String emRelationOther = emergencyRelationOtherInput == null || emergencyRelationOtherInput.getText() == null ? "" : emergencyRelationOtherInput.getText().toString().trim().toUpperCase(java.util.Locale.ROOT);
             String emRelationValue = isOtherSelected(emRelationSelection) ? (!emRelationOther.isEmpty() ? emRelationOther : emRelationSelection) : emRelationSelection;
 
-            // --- VALIDASI STEP 2: PERSONAL INFO SAFETY CHECK ---
+            // Personal info validation
             if (firstNameValue.isEmpty() || lastNameValue.isEmpty() || icValue.isEmpty() || genderValue.isEmpty()
                     || phoneValue.isEmpty() || addressValue.isEmpty() || religionSelection.isEmpty() || dobValue.isEmpty() || ethnicitySelection.isEmpty()) {
                 showStep2PersonalInfo();
@@ -1255,7 +1254,7 @@ public class RegisterActivity extends BaseActivity {
                 return;
             }
 
-            // --- VALIDASI STEP 3: MEDICAL & EMERGENCY INFO (REQUIRED) ---
+            // Medical and emergency info validation
             if (bloodValue.isEmpty()) {
                 if (layoutBloodType != null) {
                     layoutBloodType.setError(getString(R.string.error_required_blood_type));
@@ -1865,7 +1864,6 @@ public class RegisterActivity extends BaseActivity {
                 && (e.length() > "@gmail.com".length() || e.length() > "@resqtap.com".length());
     }
 
-    /** Fungsi untuk uriToBase64. */
     private String uriToBase64(Uri uri) {
         try {
             java.io.InputStream inputStream = getContentResolver().openInputStream(uri);
@@ -1880,7 +1878,6 @@ public class RegisterActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk forceHeavyText. */
     private void forceHeavyText(TextView textView) {
         if (textView == null) return;
         textView.setTypeface(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD);
@@ -1967,7 +1964,6 @@ public class RegisterActivity extends BaseActivity {
                 .show();
     }
 
-    /** Fungsi untuk finishToLogin. */
     private void finishToLogin() {
         finishToLogin(registeredEmail);
     }

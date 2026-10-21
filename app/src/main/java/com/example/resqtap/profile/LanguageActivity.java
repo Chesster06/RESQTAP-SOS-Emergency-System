@@ -22,9 +22,7 @@ import com.google.android.material.button.MaterialButton;
  * Pilih bahasa app (Melayu, English, Mandarin, Tamil) tanpa perlu restart phone.
  */
 public class LanguageActivity extends BaseActivity {
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {

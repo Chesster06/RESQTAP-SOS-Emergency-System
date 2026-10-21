@@ -69,9 +69,7 @@ public class RoomListActivity extends BaseActivity {
     private String uid;
     private ChildEventListener userRoomsListener;
 
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,7 +119,6 @@ public class RoomListActivity extends BaseActivity {
         RecyclerView rv = findViewById(R.id.rv_rooms);
         rv.setLayoutManager(new LinearLayoutManager(this));
         adapter = new RoomListAdapter(new RoomListAdapter.Listener() {
-            /** Fungsi untuk onView. */
     @Override
             public void onView(FirebaseRoomClient.RoomInfo info) {
                 Intent i = new Intent(RoomListActivity.this, RoomMapActivity.class);
@@ -129,13 +126,11 @@ public class RoomListActivity extends BaseActivity {
                 startActivity(i);
             }
 
-            /** Fungsi untuk onEdit (Room Settings & Permissions). */
             @Override
             public void onEdit(FirebaseRoomClient.RoomInfo info) {
                 showRoomSettingsDialog(info);
             }
 
-            /** Fungsi untuk onDelete. */
             @Override
             public void onDelete(FirebaseRoomClient.RoomInfo info) {
                 confirmDeleteRoom(info, null);
@@ -284,7 +279,6 @@ public class RoomListActivity extends BaseActivity {
         stopUserRoomsListener();
     }
 
-    /** Fungsi untuk reloadRooms. */
     private void reloadRooms() {
         executor.execute(() -> {
             ArrayList<FirebaseRoomClient.RoomInfo> loaded = new ArrayList<>();
@@ -308,7 +302,6 @@ public class RoomListActivity extends BaseActivity {
         });
     }
 
-    /** Fungsi untuk startUserRoomsListener. */
     private void startUserRoomsListener() {
         if (userRoomsListener != null) return;
         if (uid == null || uid.trim().isEmpty()) return;
@@ -328,7 +321,6 @@ public class RoomListActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk stopUserRoomsListener. */
     private void stopUserRoomsListener() {
         if (userRoomsListener == null) return;
         try {
@@ -341,7 +333,6 @@ public class RoomListActivity extends BaseActivity {
         userRoomsListener = null;
     }
 
-    /** Fungsi untuk applyFilter. */
     private void applyFilter() {
         String q = searchInput == null || searchInput.getText() == null ? "" : searchInput.getText().toString().trim();
         if (q.isEmpty()) {
@@ -651,7 +642,6 @@ public class RoomListActivity extends BaseActivity {
         });
     }
 
-    /** Fungsi untuk onBackPressed. */
     @Override
     public void onBackPressed() {
         try {
@@ -665,9 +655,7 @@ public class RoomListActivity extends BaseActivity {
         super.onBackPressed();
     }
 
-    // =========================================================================
     // SEKSYEN: ONDESTROY
-    // =========================================================================
     /** Pembersihan memori, buang listener, dan tutup sambungan. */
     @Override
     protected void onDestroy() {

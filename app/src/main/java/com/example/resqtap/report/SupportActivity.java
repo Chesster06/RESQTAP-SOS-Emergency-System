@@ -20,9 +20,7 @@ import androidx.core.view.WindowInsetsCompat;
  * Pusat Bantuan: FAQ, emergency hotline, dan shortcut ke Livechat.
  */
 public class SupportActivity extends BaseActivity {
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -43,7 +43,6 @@ public class CallSignalingClient {
         return awaitingSosResponse;
     }
 
-    /** Ambil atau muat data Instance. */
     public static synchronized CallSignalingClient getInstance() {
         if (instance == null) {
             instance = new CallSignalingClient();
@@ -51,7 +50,6 @@ public class CallSignalingClient {
         return instance;
     }
 
-    /** Fungsi untuk listenForIncomingCalls. */
     public void listenForIncomingCalls(String myUid, IncomingCallHandler handler) {
         if (myUid == null || myUid.trim().isEmpty() || handler == null) return;
 
@@ -96,7 +94,6 @@ public class CallSignalingClient {
         incomingCallRef.addValueEventListener(incomingCallListener);
     }
 
-    /** Fungsi untuk stopListeningForIncomingCalls. */
     public void stopListeningForIncomingCalls() {
         if (incomingCallRef != null && incomingCallListener != null) {
             incomingCallRef.removeEventListener(incomingCallListener);
@@ -105,7 +102,6 @@ public class CallSignalingClient {
         incomingCallRef = null;
     }
 
-    /** Fungsi untuk acceptCall. */
     public void acceptCall(String myUid, String callId) {
         if (myUid == null || myUid.isEmpty() || callId == null || callId.isEmpty()) return;
 
@@ -116,7 +112,6 @@ public class CallSignalingClient {
         rootRef.child("userCalls").child(myUid).child("currentCall").updateChildren(updates);
     }
 
-    /** Fungsi untuk rejectCall. */
     public void rejectCall(String myUid, String callId) {
         if (myUid == null || myUid.isEmpty() || callId == null || callId.isEmpty()) return;
 
@@ -141,7 +136,6 @@ public class CallSignalingClient {
         });
     }
 
-    /** Fungsi untuk tolak panggilan dan tukar ke sembang teks (Can't talk? Chat instead). */
     public void declineWithChat(String myUid, String callId) {
         if (myUid == null || myUid.isEmpty()) return;
 
@@ -157,7 +151,6 @@ public class CallSignalingClient {
         }
     }
 
-    /** Fungsi untuk endCall. */
     public void endCall(String myUid, String callId) {
         if (myUid == null || myUid.isEmpty()) return;
 
@@ -219,13 +212,11 @@ public class CallSignalingClient {
         rootRef.child("calls").child(callId).child(role).addChildEventListener(listener);
     }
 
-    /** Fungsi untuk setCameraState. */
     public void setCameraState(String callId, String role, boolean isEnabled) {
         if (callId == null || callId.isEmpty()) return;
         rootRef.child("calls").child(callId).child("cameraState").child(role).setValue(isEnabled);
     }
 
-    /** Fungsi untuk listenForCameraState. */
     public void listenForCameraState(String callId, String role, ValueEventListener listener) {
         if (callId == null || callId.isEmpty()) return;
         rootRef.child("calls").child(callId).child("cameraState").child(role).addValueEventListener(listener);
@@ -237,13 +228,11 @@ public class CallSignalingClient {
         rootRef.child("calls").child(callId).child("cameraState").child(role).removeEventListener(listener);
     }
 
-    /** Fungsi untuk setMicState. */
     public void setMicState(String callId, String role, boolean isEnabled) {
         if (callId == null || callId.isEmpty()) return;
         rootRef.child("calls").child(callId).child("micState").child(role).setValue(isEnabled);
     }
 
-    /** Fungsi untuk listenForMicState. */
     public void listenForMicState(String callId, String role, ValueEventListener listener) {
         if (callId == null || callId.isEmpty()) return;
         rootRef.child("calls").child(callId).child("micState").child(role).addValueEventListener(listener);
@@ -267,7 +256,6 @@ public class CallSignalingClient {
         rootRef.child("calls").child(callId).child(role).removeEventListener(listener);
     }
 
-    /** Ambil atau muat data String. */
     private String getString(DataSnapshot snapshot, String key) {
         if (snapshot.hasChild(key)) {
             Object val = snapshot.child(key).getValue();

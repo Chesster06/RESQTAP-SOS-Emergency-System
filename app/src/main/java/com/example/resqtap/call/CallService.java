@@ -22,9 +22,7 @@ public class CallService extends Service {
     private static final String CHANNEL_ID = "call_service_channel";
     private static final int NOTIF_ID = 2102;
 
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     public void onCreate() {
@@ -82,7 +80,6 @@ public class CallService extends Service {
         return START_NOT_STICKY;
     }
 
-    /** Fungsi untuk ensureChannel. */
     private void ensureChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager nm = getSystemService(NotificationManager.class);
@@ -97,7 +94,6 @@ public class CallService extends Service {
         }
     }
 
-    /** Fungsi untuk onBind. */
     @Override
     public IBinder onBind(Intent intent) {
         return null;

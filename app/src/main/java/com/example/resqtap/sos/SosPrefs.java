@@ -12,29 +12,26 @@ import android.content.Context;
 public final class SosPrefs {
     private SosPrefs() {}
 
-    /** Ambil atau muat data LastSeenAlertTime. */
     public static long getLastSeenAlertTime(Context context, String roomId) {
         return UserPrefs.getSosLastSeenAt(context, roomId);
     }
 
-    /** Fungsi untuk setLastSeenAlertTime. */
     public static void setLastSeenAlertTime(Context context, String roomId, long createdAtMs) {
         UserPrefs.setSosLastSeenAt(context, roomId, createdAtMs);
     }
 
-    /** Ambil atau muat data LastHandledAlertId. */
     public static String getLastHandledAlertId(Context context, String roomId) {
         return UserPrefs.getSosLastHandledId(context, roomId);
     }
 
-    /** Fungsi untuk setLastHandledAlertId. */
     public static void setLastHandledAlertId(Context context, String roomId, String alertId) {
         UserPrefs.setSosLastHandledId(context, roomId, alertId);
     }
 
-    /** Fungsi untuk bumpBaselineAtListenerStart.
+    /**
      * Hanya set baseline ke serverNow jika tiada lastSeen sebelumnya (first-time).
-     * Kalau ada lastSeen, biarkan, kita nak catch SOS yang fired masa service mati. */
+     * Kalau ada lastSeen, biarkan, kita nak catch SOS yang fired masa service mati.
+     */
     public static void bumpBaselineAtListenerStart(Context context, String roomId, long serverNowMsOrLocalNow) {
         long lastSeen = getLastSeenAlertTime(context, roomId);
         // Only initialise baseline on first ever attach; never overwrite an existing lastSeen with serverNow.
@@ -45,9 +42,10 @@ public final class SosPrefs {
         }
     }
 
-    /** Fungsi untuk tryMarkHandled.
+    /**
      * Bagi sistem kecemasan: NO hard age limit. Kita cuma reject duplicate IDs.
-     * SOS yang fired masa service mati kena tetap diterima bila service restart. */
+     * SOS yang fired masa service mati kena tetap diterima bila service restart.
+     */
     public static synchronized boolean tryMarkHandled(Context context, String roomId, String alertId, long createdAtMs) {
         if (context == null) return false;
         String room = String.valueOf(roomId == null ? "" : roomId).trim().toUpperCase(java.util.Locale.ROOT);

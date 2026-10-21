@@ -188,9 +188,7 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
     private String currentReportStatus;
     private boolean isShowingProgress = false;
 
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -234,9 +232,7 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         }
     }
 
-    // =========================================================================
     // SEKSYEN: ONDESTROY
-    // =========================================================================
     /** Pembersihan memori, buang listener, dan tutup sambungan. */
     @Override
     protected void onDestroy() {
@@ -341,9 +337,7 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         }
     }
 
-    // =========================================================================
     // SEKSYEN: BINDVIEWS
-    // =========================================================================
     /** Setup dan konfigurasi Views. */
     private void bindViews() {
         View back = findViewById(R.id.btn_back);
@@ -465,12 +459,10 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         }
 
         detailsInput.addTextChangedListener(new TextWatcher() {
-            /** Fungsi untuk beforeTextChanged. */
     @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
 
-            /** Fungsi untuk onTextChanged. */
     @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 charCountView.setText(getString(R.string.report_char_count, s == null ? 0 : s.length()));
@@ -479,7 +471,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
                 }
             }
 
-            /** Fungsi untuk afterTextChanged. */
     @Override
             public void afterTextChanged(Editable s) {
             }
@@ -487,7 +478,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         updateAttachmentSummary();
     }
 
-    /** Fungsi untuk onMapReady. */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
@@ -565,7 +555,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         });
     }
 
-    /** Fungsi untuk requestLocation. */
     private void requestLocation() {
         if (hasLocationPermission()) {
             updateLocation();
@@ -607,7 +596,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
                 .addOnFailureListener(error -> addressView.setText(R.string.report_location_unavailable));
     }
 
-    /** Fungsi untuk applyLocation. */
     private void applyLocation(Location location) {
         incidentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
         incidentAddress = formatLatLng(incidentLatLng);
@@ -636,7 +624,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         });
     }
 
-    /** Fungsi untuk resolveAddress. */
     private String resolveAddress(LatLng latLng) {
         try {
             Geocoder geocoder = new Geocoder(this, Locale.getDefault());
@@ -654,7 +641,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         }
     }
 
-    /** Fungsi untuk submitReport. */
     private void submitReport() {
         if (submitting || reportSubmitted) return;
         if (currentReportStatus != null && !"resolved".equalsIgnoreCase(currentReportStatus)) {
@@ -749,7 +735,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         });
     }
 
-    /** Fungsi untuk buildReportPayload. */
     private Map<String, Object> buildReportPayload(String reportId, FirebaseUser user, String category, ArrayList<Map<String, Object>> uploaded) {
         String name = safe(UserPrefs.getName(this));
         if (name.isEmpty()) name = safe(user.getDisplayName());
@@ -831,7 +816,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
                 .addOnFailureListener(failed::onFailed);
     }
 
-    /** Fungsi untuk categoryValue. */
     private String categoryValue(int checkedId) {
         if (checkedId == R.id.category_fire) return "fire";
         if (checkedId == R.id.category_crime) return "crime";
@@ -841,7 +825,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         return "";
     }
 
-    /** Fungsi untuk categoryLabel. */
     private String categoryLabel(String category) {
         if ("fire".equals(category)) return getString(R.string.report_category_fire);
         if ("crime".equals(category)) return getString(R.string.report_category_crime);
@@ -851,14 +834,12 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         return category;
     }
 
-    /** Fungsi untuk setSubmitting. */
     private void setSubmitting(boolean sending, String label) {
         submitting = sending;
         submitButton.setEnabled(!sending);
         submitButton.setText(label);
     }
 
-    /** Fungsi untuk markReportSubmitted. */
     private void markReportSubmitted() {
         submitting = false;
         reportSubmitted = true;
@@ -868,7 +849,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         }
     }
 
-    /** Fungsi untuk goToMainPage. */
     private void goToMainPage() {
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -1634,7 +1614,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         renderAttachmentPreviews();
     }
 
-    /** Fungsi untuk renderAttachmentPreviews. */
     private void renderAttachmentPreviews() {
         if (attachmentPreviews == null || attachmentPreviewScroll == null) return;
         attachmentPreviews.removeAllViews();
@@ -1644,7 +1623,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         }
     }
 
-    /** Fungsi untuk createPreviewTile. */
     private View createPreviewTile(AttachmentInfo attachment, int index) {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
@@ -1686,7 +1664,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         return card;
     }
 
-    /** Fungsi untuk inlineImageAttachmentMap. */
     private Map<String, Object> inlineImageAttachmentMap(AttachmentInfo attachment) {
         Map<String, Object> data = new HashMap<>();
         String mimeType = safe(attachment.mimeType);
@@ -1712,7 +1689,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
                 || name.endsWith(".webp");
     }
 
-    /** Fungsi untuk encodeImageToBase64. */
     private String encodeImageToBase64(AttachmentInfo attachment, int maxDim, int jpegQuality) {
         Bitmap bitmap = decodeAttachmentBitmap(attachment, maxDim);
         if (bitmap == null) return "";
@@ -1736,7 +1712,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         }
     }
 
-    /** Fungsi untuk previewBitmap. */
     private Bitmap previewBitmap(AttachmentInfo attachment, int maxDim) {
         Bitmap bitmap = decodeAttachmentBitmap(attachment, maxDim);
         if (bitmap == null) return null;
@@ -1750,7 +1725,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         return scaled;
     }
 
-    /** Fungsi untuk decodeAttachmentBitmap. */
     private Bitmap decodeAttachmentBitmap(AttachmentInfo attachment, int maxDim) {
         try {
             if (attachment.bytes != null && attachment.bytes.length > 0) {
@@ -1781,7 +1755,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         }
     }
 
-    /** Fungsi untuk sampleSize. */
     private int sampleSize(int width, int height, int maxDim) {
         int sample = 1;
         int largest = Math.max(Math.max(1, width), Math.max(1, height));
@@ -1789,7 +1762,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         return sample;
     }
 
-    /** Fungsi untuk queryDisplayName. */
     private String queryDisplayName(Uri uri) {
         try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
             if (cursor != null && cursor.moveToFirst()) {
@@ -1801,7 +1773,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         return safe(uri.getLastPathSegment());
     }
 
-    /** Fungsi untuk querySize. */
     private long querySize(Uri uri) {
         try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
             if (cursor != null && cursor.moveToFirst()) {
@@ -1813,24 +1784,20 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         return 0L;
     }
 
-    /** Fungsi untuk sanitizeFileName. */
     private String sanitizeFileName(String name) {
         String clean = safe(name).replaceAll("[\\\\/:*?\"<>|#\\[\\]$]", "_");
         if (clean.isEmpty()) clean = "attachment";
         return clean;
     }
 
-    /** Fungsi untuk formatLatLng. */
     private String formatLatLng(LatLng latLng) {
         return String.format(Locale.US, "%.6f, %.6f", latLng.latitude, latLng.longitude);
     }
 
-    /** Fungsi untuk safe. */
     private String safe(Object value) {
         return String.valueOf(value == null ? "" : value).trim();
     }
 
-    /** Fungsi untuk dp. */
     private int dp(int value) {
         return Math.round(value * getResources().getDisplayMetrics().density);
     }

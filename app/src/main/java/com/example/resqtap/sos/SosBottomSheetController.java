@@ -90,7 +90,6 @@ public final class SosBottomSheetController {
         startCountdown(tvCount);
     }
 
-    /** Fungsi untuk lockBottomSheet. */
     private static void lockBottomSheet(BottomSheetDialog d) {
         if (d == null) return;
         try {
@@ -102,7 +101,6 @@ public final class SosBottomSheetController {
             behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             setDraggableCompat(behavior, false);
             behavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
-                /** Fungsi untuk onStateChanged. */
     @Override
                 public void onStateChanged(@NonNull android.view.View bs, int newState) {
                     if (newState == BottomSheetBehavior.STATE_HIDDEN || newState == BottomSheetBehavior.STATE_COLLAPSED) {
@@ -113,7 +111,6 @@ public final class SosBottomSheetController {
                     }
                 }
 
-                /** Fungsi untuk onSlide. */
     @Override
                 public void onSlide(@NonNull android.view.View bs, float slideOffset) {
 
@@ -123,7 +120,6 @@ public final class SosBottomSheetController {
         }
     }
 
-    /** Fungsi untuk setDraggableCompat. */
     private static void setDraggableCompat(BottomSheetBehavior<?> behavior, boolean draggable) {
         if (behavior == null) return;
         try {
@@ -134,7 +130,6 @@ public final class SosBottomSheetController {
         }
     }
 
-    /** Fungsi untuk cancel. */
     public void cancel() {
         cancelTimer();
         try {
@@ -144,20 +139,17 @@ public final class SosBottomSheetController {
         dialog = null;
     }
 
-    /** Fungsi untuk startCountdown. */
     private void startCountdown(TextView tvCount) {
         cancelTimer();
         final long totalMs = 10_000L;
         if (tvCount != null) tvCount.setText("10");
         timer = new CountDownTimer(totalMs, 1000L) {
-            /** Fungsi untuk onTick. */
     @Override
             public void onTick(long msUntilFinished) {
                 long sec = Math.max(0, (msUntilFinished + 999L) / 1000L);
                 if (tvCount != null) tvCount.setText(String.valueOf(sec));
             }
 
-            /** Fungsi untuk onFinish. */
             @Override
             public void onFinish() {
                 if (tvCount != null) tvCount.setText("0");
@@ -174,7 +166,6 @@ public final class SosBottomSheetController {
         timer.start();
     }
 
-    /** Fungsi untuk cancelTimer. */
     private void cancelTimer() {
         try {
             if (timer != null) timer.cancel();

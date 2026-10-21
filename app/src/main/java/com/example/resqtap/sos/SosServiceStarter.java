@@ -18,7 +18,6 @@ import com.google.firebase.auth.FirebaseUser;
 public final class SosServiceStarter {
     private SosServiceStarter() {}
 
-    /** Fungsi untuk start. */
     public static void start(Context context, String roomId) {
         if (context == null) return;
         String code = String.valueOf(roomId == null ? "" : roomId).trim().toUpperCase(java.util.Locale.ROOT);
@@ -49,14 +48,12 @@ public final class SosServiceStarter {
         }
     }
 
-    /** Fungsi untuk start default (menggunakan active room code jika ada). */
     public static void start(Context context) {
         if (context == null) return;
         String code = UserPrefs.getActiveRoomCode(context);
         start(context, code);
     }
 
-    /** Fungsi untuk stop. */
     public static void stop(Context context) {
         if (context == null) return;
         try {

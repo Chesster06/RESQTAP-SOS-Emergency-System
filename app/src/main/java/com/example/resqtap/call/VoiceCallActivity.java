@@ -66,9 +66,7 @@ public class VoiceCallActivity extends BaseActivity implements WebRTCClient.WebR
         return false;
     }
 
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,9 +96,7 @@ public class VoiceCallActivity extends BaseActivity implements WebRTCClient.WebR
         }
     }
 
-    // =========================================================================
     // 1. BIND VIEWS & BUTTON CONTROLS
-    // =========================================================================
     /** Sambungkan elemen paparan UI dan tetapkan fungsi klik butang panggilan. */
     private void bindViews() {
         TextView nameView = findViewById(R.id.voice_caller_name);
@@ -157,9 +153,7 @@ public class VoiceCallActivity extends BaseActivity implements WebRTCClient.WebR
         }
     }
 
-    // =========================================================================
     // 2. START WEBRTC & FOREGROUND SERVICE
-    // =========================================================================
     /** Inisialisasi klien WebRTC tempatan, mulakan audio, dan lancarkan CallService. */
     private void startWebRTC() {
         rootEglBase = EglBase.create();
@@ -173,9 +167,7 @@ public class VoiceCallActivity extends BaseActivity implements WebRTCClient.WebR
         listenForRemoteMicState();
     }
 
-    // =========================================================================
     // 3. RTDB SIGNALING (SDP / ICE / CALL STATUS)
-    // =========================================================================
     /** Dengar tawaran SDP Offer dari pemanggil dan balas dengan SDP Answer. */
     private void listenForOffer() {
         offerListener = new ValueEventListener() {
@@ -309,9 +301,7 @@ public class VoiceCallActivity extends BaseActivity implements WebRTCClient.WebR
         }
     }
 
-    // =========================================================================
     // 4. CLEANUP & TEARDOWN
-    // =========================================================================
     /** Buang semua listener pangkalan data, lepaskan WebRTC, dan hentikan audio. */
     @Override
     protected void onDestroy() {

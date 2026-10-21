@@ -66,20 +66,17 @@ public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.ViewHold
         this.currentUid = uid == null ? "" : uid.trim();
     }
 
-    /** Fungsi untuk setFriends. */
     public void setFriends(List<FirebaseFriendClient.FriendInfo> newFriends) {
         allFriends.clear();
         if (newFriends != null) allFriends.addAll(newFriends);
         applyFilter(currentQuery);
     }
 
-    /** Fungsi untuk filter. */
     public void filter(String query) {
         currentQuery = query == null ? "" : query.trim().toLowerCase();
         applyFilter(currentQuery);
     }
 
-    /** Fungsi untuk applyFilter. */
     private void applyFilter(String query) {
         displayFriends.clear();
         if (query.isEmpty()) {

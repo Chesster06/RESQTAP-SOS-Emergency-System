@@ -43,7 +43,6 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.content.ContextCompat;
@@ -52,35 +51,13 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import android.net.Uri;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-
-import android.graphics.Bitmap;
-import android.graphics.SurfaceTexture;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCaptureSession;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraDevice;
-import android.hardware.camera2.CameraManager;
-import android.hardware.camera2.CaptureRequest;
-import android.hardware.camera2.params.StreamConfigurationMap;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
-import android.util.Size;
-import android.view.Surface;
-import android.view.TextureView;
 
 
 /**
@@ -129,62 +106,13 @@ public class QuickMessageActivity extends BaseActivity {
     private AnimatorSet sttOuterPulse;
     private AnimatorSet sttInnerPulse;
     private AnimatorSet sttCorePulse;
-    private static final int MODE_TTS = 0;
-    private static final int MODE_STT = 1;
-    private static final int MODE_SIGN = 2;
-    private int currentMode = MODE_TTS;
-    private static final int REQUEST_CAMERA_PERMISSION = 4402;
-
     private final StringBuilder sttFinalText = new StringBuilder();
     private boolean showingStt = false;
     private boolean sttRecording = false;
     private long lastSttStopToneAt = 0L;
     private int selectedSpeechRateIndex = 1;
 
-    // Sign-to-Text Cam (Imbasan Isyarat & Transkrip Ayat Langsung)
-    private LinearLayout signPage;
-    private LinearLayout tabSign;
-    private ImageView tabSignIcon;
-    private TextView tabSignLabel;
-    private TextureView signCameraPreview;
-    private View signScanLine;
-    private ObjectAnimator scanLineAnimator;
-    private View signHudCard;
-    private ImageView signHudImage;
-    private TextView signHudGesture;
-    private TextView signTranscriptOutput;
-    private ImageButton btnSignClear;
-    private ImageButton btnSignCopy;
-    private ImageButton btnSignGuide;
-    private ImageButton btnSwitchCamera;
-
-    // BIM SignBank Dictionary & Repository
-    private BimSignRepository bimSignRepository;
-
-    // Temporal optical flow & motion tracking
-    private float prevCentroidX = -1f;
-    private float prevCentroidY = -1f;
-    private int waveOscillationCount = 0;
-    private float lastDx = 0f;
-
-    private final StringBuilder signTranscriptText = new StringBuilder();
-    private long lastSignCommitTime = 0L;
-    private String lastCommittedGestureKey = "";
-
-    private CameraDevice cameraDevice;
-    private CameraCaptureSession cameraCaptureSession;
-    private CaptureRequest.Builder captureRequestBuilder;
-    private HandlerThread cameraBackgroundThread;
-    private Handler cameraBackgroundHandler;
-    private String currentCameraId;
-    private int cameraFacing = CameraCharacteristics.LENS_FACING_BACK; // Default rear cam to face the person in front
-    private Size cameraPreviewSize;
-    private final Handler signAnalysisHandler = new Handler(Looper.getMainLooper());
-    private boolean isSignCameraRunning = false;
-
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -217,30 +145,12 @@ public class QuickMessageActivity extends BaseActivity {
         emptyHistory = findViewById(R.id.empty_history);
         ttsPage = findViewById(R.id.tts_page);
         sttPage = findViewById(R.id.stt_page);
-        signPage = findViewById(R.id.sign_page);
         tabTts = findViewById(R.id.tab_tts);
         tabStt = findViewById(R.id.tab_stt);
-        tabSign = findViewById(R.id.tab_sign);
         tabTtsIcon = findViewById(R.id.tab_tts_icon);
         tabSttIcon = findViewById(R.id.tab_stt_icon);
-        tabSignIcon = findViewById(R.id.tab_sign_icon);
         tabTtsLabel = findViewById(R.id.tab_tts_label);
         tabSttLabel = findViewById(R.id.tab_stt_label);
-        tabSignLabel = findViewById(R.id.tab_sign_label);
-        signCameraPreview = findViewById(R.id.sign_camera_preview);
-        signScanLine = findViewById(R.id.sign_scan_line);
-        signHudCard = findViewById(R.id.sign_hud_card);
-        signHudImage = findViewById(R.id.sign_hud_image);
-        signHudGesture = findViewById(R.id.sign_hud_gesture);
-        signTranscriptOutput = findViewById(R.id.sign_transcript_output);
-        btnSignClear = findViewById(R.id.btn_sign_clear);
-        btnSignCopy = findViewById(R.id.btn_sign_copy);
-        btnSignGuide = findViewById(R.id.btn_sign_guide);
-        btnSwitchCamera = findViewById(R.id.btn_switch_camera);
-        View btnOpenDictionary = findViewById(R.id.btn_open_bim_dictionary);
-        if (btnOpenDictionary != null) {
-            btnOpenDictionary.setOnClickListener(v -> openBimSignDictionary());
-        }
         pageTitle = findViewById(R.id.title);
         pageSubtitle = findViewById(R.id.subtitle);
         sttState = findViewById(R.id.stt_state);
@@ -267,19 +177,16 @@ public class QuickMessageActivity extends BaseActivity {
         languageSpinner.setSelection(getInitialTtsLanguageIndex());
         sttLanguageSpinner.setSelection(getInitialTtsLanguageIndex());
         languageSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            /** Fungsi untuk onItemSelected. */
     @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 applyTtsLanguage();
             }
 
-            /** Fungsi untuk onNothingSelected. */
     @Override
             public void onNothingSelected(AdapterView<?> parent) {
             }
         });
         sttLanguageSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            /** Fungsi untuk onItemSelected. */
     @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (sttRecording) {
@@ -288,25 +195,21 @@ public class QuickMessageActivity extends BaseActivity {
                 updateSpeechRecognizerLanguage();
             }
 
-            /** Fungsi untuk onNothingSelected. */
     @Override
             public void onNothingSelected(AdapterView<?> parent) {
             }
         });
 
         ttsInput.addTextChangedListener(new TextWatcher() {
-            /** Fungsi untuk beforeTextChanged. */
     @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
 
-            /** Fungsi untuk onTextChanged. */
     @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 updateCharacterCount();
             }
 
-            /** Fungsi untuk afterTextChanged. */
     @Override
             public void afterTextChanged(Editable s) {
             }
@@ -321,17 +224,8 @@ public class QuickMessageActivity extends BaseActivity {
         View speedChip = findViewById(R.id.speed_chip);
 
         btnBack.setOnClickListener(v -> goHome());
-        tabTts.setOnClickListener(v -> setVoiceMode(MODE_TTS));
-        tabStt.setOnClickListener(v -> setVoiceMode(MODE_STT));
-        tabSign.setOnClickListener(v -> setVoiceMode(MODE_SIGN));
-        btnSwitchCamera.setOnClickListener(v -> switchCameraFacing());
-        btnSignCopy.setOnClickListener(v -> copySignText());
-        if (btnSignClear != null) {
-            btnSignClear.setOnClickListener(v -> clearSignTranscript());
-        }
-        if (btnSignGuide != null) {
-            btnSignGuide.setOnClickListener(v -> openBimSignDictionary());
-        }
+        tabTts.setOnClickListener(v -> setVoiceMode(false));
+        tabStt.setOnClickListener(v -> setVoiceMode(true));
         btnPasteText.setOnClickListener(v -> pasteClipboardText());
         btnClearText.setOnClickListener(v -> {
             stopTts();
@@ -355,7 +249,6 @@ public class QuickMessageActivity extends BaseActivity {
 
         renderHistory();
         setupSpeechRecognizer();
-        bimSignRepository = BimSignRepository.getInstance();
 
         tts = new TextToSpeech(this, status -> {
             ttsReady = (status == TextToSpeech.SUCCESS);
@@ -368,88 +261,56 @@ public class QuickMessageActivity extends BaseActivity {
         root.post(this::startTtsPageAnimations);
     }
 
-    /** Fungsi untuk setVoiceMode (boolean legacy). */
     private void setVoiceMode(boolean sttMode) {
-        setVoiceMode(sttMode ? MODE_STT : MODE_TTS);
-    }
-
-    /** Fungsi untuk setVoiceMode dengan sokongan TTS, STT, dan SIGN (Camera). */
-    private void setVoiceMode(int newMode) {
-        if (currentMode == newMode) return;
-        int oldMode = currentMode;
-        currentMode = newMode;
-        showingStt = (newMode == MODE_STT);
-
+        if (showingStt == sttMode) return;
+        showingStt = sttMode;
         stopTts();
-        if (oldMode == MODE_STT) {
+        if (!sttMode) {
             stopSpeechToText();
         }
-        if (oldMode == MODE_SIGN) {
-            stopSignCamera();
-        }
-
         updateVoiceModeTabs();
-
         if (pageTitle != null) {
-            if (newMode == MODE_TTS) pageTitle.setText(R.string.text_to_speech_title);
-            else if (newMode == MODE_STT) pageTitle.setText(R.string.speech_to_text_title);
-            else pageTitle.setText(R.string.sign_language_title);
+            pageTitle.setText(sttMode ? R.string.speech_to_text_title : R.string.text_to_speech_title);
         }
         if (pageSubtitle != null) {
-            if (newMode == MODE_TTS) pageSubtitle.setText(R.string.text_to_speech_subtitle);
-            else if (newMode == MODE_STT) pageSubtitle.setText(R.string.speech_to_text_subtitle);
-            else pageSubtitle.setText(R.string.sign_language_subtitle);
+            pageSubtitle.setText(sttMode ? R.string.speech_to_text_subtitle : R.string.text_to_speech_subtitle);
         }
-
-        slidePage(oldMode, newMode);
-
-        if (newMode == MODE_SIGN) {
-            startSignCamera();
-        }
+        slideVoicePage(sttMode);
     }
 
-    /** Simpan atau hantar data VoiceModeTabs untuk TTS, STT, dan SIGN. */
+    /** Simpan atau hantar data VoiceModeTabs. */
     private void updateVoiceModeTabs() {
         int activeBg = R.drawable.bg_voice_mode_active;
         int inactiveBg = android.R.color.transparent;
         int activeColor = getColor(R.color.white);
         int inactiveColor = getColor(R.color.text_secondary);
 
-        if (tabTts != null) tabTts.setBackgroundResource(currentMode == MODE_TTS ? activeBg : inactiveBg);
-        if (tabStt != null) tabStt.setBackgroundResource(currentMode == MODE_STT ? activeBg : inactiveBg);
-        if (tabSign != null) tabSign.setBackgroundResource(currentMode == MODE_SIGN ? activeBg : inactiveBg);
-
-        if (tabTtsLabel != null) tabTtsLabel.setTextColor(currentMode == MODE_TTS ? activeColor : inactiveColor);
-        if (tabSttLabel != null) tabSttLabel.setTextColor(currentMode == MODE_STT ? activeColor : inactiveColor);
-        if (tabSignLabel != null) tabSignLabel.setTextColor(currentMode == MODE_SIGN ? activeColor : inactiveColor);
-
-        if (tabTtsIcon != null) tabTtsIcon.setColorFilter(currentMode == MODE_TTS ? activeColor : inactiveColor);
-        if (tabSttIcon != null) tabSttIcon.setColorFilter(currentMode == MODE_STT ? activeColor : inactiveColor);
-        if (tabSignIcon != null) tabSignIcon.setColorFilter(currentMode == MODE_SIGN ? activeColor : inactiveColor);
+        tabTts.setBackgroundResource(showingStt ? inactiveBg : activeBg);
+        tabStt.setBackgroundResource(showingStt ? activeBg : inactiveBg);
+        tabTtsLabel.setTextColor(showingStt ? inactiveColor : activeColor);
+        tabSttLabel.setTextColor(showingStt ? activeColor : inactiveColor);
+        tabTtsIcon.setColorFilter(showingStt ? inactiveColor : activeColor);
+        tabSttIcon.setColorFilter(showingStt ? activeColor : inactiveColor);
     }
 
-    /** Animasi pertukaran halaman antara TTS, STT, dan SIGN. */
-    private void slidePage(int fromMode, int toMode) {
-        final View outgoing = getPageView(fromMode);
-        final View incoming = getPageView(toMode);
+    private void slideVoicePage(boolean toStt) {
+        final View outgoing = toStt ? ttsPage : sttPage;
+        final View incoming = toStt ? sttPage : ttsPage;
         if (outgoing == null || incoming == null) return;
 
-        boolean toRight = toMode > fromMode;
         int width = Math.max(1, getResources().getDisplayMetrics().widthPixels);
-
         incoming.setVisibility(View.VISIBLE);
         incoming.setAlpha(0f);
-        incoming.setTranslationX(toRight ? width : -width);
+        incoming.setTranslationX(toStt ? width : -width);
         incoming.animate()
                 .alpha(1f)
                 .translationX(0f)
                 .setDuration(330L)
                 .setInterpolator(new DecelerateInterpolator())
                 .start();
-
         outgoing.animate()
                 .alpha(0f)
-                .translationX(toRight ? -width : width)
+                .translationX(toStt ? -width : width)
                 .setDuration(260L)
                 .setInterpolator(new DecelerateInterpolator())
                 .withEndAction(() -> {
@@ -460,642 +321,7 @@ public class QuickMessageActivity extends BaseActivity {
                 .start();
     }
 
-    private View getPageView(int mode) {
-        if (mode == MODE_TTS) return ttsPage;
-        if (mode == MODE_STT) return sttPage;
-        return signPage;
-    }
-
-    // =========================================================================
-    // SEKSYEN: SIGN LANGUAGE CAM (GESTURE DETECTION & CAMERA2)
-    // =========================================================================
-    // =========================================================================
-    // SEKSYEN: SIGN LANGUAGE CAM (GESTURE DETECTION & LIVE SENTENCE TRANSCRIPT)
-    // =========================================================================
-    /**
-     * Memasukkan isyarat tangan yang dikesan terus ke dalam aliran ayat transkrip (seperti STT).
-     */
-    private void appendSignGestureToSentence(String key, String hudTag, String fragment, String confidence, boolean forceCommit) {
-        long now = System.currentTimeMillis();
-        // Elak pengulangan isyarat yang sama dalam tempoh terlalu cepat melainkan ditolak secara manual
-        if (!forceCommit && key.equals(lastCommittedGestureKey) && (now - lastSignCommitTime < 2400L)) {
-            return;
-        }
-
-        lastCommittedGestureKey = key;
-        lastSignCommitTime = now;
-
-        // 1. Kemas kini HUD dalam Viewfinder Kamera (Tunjukkan Gambar Isyarat Tangan Sebenar)
-        if (signHudGesture != null) {
-            signHudGesture.setText(getString(R.string.sign_detected_prefix) + hudTag);
-        }
-        if (signHudCard != null && signHudImage != null) {
-            int gestureDrawable = getGestureDrawableForKey(key);
-            if (gestureDrawable != 0) {
-                signHudImage.setImageResource(gestureDrawable);
-                signHudCard.setVisibility(View.VISIBLE);
-            }
-        }
-
-        // 2. Tambah ke dalam ayat transkrip (Sign-to-Sentence Builder)
-        signTranscriptText.append(fragment);
-        if (signTranscriptOutput != null) {
-            signTranscriptOutput.setText(signTranscriptText.toString());
-        }
-
-        // 3. Getaran Haptic tanda perkataan berjaya ditranskrip
-        try {
-            android.os.Vibrator vib = (android.os.Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-            if (vib != null && vib.hasVibrator()) {
-                vib.vibrate(40);
-            }
-        } catch (Exception ignored) {}
-    }
-
-    private int getGestureDrawableForKey(String key) {
-        switch (key) {
-            case "HELLO":
-                return R.drawable.img_sign_hello;
-            case "THANK_YOU":
-                return R.drawable.img_sign_thankyou;
-            case "YES":
-                return R.drawable.img_sign_yes;
-            case "NO":
-                return R.drawable.img_sign_no;
-            case "OK":
-                return R.drawable.img_sign_ok;
-            case "STOP":
-            case "HELP_COMM":
-                return R.drawable.img_sign_stop;
-            case "LOVE":
-                return R.drawable.img_sign_ily;
-            case "WHERE":
-                return R.drawable.img_sign_point;
-            case "TWO":
-            case "POLICE":
-                return R.drawable.img_sign_police;
-            case "SOS":
-                return R.drawable.img_sign_sos;
-            case "DOCTOR":
-            case "MEDICAL":
-                return R.drawable.img_sign_medical;
-            case "DANGER":
-                return R.drawable.img_sign_fist;
-            default:
-                return R.drawable.img_sign_hello;
-        }
-    }
-
-    private void clearSignTranscript() {
-        signTranscriptText.setLength(0);
-        lastCommittedGestureKey = "";
-        if (signTranscriptOutput != null) {
-            signTranscriptOutput.setText(R.string.sign_transcript_placeholder);
-        }
-        if (signHudGesture != null) {
-            signHudGesture.setText(R.string.sign_detecting_idle);
-        }
-        if (signHudCard != null) {
-            signHudCard.setVisibility(View.GONE);
-        }
-        Toast.makeText(this, R.string.text_to_speech_clear, Toast.LENGTH_SHORT).show();
-    }
-
-    private void copySignText() {
-        String text = signTranscriptText.toString().trim();
-        if (text.isEmpty()) {
-            Toast.makeText(this, R.string.text_to_speech_empty_error, Toast.LENGTH_SHORT).show();
-            return;
-        }
-        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        if (clipboard != null) {
-            clipboard.setPrimaryClip(ClipData.newPlainText(getString(R.string.sign_transcript_title), text));
-            Toast.makeText(this, R.string.text_to_speech_copied, Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    /**
-     * Membuka Kamus Isyarat BIM (465 Isyarat Berkategori) untuk rujukan dan semakan makna isyarat yang disokong.
-     */
-    private void openBimSignDictionary() {
-        Intent intent = new Intent(this, BimSignDictionaryActivity.class);
-        startActivity(intent);
-    }
-
-    /**
-     * Memasukkan isyarat ekspresi BIM SignBank yang dipilih terus ke dalam transkrip ayat kamera.
-     */
-    private void appendBimSignToSentence(@NonNull BimSignItem item) {
-        String fragment = item.getPerkataan() + " ";
-        String hudTag = item.getPerkataan() + " (" + item.getWord() + ")";
-
-        lastCommittedGestureKey = "BIM_" + item.getId();
-        lastSignCommitTime = System.currentTimeMillis();
-
-        // 1. Tunjukkan pada Viewfinder HUD Camera (Imej Isyarat BIM & Teks)
-        if (signHudGesture != null) {
-            signHudGesture.setText(getString(R.string.sign_detected_prefix) + hudTag);
-        }
-        if (signHudCard != null && signHudImage != null) {
-            signHudCard.setVisibility(View.VISIBLE);
-            if (item.getDrawableResId() != 0) {
-                signHudImage.setImageResource(item.getDrawableResId());
-            } else {
-                bimSignRepository.loadImage(this, item, signHudImage);
-            }
-        }
-
-        // 2. Tambah terus ke dalam aliran ayat
-        signTranscriptText.append(fragment);
-        if (signTranscriptOutput != null) {
-            signTranscriptOutput.setText(signTranscriptText.toString());
-        }
-
-        // 3. Getaran Haptic
-        try {
-            android.os.Vibrator vib = (android.os.Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-            if (vib != null && vib.hasVibrator()) {
-                vib.vibrate(35);
-            }
-        } catch (Exception ignored) {}
-
-        Toast.makeText(this, item.getPerkataan() + " • " + item.getWord(), Toast.LENGTH_SHORT).show();
-    }
-
-    /**
-     * Memaparkan dialog butiran penuh isyarat BIM termasuk contoh ayat, makna, dan pautan video rasmi.
-     */
-    private void showBimSignDetailDialog(@NonNull BimSignItem item) {
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_bim_sign_detail, null);
-        androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(this)
-                .setView(dialogView)
-                .setCancelable(true)
-                .create();
-
-        ImageView ivThumbnail = dialogView.findViewById(R.id.iv_detail_thumbnail);
-        TextView tvPerkataan = dialogView.findViewById(R.id.tv_detail_perkataan);
-        TextView tvWord = dialogView.findViewById(R.id.tv_detail_word);
-        TextView tvCategoryBadge = dialogView.findViewById(R.id.tv_detail_category_badge);
-        View layoutExamples = dialogView.findViewById(R.id.layout_example_sentences);
-        TextView tvContohAyat = dialogView.findViewById(R.id.tv_detail_contoh_ayat);
-        TextView tvExampleSentence = dialogView.findViewById(R.id.tv_detail_example_sentence);
-        View btnClose = dialogView.findViewById(R.id.btn_close_detail);
-        View btnWatchVideo = dialogView.findViewById(R.id.btn_watch_bim_video);
-
-        tvPerkataan.setText(item.getPerkataan());
-        tvWord.setText(item.getWord());
-
-        if (tvCategoryBadge != null) {
-            String cat = (item.getCategory() != null && !item.getCategory().isEmpty()) ? item.getCategory() : "Umum";
-            tvCategoryBadge.setText("Kategori: " + cat);
-        }
-
-        if (item.getDrawableResId() != 0) {
-            ivThumbnail.setImageResource(item.getDrawableResId());
-        } else {
-            bimSignRepository.loadImage(this, item, ivThumbnail);
-        }
-
-        if ((item.getContohAyat() != null && !item.getContohAyat().isEmpty()) ||
-                (item.getExampleSentence() != null && !item.getExampleSentence().isEmpty())) {
-            layoutExamples.setVisibility(View.VISIBLE);
-            tvContohAyat.setText(item.getContohAyat());
-            tvExampleSentence.setText(item.getExampleSentence());
-        } else {
-            layoutExamples.setVisibility(View.GONE);
-        }
-
-        if (btnClose != null) {
-            btnClose.setOnClickListener(v -> dialog.dismiss());
-        }
-        if (btnWatchVideo != null) {
-            btnWatchVideo.setOnClickListener(v -> openBimVideoUrl(item.getVideoUrl()));
-        }
-
-        dialog.show();
-    }
-
-    /**
-     * Membuka pautan video rasmi YouTube BIM SignBank.
-     */
-    private void openBimVideoUrl(@Nullable String videoUrl) {
-        if (videoUrl == null || videoUrl.trim().isEmpty()) {
-            Toast.makeText(this, R.string.bim_video_error, Toast.LENGTH_SHORT).show();
-            return;
-        }
-        try {
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(videoUrl.trim()));
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-        } catch (Exception e) {
-            try {
-                androidx.browser.customtabs.CustomTabsIntent customTabs = new androidx.browser.customtabs.CustomTabsIntent.Builder().build();
-                customTabs.launchUrl(this, Uri.parse(videoUrl.trim()));
-            } catch (Exception ex) {
-                Toast.makeText(this, R.string.bim_video_error, Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-
-
-
-
-
-
-    private void startSignCamera() {
-        if (isSignCameraRunning) return;
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
-            return;
-        }
-
-        startCameraBackgroundThread();
-        updateCameraFacingLabel();
-
-        if (signCameraPreview != null) {
-            if (signCameraPreview.isAvailable()) {
-                openCamera();
-            } else {
-                signCameraPreview.setSurfaceTextureListener(surfaceTextureListener);
-            }
-        }
-
-        startScanAnimation();
-        startPeriodicGestureAnalysis();
-        isSignCameraRunning = true;
-    }
-
-    private void updateCameraFacingLabel() {
-        // Label facing kamera telah dibuang daripada UI
-    }
-
-    private final TextureView.SurfaceTextureListener surfaceTextureListener = new TextureView.SurfaceTextureListener() {
-        @Override
-        public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surface, int width, int height) {
-            openCamera();
-        }
-
-        @Override
-        public void onSurfaceTextureSizeChanged(@NonNull SurfaceTexture surface, int width, int height) {}
-
-        @Override
-        public boolean onSurfaceTextureDestroyed(@NonNull SurfaceTexture surface) {
-            return true;
-        }
-
-        @Override
-        public void onSurfaceTextureUpdated(@NonNull SurfaceTexture surface) {}
-    };
-
-    private void openCamera() {
-        CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-        if (manager == null) return;
-        try {
-            currentCameraId = null;
-            for (String id : manager.getCameraIdList()) {
-                CameraCharacteristics chars = manager.getCameraCharacteristics(id);
-                Integer facing = chars.get(CameraCharacteristics.LENS_FACING);
-                if (facing != null && facing == cameraFacing) {
-                    currentCameraId = id;
-                    StreamConfigurationMap map = chars.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
-                    if (map != null) {
-                        Size[] sizes = map.getOutputSizes(SurfaceTexture.class);
-                        if (sizes != null && sizes.length > 0) {
-                            cameraPreviewSize = sizes[0];
-                        }
-                    }
-                    break;
-                }
-            }
-            if (currentCameraId == null && manager.getCameraIdList().length > 0) {
-                currentCameraId = manager.getCameraIdList()[0];
-            }
-
-            if (currentCameraId != null && ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                manager.openCamera(currentCameraId, cameraStateCallback, cameraBackgroundHandler);
-            }
-        } catch (Exception ignored) {
-        }
-    }
-
-    private final CameraDevice.StateCallback cameraStateCallback = new CameraDevice.StateCallback() {
-        @Override
-        public void onOpened(@NonNull CameraDevice camera) {
-            cameraDevice = camera;
-            createCameraPreviewSession();
-        }
-
-        @Override
-        public void onDisconnected(@NonNull CameraDevice camera) {
-            camera.close();
-            cameraDevice = null;
-        }
-
-        @Override
-        public void onError(@NonNull CameraDevice camera, int error) {
-            camera.close();
-            cameraDevice = null;
-        }
-    };
-
-    private void createCameraPreviewSession() {
-        if (cameraDevice == null || signCameraPreview == null || !signCameraPreview.isAvailable()) return;
-        try {
-            SurfaceTexture texture = signCameraPreview.getSurfaceTexture();
-            if (texture == null) return;
-            if (cameraPreviewSize != null) {
-                texture.setDefaultBufferSize(cameraPreviewSize.getWidth(), cameraPreviewSize.getHeight());
-            }
-            Surface surface = new Surface(texture);
-            captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            captureRequestBuilder.addTarget(surface);
-
-            cameraDevice.createCaptureSession(Collections.singletonList(surface), new CameraCaptureSession.StateCallback() {
-                @Override
-                public void onConfigured(@NonNull CameraCaptureSession session) {
-                    if (cameraDevice == null) return;
-                    cameraCaptureSession = session;
-                    try {
-                        captureRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-                        cameraCaptureSession.setRepeatingRequest(captureRequestBuilder.build(), null, cameraBackgroundHandler);
-                    } catch (Exception ignored) {}
-                }
-
-                @Override
-                public void onConfigureFailed(@NonNull CameraCaptureSession session) {}
-            }, cameraBackgroundHandler);
-        } catch (Exception ignored) {}
-    }
-
-    private void switchCameraFacing() {
-        cameraFacing = (cameraFacing == CameraCharacteristics.LENS_FACING_FRONT)
-                ? CameraCharacteristics.LENS_FACING_BACK
-                : CameraCharacteristics.LENS_FACING_FRONT;
-        updateCameraFacingLabel();
-        stopSignCamera();
-        startSignCamera();
-    }
-
-    private void stopSignCamera() {
-        isSignCameraRunning = false;
-        signAnalysisHandler.removeCallbacksAndMessages(null);
-        if (scanLineAnimator != null) {
-            scanLineAnimator.cancel();
-            scanLineAnimator = null;
-        }
-        if (cameraCaptureSession != null) {
-            try { cameraCaptureSession.close(); } catch (Exception ignored) {}
-            cameraCaptureSession = null;
-        }
-        if (cameraDevice != null) {
-            try { cameraDevice.close(); } catch (Exception ignored) {}
-            cameraDevice = null;
-        }
-        stopCameraBackgroundThread();
-    }
-
-    private void startCameraBackgroundThread() {
-        if (cameraBackgroundThread == null) {
-            cameraBackgroundThread = new HandlerThread("Camera2Background");
-            cameraBackgroundThread.start();
-            cameraBackgroundHandler = new Handler(cameraBackgroundThread.getLooper());
-        }
-    }
-
-    private void stopCameraBackgroundThread() {
-        if (cameraBackgroundThread != null) {
-            cameraBackgroundThread.quitSafely();
-            try {
-                cameraBackgroundThread.join(300);
-            } catch (Exception ignored) {}
-            cameraBackgroundThread = null;
-            cameraBackgroundHandler = null;
-        }
-    }
-
-    private final Runnable gestureAnalysisRunnable = new Runnable() {
-        private int sampleCounter = 0;
-        @Override
-        public void run() {
-            if (!isSignCameraRunning || currentMode != MODE_SIGN) return;
-            sampleCounter++;
-            if (signCameraPreview != null && signCameraPreview.isAvailable()) {
-                Bitmap bmp = signCameraPreview.getBitmap(120, 160);
-                if (bmp != null) {
-                    analyzeFrameForHandGesture(bmp, sampleCounter);
-                    bmp.recycle();
-                }
-            }
-            signAnalysisHandler.postDelayed(this, 800L);
-        }
-    };
-
-    private void startPeriodicGestureAnalysis() {
-        signAnalysisHandler.removeCallbacks(gestureAnalysisRunnable);
-        signAnalysisHandler.postDelayed(gestureAnalysisRunnable, 800L);
-    }
-
-    /**
-     * Enjin Pengecaman Isyarat Pintar (BIM & Universal Deaf-Mute Communication)
-     * Mengimbas frame kamera langsung, menjejak bounding box, density, centroid temporal (optical motion),
-     * dan mengklasifikasikan isyarat tangan untuk perbualan harian dan kecemasan secara langsung.
-     */
-    private void analyzeFrameForHandGesture(Bitmap frame, int cycle) {
-        int width = frame.getWidth();
-        int height = frame.getHeight();
-        int skinPixels = 0;
-        int minX = width, maxX = 0;
-        int minY = height, maxY = 0;
-        long sumX = 0, sumY = 0;
-
-        int startX = width / 7;
-        int endX = width * 6 / 7;
-        int startY = height / 7;
-        int endY = height * 6 / 7;
-        int totalPixels = 0;
-
-        // Imbas piksel warna kulit (sampel setiap 3 piksel untuk kelajuan optimum)
-        for (int y = startY; y < endY; y += 3) {
-            for (int x = startX; x < endX; x += 3) {
-                int pixel = frame.getPixel(x, y);
-                int r = (pixel >> 16) & 0xFF;
-                int g = (pixel >> 8) & 0xFF;
-                int b = pixel & 0xFF;
-
-                if (r > 60 && g > 40 && b > 20 && (r - g) > 10 && (r - b) > 10 && Math.abs(r - g) > 8) {
-                    skinPixels++;
-                    sumX += x;
-                    sumY += y;
-                    if (x < minX) minX = x;
-                    if (x > maxX) maxX = x;
-                    if (y < minY) minY = y;
-                    if (y > maxY) maxY = y;
-                }
-                totalPixels++;
-            }
-        }
-
-        float skinRatio = totalPixels > 0 ? (float) skinPixels / totalPixels : 0f;
-        if (skinRatio < 0.10f || skinPixels < 35) {
-            // Tiada tangan dikesan di hadapan kamera
-            prevCentroidX = -1f;
-            prevCentroidY = -1f;
-            waveOscillationCount = 0;
-            return;
-        }
-
-        float cx = (float) sumX / skinPixels;
-        float cy = (float) sumY / skinPixels;
-        int boxW = Math.max(1, maxX - minX);
-        int boxH = Math.max(1, maxY - minY);
-        float aspectRatio = (float) boxW / boxH; // < 0.7 = meninggi/tunjuk, > 1.2 = melebar/lambaian
-
-        // 1. Penjejakan Halaju Pergerakan (Optical Motion & Flow)
-        float dx = 0f, dy = 0f;
-        if (prevCentroidX > 0 && prevCentroidY > 0) {
-            dx = cx - prevCentroidX;
-            dy = cy - prevCentroidY;
-        }
-        prevCentroidX = cx;
-        prevCentroidY = cy;
-
-        if (Math.abs(dx) > 5.5f) {
-            if (lastDx * dx < 0) {
-                waveOscillationCount++;
-            }
-        } else {
-            if (waveOscillationCount > 0) waveOscillationCount--;
-        }
-        lastDx = dx;
-
-        // 2. Analisis Taburan Jisim Mengikut Wilayah (Sub-regions)
-        int topThird = 0, midThird = 0, botThird = 0;
-        int leftHalf = 0, rightHalf = 0;
-        int topSplitLeft = 0, topSplitRight = 0;
-
-        int thirdH = boxH / 3;
-        int midBoxX = minX + boxW / 2;
-
-        for (int y = minY; y <= maxY; y += 3) {
-            for (int x = minX; x <= maxX; x += 3) {
-                int pixel = frame.getPixel(x, y);
-                int r = (pixel >> 16) & 0xFF;
-                int g = (pixel >> 8) & 0xFF;
-                int b = pixel & 0xFF;
-
-                if (r > 60 && g > 40 && b > 20 && (r - g) > 10 && (r - b) > 10) {
-                    if (y < minY + thirdH) {
-                        topThird++;
-                        if (x < midBoxX - boxW / 6) topSplitLeft++;
-                        else if (x > midBoxX + boxW / 6) topSplitRight++;
-                    } else if (y < minY + 2 * thirdH) {
-                        midThird++;
-                    } else {
-                        botThird++;
-                    }
-
-                    if (x < midBoxX) leftHalf++;
-                    else rightHalf++;
-                }
-            }
-        }
-
-        float topRatio = (float) topThird / (skinPixels + 1);
-        float asymmetry = Math.abs(leftHalf - rightHalf) / (float) (skinPixels + 1);
-        String conf = (94 + (cycle % 5)) + "%";
-
-        String key;
-        String hudTag;
-        String fragment;
-
-        // =========================================================================
-        // KLASIFIKASI ISYARAT KOMUNIKASI (BAHASA ISYARAT HARIAN & KECEMASAN)
-        // =========================================================================
-
-        // A. LAMBAIAN TANGAN (Hai / Salam)
-        if (waveOscillationCount >= 2 || (Math.abs(dx) > 9.0f && aspectRatio > 0.88f)) {
-            waveOscillationCount = 0;
-            key = "HELLO";
-            hudTag = getString(R.string.sign_tag_hello);
-            fragment = getString(R.string.sign_sentence_hello);
-        }
-        // B. TERIMA KASIH (Tangan Menunduk / Rapat Dada)
-        else if (dy > 8.5f && asymmetry < 0.28f && topThird < botThird * 1.5f) {
-            key = "THANK_YOU";
-            hudTag = getString(R.string.sign_tag_thankyou);
-            fragment = getString(R.string.sign_sentence_thankyou);
-        }
-        // C. SAYANG KAMU (Isyarat I Love You)
-        else if (aspectRatio > 1.20f && topThird > midThird * 0.85f && (topSplitLeft > 0 && topSplitRight > 0)) {
-            key = "LOVE";
-            hudTag = getString(R.string.sign_tag_love);
-            fragment = getString(R.string.sign_sentence_love);
-        }
-        // D. DUA JARI / V-SIGN (Polis / Dua / Peace)
-        else if (topSplitLeft > 3 && topSplitRight > 3 && topRatio > 0.26f && aspectRatio < 0.98f) {
-            key = "POLICE";
-            hudTag = getString(R.string.sign_tag_police);
-            fragment = getString(R.string.sign_sentence_police);
-        }
-        // E. JARI TELUNJUK (Tanya Arah / Di Mana)
-        else if (aspectRatio < 0.68f && topRatio > 0.20f) {
-            key = "WHERE";
-            hudTag = getString(R.string.sign_tag_where);
-            fragment = getString(R.string.sign_sentence_where);
-        }
-        // F. IBU JARI ATAS (Ya / Setuju / Betul)
-        else if (asymmetry > 0.28f && topThird > botThird && aspectRatio > 0.72f && aspectRatio < 1.35f) {
-            key = "YES";
-            hudTag = getString(R.string.sign_tag_yes);
-            fragment = getString(R.string.sign_sentence_yes);
-        }
-        // G. IBU JARI BAWAH (Tidak / Tak Mahu)
-        else if (asymmetry > 0.28f && botThird > topThird * 1.35f) {
-            key = "NO";
-            hudTag = getString(R.string.sign_tag_no);
-            fragment = getString(R.string.sign_sentence_no);
-        }
-        // H. JARI BULATAN OK (OK / Faham)
-        else if (aspectRatio >= 0.88f && aspectRatio <= 1.28f && topThird > botThird * 1.15f && asymmetry < 0.35f && topSplitRight > 4) {
-            key = "OK";
-            hudTag = getString(R.string.sign_tag_ok);
-            fragment = getString(R.string.sign_sentence_ok);
-        }
-        // I. PENUMBUK PADAT (Cemas / Bahaya)
-        else if (aspectRatio >= 0.82f && aspectRatio <= 1.18f && topThird < botThird * 1.15f && asymmetry < 0.25f) {
-            key = "DANGER";
-            hudTag = getString(R.string.sign_tag_danger);
-            fragment = getString(R.string.sign_sentence_danger);
-        }
-        // J. TAPAK TANGAN TERBUKA (Tolong / Tunggu)
-        else if (skinRatio > 0.24f || topRatio > 0.32f) {
-            key = "STOP";
-            hudTag = getString(R.string.sign_tag_wait);
-            fragment = getString(R.string.sign_sentence_wait);
-        }
-        // K. KESIHATAN & DOKTOR
-        else {
-            key = "DOCTOR";
-            hudTag = getString(R.string.sign_tag_doctor);
-            fragment = getString(R.string.sign_sentence_doctor);
-        }
-
-        appendSignGestureToSentence(key, hudTag, fragment, conf, false);
-    }
-
-    private void startScanAnimation() {
-        if (signScanLine == null) return;
-        if (scanLineAnimator != null) scanLineAnimator.cancel();
-        scanLineAnimator = ObjectAnimator.ofFloat(signScanLine, View.TRANSLATION_Y, 0f, 235f);
-        scanLineAnimator.setDuration(1600L);
-        scanLineAnimator.setRepeatCount(ValueAnimator.INFINITE);
-        scanLineAnimator.setRepeatMode(ValueAnimator.REVERSE);
-        scanLineAnimator.setInterpolator(new DecelerateInterpolator());
-        scanLineAnimator.start();
-    }
     // 2. SPEECH-TO-TEXT (STT RECOGNIZER)
-    // =========================================================================
     /** Inisialisasi pengecam suara Android SpeechRecognizer untuk transkripsi audio ke teks. */
     private void setupSpeechRecognizer() {
         if (!SpeechRecognizer.isRecognitionAvailable(this)) {
@@ -1115,35 +341,29 @@ public class QuickMessageActivity extends BaseActivity {
         updateSpeechRecognizerLanguage();
 
         speechRecognizer.setRecognitionListener(new RecognitionListener() {
-            /** Fungsi untuk onReadyForSpeech. */
     @Override
             public void onReadyForSpeech(Bundle params) {
                 setSttRecordingUi(true, R.string.speech_to_text_recording);
             }
 
-            /** Fungsi untuk onBeginningOfSpeech. */
     @Override
             public void onBeginningOfSpeech() {
                 setSttRecordingUi(true, R.string.speech_to_text_listening);
             }
 
-            /** Fungsi untuk onRmsChanged. */
     @Override
             public void onRmsChanged(float rmsdB) {
             }
 
-            /** Fungsi untuk onBufferReceived. */
     @Override
             public void onBufferReceived(byte[] buffer) {
             }
 
-            /** Fungsi untuk onEndOfSpeech. */
     @Override
             public void onEndOfSpeech() {
                 if (sttState != null) sttState.setText(R.string.speech_to_text_processing);
             }
 
-            /** Fungsi untuk onError. */
     @Override
             public void onError(int error) {
                 sttRecording = false;
@@ -1152,7 +372,6 @@ public class QuickMessageActivity extends BaseActivity {
                 setSttRecordingUi(false, sttFinalText.length() > 0 ? R.string.speech_to_text_captured : R.string.speech_to_text_ready);
             }
 
-            /** Fungsi untuk onResults. */
     @Override
             public void onResults(Bundle results) {
                 appendRecognitionResults(results);
@@ -1162,20 +381,17 @@ public class QuickMessageActivity extends BaseActivity {
                 setSttRecordingUi(false, sttFinalText.length() > 0 ? R.string.speech_to_text_captured : R.string.speech_to_text_ready);
             }
 
-            /** Fungsi untuk onPartialResults. */
     @Override
             public void onPartialResults(Bundle partialResults) {
                 showRecognitionPreview(partialResults);
             }
 
-            /** Fungsi untuk onEvent. */
     @Override
             public void onEvent(int eventType, Bundle params) {
             }
         });
     }
 
-    /** Fungsi untuk startSpeechToText. */
     private void startSpeechToText() {
         if (speechRecognizer == null || speechRecognizerIntent == null) {
             Toast.makeText(this, R.string.speech_to_text_unavailable, Toast.LENGTH_SHORT).show();
@@ -1203,7 +419,6 @@ public class QuickMessageActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk stopSpeechToText. */
     private void stopSpeechToText() {
         if (!sttRecording || speechRecognizer == null) {
             setSttRecordingUi(false, sttFinalText.length() > 0 ? R.string.speech_to_text_captured : R.string.speech_to_text_ready);
@@ -1220,7 +435,6 @@ public class QuickMessageActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk setSttRecordingUi. */
     private void setSttRecordingUi(boolean recording, int stateRes) {
         if (sttState != null) sttState.setText(stateRes);
         if (sttHoldButton != null) {
@@ -1234,6 +448,43 @@ public class QuickMessageActivity extends BaseActivity {
         animateSttRing(sttRecordRingOuter, recording, 1.12f, 0.28f);
         animateSttRing(sttRecordRingInner, recording, 1.08f, 0.48f);
         animateSttRing(sttRecordRingCore, recording, 1.04f, 0.72f);
+        animateSttWaveBars(recording);
+    }
+
+    private final List<ObjectAnimator> sttWaveAnimators = new ArrayList<>();
+
+    private void animateSttWaveBars(boolean recording) {
+        for (ObjectAnimator anim : sttWaveAnimators) {
+            anim.cancel();
+        }
+        sttWaveAnimators.clear();
+
+        int[] barIds = new int[]{
+                R.id.stt_wave_bar_1,
+                R.id.stt_wave_bar_2,
+                R.id.stt_wave_bar_3,
+                R.id.stt_wave_bar_4,
+                R.id.stt_wave_bar_5,
+                R.id.stt_wave_bar_6
+        };
+
+        for (int i = 0; i < barIds.length; i++) {
+            View bar = findViewById(barIds[i]);
+            if (bar == null) continue;
+            bar.animate().cancel();
+            if (!recording) {
+                bar.setScaleY(1f);
+                continue;
+            }
+            ObjectAnimator wave = ObjectAnimator.ofFloat(bar, View.SCALE_Y, 0.45f, 1.45f, 0.65f);
+            wave.setDuration(600L + (i * 65L));
+            wave.setStartDelay(i * 75L);
+            wave.setRepeatCount(ValueAnimator.INFINITE);
+            wave.setRepeatMode(ValueAnimator.REVERSE);
+            wave.setInterpolator(new DecelerateInterpolator());
+            wave.start();
+            sttWaveAnimators.add(wave);
+        }
     }
 
     /** Kendalikan animasi SttRing. */
@@ -1268,7 +519,6 @@ public class QuickMessageActivity extends BaseActivity {
         set.start();
     }
 
-    /** Fungsi untuk cancelSttRing. */
     private void cancelSttRing(View ring) {
         if (ring == sttRecordRingOuter && sttOuterPulse != null) {
             sttOuterPulse.cancel();
@@ -1282,7 +532,6 @@ public class QuickMessageActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk appendRecognitionResults. */
     private void appendRecognitionResults(Bundle results) {
         if (results == null) return;
         ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
@@ -1300,7 +549,6 @@ public class QuickMessageActivity extends BaseActivity {
         sttOutput.setText(TextUtils.isEmpty(combined) ? getString(R.string.speech_to_text_placeholder) : combined);
     }
 
-    /** Fungsi untuk appendTranscript. */
     private void appendTranscript(String text) {
         String clean = text == null ? "" : text.trim();
         if (clean.isEmpty()) return;
@@ -1313,7 +561,6 @@ public class QuickMessageActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk restoreSttPlaceholderIfEmpty. */
     private void restoreSttPlaceholderIfEmpty() {
         if (sttOutput != null && sttFinalText.length() == 0) {
             sttOutput.setText(R.string.speech_to_text_placeholder);
@@ -1345,7 +592,6 @@ public class QuickMessageActivity extends BaseActivity {
         if (sttState != null) sttState.setText(R.string.speech_to_text_ready);
     }
 
-    /** Ambil atau muat data SelectedSttLanguageTag. */
     private String getSelectedSttLanguageTag() {
         int selected = sttLanguageSpinner == null ? 0 : sttLanguageSpinner.getSelectedItemPosition();
         if (selected < 0 || selected >= STT_LANGUAGE_TAGS.length) {
@@ -1366,26 +612,14 @@ public class QuickMessageActivity extends BaseActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_RECORD_AUDIO) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                if (sttState != null) sttState.setText(R.string.speech_to_text_ready);
-            } else {
-                Toast.makeText(this, R.string.speech_to_text_permission, Toast.LENGTH_SHORT).show();
-            }
-            return;
-        }
-        if (requestCode == REQUEST_CAMERA_PERMISSION) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                if (currentMode == MODE_SIGN) {
-                    startSignCamera();
-                }
-            } else {
-                Toast.makeText(this, R.string.sign_camera_permission, Toast.LENGTH_SHORT).show();
-            }
+        if (requestCode != REQUEST_RECORD_AUDIO) return;
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (sttState != null) sttState.setText(R.string.speech_to_text_ready);
+        } else {
+            Toast.makeText(this, R.string.speech_to_text_permission, Toast.LENGTH_SHORT).show();
         }
     }
 
-    /** Fungsi untuk goHome. */
     private void goHome() {
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -1408,7 +642,6 @@ public class QuickMessageActivity extends BaseActivity {
                 .start();
     }
 
-    /** Fungsi untuk startTtsPageAnimations. */
     private void startTtsPageAnimations() {
         animateEntrance(findViewById(R.id.top_bar), 0);
         animateEntrance(findViewById(R.id.tts_voice_hero), 70);
@@ -1430,7 +663,6 @@ public class QuickMessageActivity extends BaseActivity {
                 .start();
     }
 
-    /** Fungsi untuk startPulse. */
     private void startPulse(View view, long delay, float scaleTo, float alphaFrom, float alphaTo) {
         if (view == null) return;
         view.setAlpha(alphaFrom);
@@ -1449,7 +681,6 @@ public class QuickMessageActivity extends BaseActivity {
         set.start();
     }
 
-    /** Fungsi untuk resetPlaybackVisuals. */
     private void resetPlaybackVisuals() {
         int[] ringIds = {
                 R.id.tts_play_ring_outer,
@@ -1475,7 +706,6 @@ public class QuickMessageActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk triggerPlaybackAnimation. */
     private void triggerPlaybackAnimation() {
         startPulse(findViewById(R.id.tts_play_ring_outer), 0, 1.14f, 0.62f, 0.12f);
         startPulse(findViewById(R.id.tts_play_ring_mid), 120, 1.10f, 0.72f, 0.20f);
@@ -1483,7 +713,6 @@ public class QuickMessageActivity extends BaseActivity {
         startWaveAnimation();
     }
 
-    /** Fungsi untuk startWaveAnimation. */
     private void startWaveAnimation() {
         int[] ids = getWaveBarIds();
         for (int i = 0; i < ids.length; i++) {
@@ -1500,7 +729,6 @@ public class QuickMessageActivity extends BaseActivity {
         }
     }
 
-    /** Ambil atau muat data WaveBarIds. */
     private int[] getWaveBarIds() {
         return new int[]{
                 R.id.tts_wave_bar_1,
@@ -1512,12 +740,10 @@ public class QuickMessageActivity extends BaseActivity {
         };
     }
 
-    /** Fungsi untuk speakInputText. */
     private void speakInputText() {
         speakText(getTrimmedText(), true);
     }
 
-    /** Fungsi untuk speakText. */
     private void speakText(String text, boolean remember) {
         String cleanText = text == null ? "" : text.trim();
         if (cleanText.isEmpty()) {
@@ -1543,7 +769,6 @@ public class QuickMessageActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk copyText. */
     private void copyText() {
         String text = getTrimmedText();
         if (text.isEmpty()) {
@@ -1574,7 +799,6 @@ public class QuickMessageActivity extends BaseActivity {
         Toast.makeText(this, R.string.text_to_speech_saved, Toast.LENGTH_SHORT).show();
     }
 
-    /** Fungsi untuk pasteClipboardText. */
     private void pasteClipboardText() {
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         if (clipboard == null || !clipboard.hasPrimaryClip() || clipboard.getPrimaryClip() == null) {
@@ -1614,7 +838,6 @@ public class QuickMessageActivity extends BaseActivity {
         Toast.makeText(this, R.string.text_to_speech_pasted, Toast.LENGTH_SHORT).show();
     }
 
-    /** Fungsi untuk cycleSpeechRate. */
     private void cycleSpeechRate() {
         selectedSpeechRateIndex = (selectedSpeechRateIndex + 1) % SPEECH_RATES.length;
         getTtsPrefs()
@@ -1632,7 +855,6 @@ public class QuickMessageActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk applySpeechRate. */
     private void applySpeechRate() {
         if (tts == null) return;
         try {
@@ -1647,7 +869,6 @@ public class QuickMessageActivity extends BaseActivity {
         charCount.setText(String.format(Locale.getDefault(), "%d / %d", ttsInput.getText().length(), MAX_TEXT_LENGTH));
     }
 
-    /** Fungsi untuk addToHistory. */
     private void addToHistory(String text) {
         String cleanText = text == null ? "" : text.trim();
         if (cleanText.isEmpty()) return;
@@ -1666,7 +887,6 @@ public class QuickMessageActivity extends BaseActivity {
         renderHistory();
     }
 
-    /** Ambil atau muat data History. */
     private List<String> loadHistory() {
         List<String> history = new ArrayList<>();
         String raw = getTtsPrefs().getString(KEY_HISTORY, "[]");
@@ -1695,7 +915,6 @@ public class QuickMessageActivity extends BaseActivity {
                 .apply();
     }
 
-    /** Fungsi untuk renderHistory. */
     private void renderHistory() {
         if (historyList == null || emptyHistory == null) return;
         historyList.removeAllViews();
@@ -1706,7 +925,6 @@ public class QuickMessageActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk addHistoryRow. */
     private void addHistoryRow(String text) {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
@@ -1804,24 +1022,20 @@ public class QuickMessageActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk fillInputFromHistory. */
     private void fillInputFromHistory(String text) {
         if (ttsInput == null) return;
         ttsInput.setText(text);
         ttsInput.setSelection(ttsInput.getText().length());
     }
 
-    /** Ambil atau muat data TtsPrefs. */
     private SharedPreferences getTtsPrefs() {
         return getSharedPreferences(PREFS_TTS, MODE_PRIVATE);
     }
 
-    /** Fungsi untuk dp. */
     private int dp(int value) {
         return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
     }
 
-    /** Ambil atau muat data TrimmedText. */
     private String getTrimmedText() {
         if (ttsInput == null || ttsInput.getText() == null) return "";
         return ttsInput.getText().toString().trim();
@@ -1832,7 +1046,6 @@ public class QuickMessageActivity extends BaseActivity {
         Toast.makeText(this, R.string.text_to_speech_empty_error, Toast.LENGTH_SHORT).show();
     }
 
-    /** Fungsi untuk applyTtsLanguage. */
     private void applyTtsLanguage() {
         if (tts == null) return;
         try {
@@ -1845,7 +1058,6 @@ public class QuickMessageActivity extends BaseActivity {
         }
     }
 
-    /** Ambil atau muat data InitialTtsLanguageIndex. */
     private int getInitialTtsLanguageIndex() {
         String tag = LocaleUtils.getSavedLanguageTag(this);
         if ("en".equals(tag)) return 1;
@@ -1854,7 +1066,6 @@ public class QuickMessageActivity extends BaseActivity {
         return 0;
     }
 
-    /** Ambil atau muat data SelectedTtsLocale. */
     private Locale getSelectedTtsLocale() {
         int selected = languageSpinner == null ? 0 : languageSpinner.getSelectedItemPosition();
         switch (selected) {
@@ -1874,41 +1085,21 @@ public class QuickMessageActivity extends BaseActivity {
         return result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED;
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (currentMode == MODE_SIGN) {
-            startSignCamera();
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        if (currentMode == MODE_SIGN) {
-            stopSignCamera();
-        }
-        super.onPause();
-    }
-
     /** Aktiviti tidak lagi kelihatan pada skrin. */
     @Override
     protected void onStop() {
         stopSpeechToText();
         stopTts();
-        if (currentMode == MODE_SIGN) {
-            stopSignCamera();
-        }
+        animateSttWaveBars(false);
         super.onStop();
     }
 
-    // =========================================================================
     // SEKSYEN: ONDESTROY
-    // =========================================================================
     /** Pembersihan memori, buang listener, dan tutup sambungan. */
     @Override
     protected void onDestroy() {
-        stopSignCamera();
         stopSpeechToText();
+        animateSttWaveBars(false);
         if (speechRecognizer != null) {
             try {
                 speechRecognizer.destroy();
@@ -1928,7 +1119,6 @@ public class QuickMessageActivity extends BaseActivity {
         super.onDestroy();
     }
 
-    /** Fungsi untuk stopTts. */
     private void stopTts() {
         if (tts == null) return;
         try {

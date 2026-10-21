@@ -21,9 +21,7 @@ import androidx.core.view.WindowInsetsCompat;
 public class FullscreenMessageActivity extends BaseActivity {
     public static final String EXTRA_MESSAGE = "message";
 
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {

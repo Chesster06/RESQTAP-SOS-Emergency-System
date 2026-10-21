@@ -13,7 +13,6 @@ public final class ThemeUtils {
     private ThemeUtils() {
     }
 
-    /** Fungsi untuk applySavedNightMode. */
     public static void applySavedNightMode(Context context) {
         int mode = context == null
                 ? AppCompatDelegate.MODE_NIGHT_NO

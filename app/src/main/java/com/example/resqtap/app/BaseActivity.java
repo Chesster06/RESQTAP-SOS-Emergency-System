@@ -66,7 +66,6 @@ public abstract class BaseActivity extends AppCompatActivity {
     private long lastSupportClaimedAt = 0L;
     private android.widget.ImageButton globalChatFab;
 
-    /** Fungsi untuk attachBaseContext. */
     @Override
     protected void attachBaseContext(Context newBase) {
         Context wrapped = LocaleUtils.wrap(newBase);
@@ -112,7 +111,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         stopSupportClaimListener();
     }
 
-    /** Fungsi untuk setContentView. */
     @Override
     public void setContentView(int layoutResID) {
         super.setContentView(layoutResID);
@@ -120,7 +118,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         if (shouldAnimateContentIn()) animateContentIn();
     }
 
-    /** Fungsi untuk setContentView. */
     @Override
     public void setContentView(View view) {
         super.setContentView(view);
@@ -128,7 +125,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         if (shouldAnimateContentIn()) animateContentIn();
     }
 
-    /** Fungsi untuk setContentView. */
     @Override
     public void setContentView(View view, ViewGroup.LayoutParams params) {
         super.setContentView(view, params);
@@ -136,33 +132,28 @@ public abstract class BaseActivity extends AppCompatActivity {
         if (shouldAnimateContentIn()) animateContentIn();
     }
 
-    /** Fungsi untuk shouldAnimateContentIn: Ditutup secara lalai untuk elak FPS drop & delay render bertindih dengan window transition. */
     protected boolean shouldAnimateContentIn() {
         return false;
     }
 
-    /** Fungsi untuk startActivity. */
     @Override
     public void startActivity(Intent intent) {
         super.startActivity(intent);
         applyFade();
     }
 
-    /** Fungsi untuk startActivity. */
     @Override
     public void startActivity(Intent intent, @Nullable Bundle options) {
         super.startActivity(intent, options);
         applyFade();
     }
 
-    /** Fungsi untuk finish. */
     @Override
     public void finish() {
         super.finish();
         applyPop();
     }
 
-    /** Fungsi untuk applyFade. */
     private void applyFade() {
         try {
             overridePendingTransition(R.anim.resqtap_enter, R.anim.resqtap_exit);
@@ -170,7 +161,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         }
     }
 
-    /** Fungsi untuk applyPop. */
     private void applyPop() {
         try {
             overridePendingTransition(R.anim.resqtap_pop_enter, R.anim.resqtap_pop_exit);
@@ -198,7 +188,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         staggerChildren(root);
     }
 
-    /** Fungsi untuk staggerChildren. */
     private void staggerChildren(View root) {
         if (!(root instanceof ViewGroup)) return;
         ViewGroup group = (ViewGroup) root;
@@ -224,7 +213,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         }
     }
 
-    /** Fungsi untuk installGlobalChatFab. */
     private void installGlobalChatFab() {
         if (globalChatFab != null) return;
         if (!canHostGlobalChatFab() || !isUserLoggedIn()) return;
@@ -256,12 +244,16 @@ public abstract class BaseActivity extends AppCompatActivity {
                                 .setDuration(120L)
                                 .start();
                         if (this instanceof ChatActivity) {
-                            ((ChatActivity) this).startNewChatSession();
+                            ChatActivity chatAct = (ChatActivity) this;
+                            if (chatAct.isLiveChatActive()) {
+                                android.widget.Toast.makeText(this, R.string.livechat_active_cannot_reset, android.widget.Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+                            chatAct.startNewChatSession();
                             return;
                         }
                         Intent chatIntent = new Intent(this, ChatActivity.class);
                         chatIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                        chatIntent.putExtra("EXTRA_START_NEW_CHAT", true);
                         startActivity(chatIntent);
                     })
                     .start();
@@ -303,7 +295,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         globalChatFab.bringToFront();
     }
 
-    /** Fungsi untuk revealGlobalChatFab. */
     private void revealGlobalChatFab() {
         if (globalChatFab == null) return;
         globalChatFab.animate()
@@ -315,7 +306,6 @@ public abstract class BaseActivity extends AppCompatActivity {
                 .start();
     }
 
-    /** Fungsi untuk canHostGlobalChatFab: Hanya dipaparkan pada tab utama Bottom Nav sahaja. */
     private boolean canHostGlobalChatFab() {
         return (this instanceof MainActivity)
                 || (this instanceof QuickMessageActivity)
@@ -334,17 +324,14 @@ public abstract class BaseActivity extends AppCompatActivity {
         }
     }
 
-    /** Fungsi untuk baseDp. */
     private int baseDp(int value) {
         return Math.round(value * getResources().getDisplayMetrics().density);
     }
 
-    /** Fungsi untuk startSupportClaimListener. */
     private void startSupportClaimListener(FirebaseUser user) {
         // Pop-up "Agent has been claimed your ticket" dimatikan atas permintaan LO
     }
 
-    /** Fungsi untuk stopSupportClaimListener. */
     private void stopSupportClaimListener() {
         try {
             if (supportClaimRef != null && supportClaimListener != null) {
@@ -358,7 +345,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         lastSupportClaimedAt = 0L;
     }
 
-    /** Fungsi untuk asLong. */
     private long asLong(Object value) {
         if (value instanceof Number) return ((Number) value).longValue();
         try {

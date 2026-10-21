@@ -70,9 +70,7 @@ public class ScanQrActivity extends BaseActivity {
                 }
             });
 
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -284,9 +282,7 @@ public class ScanQrActivity extends BaseActivity {
         }
     }
 
-    // =========================================================================
     // SEKSYEN: ONDESTROY
-    // =========================================================================
     /** Pembersihan memori, buang listener, dan tutup sambungan. */
     @Override
     protected void onDestroy() {
@@ -294,7 +290,6 @@ public class ScanQrActivity extends BaseActivity {
         executor.shutdownNow();
     }
 
-    /** Fungsi untuk safePublicId. */
     private String safePublicId(String rawUid) {
         return FirebaseFriendClient.format4DigitId(rawUid, "");
     }
@@ -323,13 +318,11 @@ public class ScanQrActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk startQrScanner. */
     private void startQrScanner() {
         if (qrScannerView == null) return;
         qrScannerView.setStatusText("");
         qrScannerView.resume();
         qrScannerView.decodeContinuous(new BarcodeCallback() {
-            /** Fungsi untuk barcodeResult. */
     @Override
             public void barcodeResult(BarcodeResult result) {
                 if (result == null || result.getText() == null) return;
@@ -341,7 +334,6 @@ public class ScanQrActivity extends BaseActivity {
                 handleScannedQrCode(scannedText);
             }
 
-            /** Fungsi untuk possibleResultPoints. */
             @Override
             public void possibleResultPoints(List<com.google.zxing.ResultPoint> resultPoints) {}
         });
@@ -420,7 +412,6 @@ public class ScanQrActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk handleScannedQrCode. */
     private void handleScannedQrCode(String scannedData) {
         if (qrScannerView != null) qrScannerView.pause();
         QrCodeUtils.QrPayload payload = QrCodeUtils.parseQrPayload(scannedData);

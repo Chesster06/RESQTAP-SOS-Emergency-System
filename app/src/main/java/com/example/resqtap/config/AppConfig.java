@@ -34,25 +34,15 @@ public final class AppConfig {
         // Prevent instantiation
     }
 
-    // ==========================================
-    // SUPABASE CONFIGURATION
-    // The anon key is for the Supabase gateway (apikey header).
-    // Authentication uses Firebase ID Token (see SupabaseManager.getFirebaseIdTokenSync).
-    // ==========================================
+    // Supabase configuration: anon key is for the gateway; auth uses Firebase ID Token.
     public static final String SUPABASE_URL = "https://umcxapvojtoxqlpnrwdw.supabase.co";
     public static final String SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtY3hhcHZvanRveHFscG5yd2R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzMTg2OTksImV4cCI6MjEwNjg5NDY5OX0.8qDJYad_rTwlzAqmF0Z1OiRgQ9ocxaluN7MIjz0mL0M";
 
-    // ==========================================
-    // FIREBASE REALTIME DATABASE CONFIGURATION
-    // ==========================================
+    // Firebase Realtime Database configuration
     public static final String FIREBASE_DATABASE_URL = "https://resqtap-b9ff5-default-rtdb.firebaseio.com";
     public static final String FIREBASE_PROJECT_ID = "resqtap-b9ff5";
     public static final String FIREBASE_STORAGE_BUCKET = "resqtap-b9ff5.firebasestorage.app";
 
-    // ==========================================
-    // GOOGLE CLOUD & MAPS API
-    // SEC-06: Restrict this key in GCP Console to package com.example.resqtap
-    // with SHA-1 certificate fingerprints (debug + release). API scope: Maps SDK for Android.
-    // ==========================================
+    // Google Cloud & Maps API: restricted to package com.example.resqtap with SHA-1
     public static final String GOOGLE_MAPS_API_KEY = "AIzaSyCr1aSjKTZEdn58dBBWhG1UFsE6iKUwUQc";
 }

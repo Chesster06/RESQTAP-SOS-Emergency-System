@@ -17,7 +17,6 @@ public final class VibrationUtils {
     private VibrationUtils() {
     }
 
-    /** Fungsi untuk vibrateOnce. */
     public static void vibrateOnce(Context context, int durationMs) {
         if (context == null) return;
         int ms = Math.max(1, durationMs);
@@ -40,7 +39,6 @@ public final class VibrationUtils {
         }
     }
 
-    /** Fungsi untuk vibrateSosAlert. */
     public static void vibrateSosAlert(Context context, long totalMs) {
         if (context == null) return;
         long ms = Math.max(250L, totalMs);
@@ -71,7 +69,6 @@ public final class VibrationUtils {
         }
     }
 
-    /** Fungsi untuk cancelAll. */
     public static void cancelAll(Context context) {
         if (context == null) return;
         try {

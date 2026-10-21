@@ -104,8 +104,7 @@
 
                 <LinearLayout
                     android:id="@+id/tab_tts"
-                    android:layout_width="wrap_content"
-                    android:minWidth="76dp"
+                    android:layout_width="92dp"
                     android:layout_height="match_parent"
                     android:background="@drawable/bg_voice_mode_active"
                     android:clickable="true"
@@ -113,13 +112,13 @@
                     android:foreground="?attr/selectableItemBackground"
                     android:gravity="center"
                     android:orientation="horizontal"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp">
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp">
 
                     <ImageView
                         android:id="@+id/tab_tts_icon"
-                        android:layout_width="17dp"
-                        android:layout_height="17dp"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
                         android:contentDescription="@null"
                         android:src="@drawable/ic_volume_24"
                         android:tint="@color/white" />
@@ -128,30 +127,29 @@
                         android:id="@+id/tab_tts_label"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
+                        android:layout_marginStart="7dp"
                         android:text="TTS"
                         android:textColor="@color/white"
-                        android:textSize="12.5sp"
+                        android:textSize="13sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
                 <LinearLayout
                     android:id="@+id/tab_stt"
-                    android:layout_width="wrap_content"
-                    android:minWidth="76dp"
+                    android:layout_width="92dp"
                     android:layout_height="match_parent"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground"
                     android:gravity="center"
                     android:orientation="horizontal"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp">
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp">
 
                     <ImageView
                         android:id="@+id/tab_stt_icon"
-                        android:layout_width="17dp"
-                        android:layout_height="17dp"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
                         android:contentDescription="@null"
                         android:src="@drawable/ic_mic_24"
                         android:tint="@color/text_secondary" />
@@ -160,42 +158,10 @@
                         android:id="@+id/tab_stt_label"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
+                        android:layout_marginStart="7dp"
                         android:text="STT"
                         android:textColor="@color/text_secondary"
-                        android:textSize="12.5sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/tab_sign"
-                    android:layout_width="wrap_content"
-                    android:minWidth="76dp"
-                    android:layout_height="match_parent"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground"
-                    android:gravity="center"
-                    android:orientation="horizontal"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp">
-
-                    <ImageView
-                        android:id="@+id/tab_sign_icon"
-                        android:layout_width="17dp"
-                        android:layout_height="17dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_camera_white"
-                        android:tint="@color/text_secondary" />
-
-                    <TextView
-                        android:id="@+id/tab_sign_label"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:text="@string/sign_language_tab"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12.5sp"
+                        android:textSize="13sp"
                         android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
@@ -736,83 +702,140 @@
                             android:src="@drawable/ic_chevron_down_24"
                             android:tint="@color/text_secondary" />
                     </FrameLayout>
-                </LinearLayout>
 
-                <FrameLayout
-                    android:id="@+id/stt_record_stage"
-                    android:layout_width="match_parent"
-                    android:layout_height="252dp"
-                    android:layout_marginTop="18dp"
-                    android:clipChildren="false"
-                    android:clipToPadding="false">
-
-                    <View
-                        android:id="@+id/stt_record_ring_outer"
-                        android:layout_width="252dp"
+                    <FrameLayout
+                        android:id="@+id/stt_record_stage"
+                        android:layout_width="match_parent"
                         android:layout_height="252dp"
-                        android:layout_gravity="center"
-                        android:alpha="0.28"
-                        android:background="@drawable/bg_stt_record_ring" />
+                        android:layout_marginTop="16dp"
+                        android:clipChildren="false"
+                        android:clipToPadding="false">
 
-                    <View
-                        android:id="@+id/stt_record_ring_inner"
-                        android:layout_width="212dp"
-                        android:layout_height="212dp"
-                        android:layout_gravity="center"
-                        android:alpha="0.48"
-                        android:background="@drawable/bg_stt_record_ring" />
+                        <View
+                            android:id="@+id/stt_record_ring_outer"
+                            android:layout_width="252dp"
+                            android:layout_height="252dp"
+                            android:layout_gravity="center"
+                            android:alpha="0.28"
+                            android:background="@drawable/bg_stt_record_ring" />
 
-                    <View
-                        android:id="@+id/stt_record_ring_core"
-                        android:layout_width="176dp"
-                        android:layout_height="176dp"
-                        android:layout_gravity="center"
-                        android:alpha="0.72"
-                        android:background="@drawable/bg_stt_record_ring" />
+                        <View
+                            android:id="@+id/stt_record_ring_inner"
+                            android:layout_width="212dp"
+                            android:layout_height="212dp"
+                            android:layout_gravity="center"
+                            android:alpha="0.48"
+                            android:background="@drawable/bg_stt_record_ring" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_stt_hold"
-                        android:layout_width="164dp"
-                        android:layout_height="164dp"
-                        android:layout_gravity="center"
+                        <View
+                            android:id="@+id/stt_record_ring_core"
+                            android:layout_width="176dp"
+                            android:layout_height="176dp"
+                            android:layout_gravity="center"
+                            android:alpha="0.72"
+                            android:background="@drawable/bg_stt_record_ring" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_stt_hold"
+                            android:layout_width="164dp"
+                            android:layout_height="164dp"
+                            android:layout_gravity="center"
+                            android:gravity="center"
+                            android:insetLeft="0dp"
+                            android:insetTop="0dp"
+                            android:insetRight="0dp"
+                            android:insetBottom="0dp"
+                            android:minWidth="164dp"
+                            android:minHeight="164dp"
+                            android:text="@string/speech_to_text_hold"
+                            android:textAllCaps="false"
+                            android:textColor="@color/white"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            app:backgroundTint="@color/stt_record_core"
+                            app:cornerRadius="82dp"
+                            app:icon="@drawable/ic_mic_24"
+                            app:iconGravity="textTop"
+                            app:iconPadding="8dp"
+                            app:iconSize="34dp"
+                            app:iconTint="@color/white"
+                            app:rippleColor="@color/tts_play_ring_inner" />
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:id="@+id/stt_wave_panel"
+                        android:layout_width="match_parent"
+                        android:layout_height="58dp"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_tts_wave_panel">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_gravity="center"
+                            android:gravity="center"
+                            android:orientation="horizontal">
+
+                            <View
+                                android:id="@+id/stt_wave_bar_1"
+                                android:layout_width="5dp"
+                                android:layout_height="18dp"
+                                android:layout_marginHorizontal="4dp"
+                                android:background="@drawable/bg_tts_wave_accent" />
+
+                            <View
+                                android:id="@+id/stt_wave_bar_2"
+                                android:layout_width="5dp"
+                                android:layout_height="34dp"
+                                android:layout_marginHorizontal="4dp"
+                                android:background="@drawable/bg_tts_wave_accent" />
+
+                            <View
+                                android:id="@+id/stt_wave_bar_3"
+                                android:layout_width="5dp"
+                                android:layout_height="46dp"
+                                android:layout_marginHorizontal="4dp"
+                                android:background="@drawable/bg_tts_wave_accent" />
+
+                            <View
+                                android:id="@+id/stt_wave_bar_4"
+                                android:layout_width="5dp"
+                                android:layout_height="28dp"
+                                android:layout_marginHorizontal="4dp"
+                                android:background="@drawable/bg_tts_wave_accent" />
+
+                            <View
+                                android:id="@+id/stt_wave_bar_5"
+                                android:layout_width="5dp"
+                                android:layout_height="38dp"
+                                android:layout_marginHorizontal="4dp"
+                                android:background="@drawable/bg_tts_wave_accent" />
+
+                            <View
+                                android:id="@+id/stt_wave_bar_6"
+                                android:layout_width="5dp"
+                                android:layout_height="20dp"
+                                android:layout_marginHorizontal="4dp"
+                                android:background="@drawable/bg_tts_wave_accent" />
+                        </LinearLayout>
+                    </FrameLayout>
+
+                    <TextView
+                        android:id="@+id/stt_realtime_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:gravity="center"
-                        android:insetLeft="0dp"
-                        android:insetTop="0dp"
-                        android:insetRight="0dp"
-                        android:insetBottom="0dp"
-                        android:minWidth="164dp"
-                        android:minHeight="164dp"
-                        android:text="@string/speech_to_text_hold"
-                        android:textAllCaps="false"
-                        android:textColor="@color/white"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        app:backgroundTint="@color/stt_record_core"
-                        app:cornerRadius="82dp"
-                        app:icon="@drawable/ic_mic_24"
-                        app:iconGravity="textTop"
-                        app:iconPadding="8dp"
-                        app:iconSize="34dp"
-                        app:iconTint="@color/white"
-                        app:rippleColor="@color/tts_play_ring_inner" />
-                </FrameLayout>
-
-                <TextView
-                    android:id="@+id/stt_realtime_label"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="-12dp"
-                    android:gravity="center"
-                    android:text="@string/speech_to_text_realtime"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
+                        android:text="@string/speech_to_text_realtime"
+                        android:textColor="@color/tts_disabled_text"
+                        android:textSize="12sp" />
+                </LinearLayout>
 
                 <LinearLayout
                     android:id="@+id/stt_transcript_card"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="16dp"
                     android:background="@drawable/bg_stt_transcript_card"
                     android:orientation="vertical"
                     android:padding="16dp">
@@ -854,222 +877,6 @@
                         android:textColor="@color/text_secondary"
                         android:textSize="15sp" />
                 </LinearLayout>
-            </LinearLayout>
-
-            <!-- ================================================================= -->
-            <!-- TAB 3: SIGN LANGUAGE / MOTION TRANSLATOR TO TEXT (SIGN CAM)       -->
-            <!-- ================================================================= -->
-            <!-- ================================================================= -->
-            <!-- TAB 3: SIGN LANGUAGE TO TEXT TRANSCRIPTION (SIGN CAM)               -->
-            <!-- ================================================================= -->
-            <LinearLayout
-                android:id="@+id/sign_page"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <!-- 1. LIVE CAMERA VIEWFINDER CARD -->
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="380dp"
-                    android:layout_marginBottom="14dp"
-                    app:cardCornerRadius="22dp"
-                    app:cardElevation="6dp"
-                    app:cardBackgroundColor="#111319">
-
-                    <FrameLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent">
-
-                        <TextureView
-                            android:id="@+id/sign_camera_preview"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent" />
-
-                        <!-- Scanning Reticle / Hand Guide Box -->
-                        <View
-                            android:id="@+id/sign_scan_reticle"
-                            android:layout_width="250dp"
-                            android:layout_height="250dp"
-                            android:layout_gravity="center"
-                            android:background="@drawable/bg_scan_reticle" />
-
-                        <!-- Scanning Line Animation -->
-                        <View
-                            android:id="@+id/sign_scan_line"
-                            android:layout_width="250dp"
-                            android:layout_height="2.5dp"
-                            android:layout_gravity="center_horizontal"
-                            android:layout_marginTop="68dp"
-                            android:background="#E60067" />
-
-                        <!-- Top Controls Overlay: Camera Switch Button -->
-                        <FrameLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:padding="12dp">
-
-                            <!-- Switch Camera Button -->
-                            <ImageButton
-                                android:id="@+id/btn_switch_camera"
-                                android:layout_width="40dp"
-                                android:layout_height="40dp"
-                                android:layout_gravity="end|top"
-                                android:background="@drawable/bg_tts_round_action"
-                                android:contentDescription="@string/sign_camera_switch"
-                                android:elevation="4dp"
-                                android:padding="9dp"
-                                android:src="@drawable/ic_refresh_24"
-                                android:tint="@color/brand_primary"
-                                app:tint="@color/brand_primary" />
-                        </FrameLayout>
-
-                        <!-- HUD Detected Gesture Banner on Viewfinder -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="bottom"
-                            android:background="#D90F172A"
-                            android:orientation="horizontal"
-                            android:gravity="center"
-                            android:paddingStart="14dp"
-                            android:paddingTop="7dp"
-                            android:paddingEnd="14dp"
-                            android:paddingBottom="7dp">
-
-                            <androidx.cardview.widget.CardView
-                                android:id="@+id/sign_hud_card"
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:layout_marginEnd="10dp"
-                                android:visibility="gone"
-                                app:cardCornerRadius="6dp"
-                                app:cardElevation="0dp"
-                                app:cardBackgroundColor="#FFFFFF">
-
-                                <ImageView
-                                    android:id="@+id/sign_hud_image"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:scaleType="centerCrop"
-                                    android:src="@drawable/img_sign_hello"
-                                    android:contentDescription="@string/sign_guide_title" />
-                            </androidx.cardview.widget.CardView>
-
-                            <TextView
-                                android:id="@+id/sign_hud_gesture"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:gravity="center"
-                                android:textAlignment="center"
-                                android:text="@string/sign_detecting_idle"
-                                android:textColor="#FFFFFF"
-                                android:textSize="12.5sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-                    </FrameLayout>
-                </androidx.cardview.widget.CardView>
-
-                <!-- 2. REAL-TIME SIGN TRANSCRIPT CARD -->
-                <LinearLayout
-                    android:id="@+id/sign_transcript_card"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:background="@drawable/bg_stt_transcript_card"
-                    android:elevation="6dp"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <!-- Header: Title & Action Buttons -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="40dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/sign_transcript_title"
-                            android:textColor="@color/text_primary"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
-
-                        <ImageButton
-                            android:id="@+id/btn_sign_guide"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:background="@drawable/bg_tts_input_action"
-                            android:contentDescription="@string/sign_guide_title"
-                            android:padding="10dp"
-                            android:src="@drawable/ic_book"
-                            android:tint="@color/text_secondary"
-                            app:tint="@color/text_secondary" />
-
-                        <ImageButton
-                            android:id="@+id/btn_sign_copy"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:layout_marginStart="8dp"
-                            android:background="@drawable/bg_tts_input_action"
-                            android:contentDescription="@string/text_to_speech_copy"
-                            android:padding="10dp"
-                            android:src="@drawable/ic_copy_24"
-                            android:tint="@color/text_secondary"
-                            app:tint="@color/text_secondary" />
-
-                        <ImageButton
-                            android:id="@+id/btn_sign_clear"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:layout_marginStart="8dp"
-                            android:background="@drawable/bg_tts_input_action"
-                            android:contentDescription="@string/sign_clear_transcript"
-                            android:padding="10dp"
-                            android:src="@drawable/ic_delete"
-                            android:tint="@color/text_secondary"
-                            app:tint="@color/text_secondary" />
-                    </LinearLayout>
-
-                    <!-- Real-Time Flowing Sentence Transcript -->
-                    <TextView
-                        android:id="@+id/sign_transcript_output"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:background="@drawable/bg_stt_transcript_inner"
-                        android:gravity="top|start"
-                        android:lineSpacingExtra="4dp"
-                        android:minHeight="110dp"
-                        android:padding="14dp"
-                        android:text="@string/sign_transcript_placeholder"
-                        android:textColor="@color/text_primary"
-                        android:textSize="15.5sp" />
-                </LinearLayout>
-
-                <!-- Quick Access to Full BIM Sign Dictionary -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_open_bim_dictionary"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginBottom="24dp"
-                    android:text="Buka Kamus Isyarat BIM (465 Isyarat)"
-                    android:textAllCaps="false"
-                    android:textColor="@color/brand_primary"
-                    android:textSize="13.5sp"
-                    android:textStyle="bold"
-                    app:cornerRadius="16dp"
-                    app:icon="@drawable/ic_book"
-                    app:iconGravity="textStart"
-                    app:iconPadding="10dp"
-                    app:iconTint="@color/brand_primary"
-                    app:strokeColor="@color/brand_primary"
-                    app:strokeWidth="1.5dp" />
-
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

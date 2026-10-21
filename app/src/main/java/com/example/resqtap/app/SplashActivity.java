@@ -29,9 +29,7 @@ import com.google.firebase.auth.FirebaseAuth;
  * Splash screen: check status login Firebase Auth sebelum masuk ke Main atau Login.
  */
 public class SplashActivity extends BaseActivity {
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {

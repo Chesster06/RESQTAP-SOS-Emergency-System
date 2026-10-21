@@ -42,9 +42,7 @@ public class ProfileActivity extends BaseActivity {
     private TextView headerEmailView;
     private ShapeableImageView headerPhotoView;
     private final ExecutorService imageExecutor = Executors.newSingleThreadExecutor();
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -164,7 +162,6 @@ public class ProfileActivity extends BaseActivity {
         refreshHeader();
     }
 
-    /** Fungsi untuk refreshHeader. */
     private void refreshHeader() {
         String name = UserPrefs.getName(this);
         String email = UserPrefs.getEmail(this);
@@ -215,7 +212,6 @@ public class ProfileActivity extends BaseActivity {
         }
     }
 
-    /** Ambil atau muat data RemotePhotoInto. */
     private void loadRemotePhotoInto(ShapeableImageView view, String url) {
         if (view == null) return;
         final String u = url == null ? "" : url.trim();
@@ -261,9 +257,7 @@ public class ProfileActivity extends BaseActivity {
         }
     }
 
-    // =========================================================================
     // SEKSYEN: ONDESTROY
-    // =========================================================================
     /** Pembersihan memori, buang listener, dan tutup sambungan. */
     @Override
     protected void onDestroy() {
@@ -406,7 +400,6 @@ public class ProfileActivity extends BaseActivity {
         });
     }
 
-    /** Ambil atau muat data LanguageLabel. */
     private String getLanguageLabel() {
         String tag = UserPrefs.getLanguage(this);
         if (tag == null) tag = "ms";

@@ -22,9 +22,7 @@ import com.google.android.material.appbar.MaterialToolbar;
  * Info app ResQTap, version, dan privacy policy.
  */
 public class AboutResQTapActivity extends BaseActivity {
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {

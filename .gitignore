@@ -19,3 +19,4 @@ __pycache__/
 test_*.*
 verify_*.*
 *adminsdk*.json
+.agents/

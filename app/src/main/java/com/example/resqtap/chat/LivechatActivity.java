@@ -112,9 +112,7 @@ public class LivechatActivity extends BaseActivity {
     private String userEmail = "";
     private String currentTopic = "";
 
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,9 +123,7 @@ public class LivechatActivity extends BaseActivity {
         finish();
     }
 
-    // =========================================================================
     // SEKSYEN: ONDESTROY
-    // =========================================================================
     /** Pembersihan memori, buang listener, dan tutup sambungan. */
     @Override
     protected void onDestroy() {
@@ -247,7 +243,6 @@ public class LivechatActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk startSupportSession. */
     private void startSupportSession() {
         if (chatRef == null) {
             Toast.makeText(this, R.string.support_livechat_login_required, Toast.LENGTH_SHORT).show();
@@ -357,7 +352,6 @@ public class LivechatActivity extends BaseActivity {
         });
     }
 
-    /** Fungsi untuk scheduleAutoReply. */
     private void scheduleAutoReply(String topic) {
         if (chatRef == null) return;
         DatabaseReference autoReplyRef = chatRef.child("messages").push();
@@ -374,7 +368,6 @@ public class LivechatActivity extends BaseActivity {
         }, AUTO_REPLY_DELAY_MS);
     }
 
-    /** Fungsi untuk uploadAttachment. */
     private void uploadAttachment(String messageId, AttachmentInfo attachment, AttachmentUploaded callback) {
         String safeName = sanitizeFileName(attachment.name.isEmpty() ? "attachment" : attachment.name);
         StorageReference ref = FirebaseStorage.getInstance()
@@ -404,7 +397,6 @@ public class LivechatActivity extends BaseActivity {
                 });
     }
 
-    /** Fungsi untuk handleUploadedAttachment. */
     private void handleUploadedAttachment(StorageReference ref, AttachmentInfo attachment, AttachmentUploaded callback) {
         ref.getDownloadUrl()
                 .addOnSuccessListener(downloadUri -> {
@@ -423,7 +415,6 @@ public class LivechatActivity extends BaseActivity {
                 });
     }
 
-    /** Fungsi untuk inlineImageAttachmentMap. */
     private Map<String, Object> inlineImageAttachmentMap(AttachmentInfo attachment) {
         Map<String, Object> data = new HashMap<>();
         String b64 = "";
@@ -446,7 +437,6 @@ public class LivechatActivity extends BaseActivity {
         return data;
     }
 
-    /** Fungsi untuk encodeImageToBase64. */
     private String encodeImageToBase64(Uri localUri, int maxDim, int jpegQuality) {
         try {
             BitmapFactory.Options bounds = new BitmapFactory.Options();
@@ -490,7 +480,6 @@ public class LivechatActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk threadMetaUpdates. */
     private Map<String, Object> threadMetaUpdates(String lastMessage, String topic) {
         Map<String, Object> updates = new HashMap<>();
         updates.put("meta/userUid", uid);
@@ -506,7 +495,6 @@ public class LivechatActivity extends BaseActivity {
         return updates;
     }
 
-    /** Fungsi untuk autoReplyMessage. */
     private Map<String, Object> autoReplyMessage(String topic) {
         Map<String, Object> message = new HashMap<>();
         message.put("text", getString(R.string.support_livechat_auto_reply));
@@ -519,7 +507,6 @@ public class LivechatActivity extends BaseActivity {
         return message;
     }
 
-    /** Fungsi untuk chooseAttachment. */
     private void chooseAttachment() {
         String[] options = new String[]{
                 getString(R.string.support_livechat_attach_document),
@@ -574,7 +561,6 @@ public class LivechatActivity extends BaseActivity {
         popup.showAsDropDown(attachButton, 0, yOffset, Gravity.START);
     }
 
-    /** Fungsi untuk createAttachmentMenuItem. */
     private View createAttachmentMenuItem(String label, int iconRes, int iconColor) {
         LinearLayout row = new LinearLayout(this);
         row.setGravity(Gravity.CENTER_VERTICAL);
@@ -605,7 +591,6 @@ public class LivechatActivity extends BaseActivity {
         return row;
     }
 
-    /** Fungsi untuk handleAttachmentOption. */
     private void handleAttachmentOption(int which) {
         if (which == 0) launchAttachmentPicker(new String[]{
                 "application/pdf",
@@ -623,7 +608,6 @@ public class LivechatActivity extends BaseActivity {
         if (which == 4) launchAttachmentPicker(new String[]{"text/calendar", "application/ics"});
     }
 
-    /** Fungsi untuk launchAttachmentPicker. */
     private void launchAttachmentPicker(String[] mimeTypes) {
         pickAttachment.launch(mimeTypes);
     }
@@ -645,7 +629,6 @@ public class LivechatActivity extends BaseActivity {
                 || name.endsWith(".gif");
     }
 
-    /** Fungsi untuk setSelectedAttachment. */
     private void setSelectedAttachment(Uri uri) {
         selectedAttachmentUri = uri;
         selectedAttachmentBytes = null;
@@ -656,7 +639,6 @@ public class LivechatActivity extends BaseActivity {
         updateAttachmentLabels();
     }
 
-    /** Fungsi untuk setSelectedCameraAttachment. */
     private void setSelectedCameraAttachment(Bitmap bitmap) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 88, out);
@@ -688,7 +670,6 @@ public class LivechatActivity extends BaseActivity {
         composerAttachmentLabel.setVisibility(View.GONE);
     }
 
-    /** Fungsi untuk renderMessages. */
     private void renderMessages(DataSnapshot snapshot) {
         messagesContainer.removeAllViews();
         if (!snapshot.hasChildren()) {
@@ -719,7 +700,6 @@ public class LivechatActivity extends BaseActivity {
         messagesScroll.post(() -> messagesScroll.fullScroll(View.FOCUS_DOWN));
     }
 
-    /** Fungsi untuk setAdminTypingActive. */
     private void setAdminTypingActive(boolean active) {
         if (adminTypingActive == active) return;
         adminTypingActive = active;
@@ -785,11 +765,9 @@ public class LivechatActivity extends BaseActivity {
         typingDotsView = null;
     }
 
-    /** Fungsi untuk startTypingAnimation. */
     private void startTypingAnimation() {
         typingDotsStep = 0;
         typingDotsRunnable = new Runnable() {
-            /** Fungsi untuk run. */
     @Override
             public void run() {
                 if (typingDotsView == null) return;
@@ -804,7 +782,6 @@ public class LivechatActivity extends BaseActivity {
         livechatHandler.post(typingDotsRunnable);
     }
 
-    /** Fungsi untuk renderEmptyMessage. */
     private void renderEmptyMessage() {
         messagesContainer.removeAllViews();
         TextView empty = new TextView(this);
@@ -912,7 +889,6 @@ public class LivechatActivity extends BaseActivity {
         ));
     }
 
-    /** Fungsi untuk openAttachment. */
     private void openAttachment(String url, String mimeType) {
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
@@ -924,7 +900,6 @@ public class LivechatActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk bitmapFromDataUrl. */
     private Bitmap bitmapFromDataUrl(String dataUrl) {
         try {
             int comma = dataUrl.indexOf(',');
@@ -936,7 +911,6 @@ public class LivechatActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk setComposerEnabled. */
     private void setComposerEnabled(boolean enabled) {
         inputView.setEnabled(enabled);
         sendButton.setEnabled(enabled);
@@ -944,7 +918,6 @@ public class LivechatActivity extends BaseActivity {
         attachButton.setEnabled(enabled);
     }
 
-    /** Fungsi untuk setSending. */
     private void setSending(boolean sending) {
         setComposerEnabled(!sending);
         if (sending && chatVisible) statusView.setText(R.string.support_livechat_attachment_uploading);
@@ -959,7 +932,6 @@ public class LivechatActivity extends BaseActivity {
                 : getString(R.string.support_livechat_title) + ": " + topic);
     }
 
-    /** Fungsi untuk queryDisplayName. */
     private String queryDisplayName(Uri uri) {
         try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
             if (cursor != null && cursor.moveToFirst()) {
@@ -971,7 +943,6 @@ public class LivechatActivity extends BaseActivity {
         return safe(uri.getLastPathSegment());
     }
 
-    /** Fungsi untuk querySize. */
     private long querySize(Uri uri) {
         try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
             if (cursor != null && cursor.moveToFirst()) {
@@ -983,19 +954,16 @@ public class LivechatActivity extends BaseActivity {
         return 0L;
     }
 
-    /** Fungsi untuk sanitizeFileName. */
     private String sanitizeFileName(String name) {
         String clean = safe(name).replaceAll("[\\\\/:*?\"<>|#\\[\\]$]", "_");
         if (clean.isEmpty()) clean = "attachment";
         return String.format(Locale.US, "%d_%s", System.currentTimeMillis(), clean);
     }
 
-    /** Fungsi untuk safe. */
     private String safe(Object value) {
         return String.valueOf(value == null ? "" : value).trim();
     }
 
-    /** Fungsi untuk asLong. */
     private long asLong(Object value) {
         if (value instanceof Number) return ((Number) value).longValue();
         try {
@@ -1005,13 +973,11 @@ public class LivechatActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk formatTime. */
     private String formatTime(long ms) {
         if (ms <= 0) return "";
         return DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date(ms));
     }
 
-    /** Fungsi untuk dp. */
     private int dp(int value) {
         return Math.round(value * getResources().getDisplayMetrics().density);
     }

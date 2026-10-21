@@ -349,9 +349,7 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         }
     }
 
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -361,18 +359,28 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         setContentView(R.layout.activity_nearby_hospital);
 
         View main = findViewById(R.id.main);
+        View overlayUi = findViewById(R.id.overlay_ui);
         bottomSheetView = findViewById(R.id.bottom_sheet);
 
-        ViewCompat.setOnApplyWindowInsetsListener(main, (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
-            return insets;
-        });
+        if (overlayUi != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(overlayUi, (v, insets) -> {
+                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
+                return insets;
+            });
+        }
         if (bottomSheetView != null) {
             ViewCompat.setOnApplyWindowInsetsListener(bottomSheetView, (v, insets) -> {
                 Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), systemBars.bottom);
+                if (recyclerView != null) {
+                    recyclerView.setPadding(
+                            recyclerView.getPaddingLeft(),
+                            recyclerView.getPaddingTop(),
+                            recyclerView.getPaddingRight(),
+                            dp(NearbyHospitalActivity.this, 16) + systemBars.bottom
+                    );
+                }
+                applyMapControlsBottomOffset();
                 return insets;
             });
         }
@@ -437,14 +445,39 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
                 } else {
                     currentCategory = "all";
                 }
-                pendingSearch = true;
-                fetchNearbyHospitals();
+                if (!hospitals.isEmpty()) {
+                    pendingSearch = true;
+                    fetchNearbyHospitals();
+                }
             });
         }
 
         if (bottomSheetView != null) {
             sheetBehavior = BottomSheetBehavior.from(bottomSheetView);
+            sheetBehavior.setHideable(false);
+            sheetBehavior.setFitToContents(true);
+            sheetBehavior.setSkipCollapsed(false);
+            sheetBehavior.setPeekHeight(dp(this, 138));
             sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            sheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+                @Override
+                public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                    if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
+                        int targetPeek = dp(NearbyHospitalActivity.this, 138);
+                        if (sheetBehavior != null && sheetBehavior.getPeekHeight() != targetPeek) {
+                            sheetBehavior.setPeekHeight(targetPeek);
+                        }
+                    } else if (newState == BottomSheetBehavior.STATE_HIDDEN && (cardNavigationInfo == null || cardNavigationInfo.getVisibility() != View.VISIBLE)) {
+                        sheetBehavior.setHideable(false);
+                        sheetBehavior.setPeekHeight(dp(NearbyHospitalActivity.this, 138));
+                        sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                    }
+                }
+
+                @Override
+                public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                }
+            });
         }
         applyMapControlsBottomOffset();
 
@@ -524,9 +557,7 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         }
     }
 
-    // =========================================================================
     // SEKSYEN: ONDESTROY
-    // =========================================================================
     /** Pembersihan memori, buang listener, dan tutup sambungan. */
     @Override
     protected void onDestroy() {
@@ -534,7 +565,6 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         executor.shutdownNow();
     }
 
-    /** Fungsi untuk onMapReady. */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
@@ -545,7 +575,7 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         map.getUiSettings().setMapToolbarEnabled(false);
         map.getUiSettings().setAllGesturesEnabled(true);
 
-        LatLng fallback = new LatLng(1.3521, 103.8198);
+        LatLng fallback = new LatLng(3.1390, 101.6869); // Kuala Lumpur, Malaysia
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(fallback, 12f));
 
         map.setOnMarkerClickListener(marker -> {
@@ -580,7 +610,6 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         requestLocationIfNeeded(false);
     }
 
-    /** Fungsi untuk applySavedMapType. */
     private void applySavedMapType() {
         if (map == null) return;
         try {
@@ -592,7 +621,6 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         }
     }
 
-    /** Fungsi untuk applyResQTapMapStyle. */
     private void applyResQTapMapStyle(boolean enabled) {
         if (map == null) return;
         try {
@@ -601,7 +629,6 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         }
     }
 
-    /** Fungsi untuk applyMapControlsBottomOffset. */
     private void applyMapControlsBottomOffset() {
         if (mapControls == null) return;
         ViewCompat.setOnApplyWindowInsetsListener(mapControls, (v, insets) -> {
@@ -611,7 +638,7 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
                 if (sheetBehavior != null) peek = sheetBehavior.getPeekHeight();
             } catch (Exception ignored) {
             }
-            if (peek <= 0) peek = dp(this, 200);
+            if (peek <= 0) peek = dp(this, 138);
 
             ViewGroup.LayoutParams lp = v.getLayoutParams();
             if (lp instanceof androidx.constraintlayout.widget.ConstraintLayout.LayoutParams) {
@@ -625,18 +652,15 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         ViewCompat.requestApplyInsets(mapControls);
     }
 
-    /** Fungsi untuk dp. */
     private static int dp(Context ctx, int dp) {
         float density = ctx.getResources().getDisplayMetrics().density;
         return Math.round(dp * density);
     }
 
-    /** Fungsi untuk toggleMapType. */
     private void toggleMapType() {
         MapTypeBottomSheet.show(this, map);
     }
 
-    /** Fungsi untuk requestLocationIfNeeded. */
     private void requestLocationIfNeeded(boolean userInitiated) {
         if (map == null) return;
         if (!GpsUtils.isGpsEnabled(this)) {
@@ -653,7 +677,6 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         }
     }
 
-    /** Fungsi untuk onLocationPermissionResult. */
     private void onLocationPermissionResult(Map<String, Boolean> result) {
         Boolean fine = result.get(Manifest.permission.ACCESS_FINE_LOCATION);
         Boolean coarse = result.get(Manifest.permission.ACCESS_COARSE_LOCATION);
@@ -666,7 +689,6 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         if (pendingSearch) fetchNearbyHospitals();
     }
 
-    /** Fungsi untuk enableMyLocationAndCenter. */
     private void enableMyLocationAndCenter(boolean userInitiated) {
         if (map == null) return;
         if (!PermissionUtils.hasAnyLocation(this)) return;
@@ -698,7 +720,6 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         }
     }
 
-    /** Ambil atau muat data NearbyHospitals. */
     private void fetchNearbyHospitals() {
         if (!PermissionUtils.hasAnyLocation(this)) {
             Toast.makeText(this, R.string.nearby_hospital_need_location, Toast.LENGTH_SHORT).show();
@@ -752,7 +773,6 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         }
     }
 
-    /** Fungsi untuk doNearbySearch mengikut kategori kecemasan (Hospital, Polis, Bomba, Semua). */
     private void doNearbySearch(LatLng center) {
         String apiKey = getString(R.string.google_maps_key);
         if (apiKey == null || apiKey.contains("YOUR_GOOGLE_MAPS_API_KEY")) {
@@ -763,41 +783,7 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         }
 
         final String category = currentCategory == null ? "all" : currentCategory;
-
-        // 1. Semak data pangkalan data Supabase terlebih dahulu
-        com.example.resqtap.supabase.SupabaseManager.getInstance().getHospitals(category, new com.example.resqtap.supabase.SupabaseManager.Callback<org.json.JSONArray>() {
-            @Override
-            public void onSuccess(org.json.JSONArray result) {
-                ArrayList<HospitalItem> sList = new ArrayList<>();
-                if (result != null && result.length() > 0) {
-                    for (int i = 0; i < result.length(); i++) {
-                        try {
-                            org.json.JSONObject obj = result.getJSONObject(i);
-                            String name = obj.optString("name", "Hospital");
-                            String address = obj.optString("address", "");
-                            double lat = obj.optDouble("latitude", 0.0);
-                            double lng = obj.optDouble("longitude", 0.0);
-                            String cat = obj.optString("category", "hospital");
-                            if (lat != 0.0 && lng != 0.0) {
-                                HospitalItem item = new HospitalItem(name, address, lat, lng, cat);
-                                item.distanceMeters = distanceMeters(center, lat, lng);
-                                // Hanya masukkan rekod Supabase jika ia berada dalam jarak liputan munasabah (<= 10km)
-                                if (item.distanceMeters >= 0 && item.distanceMeters <= 10000) {
-                                    sList.add(item);
-                                }
-                            }
-                        } catch (Exception ignored) {}
-                    }
-                }
-                // Sentiasa panggil Google Places API untuk melengkapkan carian di kawasan pengguna (cth: Pulau Pinang, Johor, dsb)
-                executeGooglePlacesSearch(center, apiKey, category, sList);
-            }
-
-            @Override
-            public void onError(Exception error) {
-                executeGooglePlacesSearch(center, apiKey, category, new ArrayList<>());
-            }
-        });
+        executeGooglePlacesSearch(center, apiKey, category, new ArrayList<>());
     }
 
     private void executeGooglePlacesSearch(LatLng center, String apiKey, String category, ArrayList<HospitalItem> initialList) {
@@ -976,7 +962,6 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         pendingSearch = false;
     }
 
-    /** Fungsi untuk applyHospitals dan paparkan pin berwarna mengikut kategori kecemasan. */
     private void applyHospitals(ArrayList<HospitalItem> found) {
         hospitals.clear();
         displayItems.clear();
@@ -1112,6 +1097,7 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
             }
         }
         if (sheetBehavior != null) {
+            sheetBehavior.setPeekHeight(dp(this, 138));
             sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         }
         pendingSearch = false;
@@ -1470,6 +1456,8 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         if (bottomSheetView != null) {
             bottomSheetView.setVisibility(View.VISIBLE);
             if (sheetBehavior != null) {
+                sheetBehavior.setHideable(false);
+                sheetBehavior.setPeekHeight(dp(this, 138));
                 sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
             }
         }
@@ -1501,7 +1489,7 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
                 try {
                     if (sheetBehavior != null) peek = sheetBehavior.getPeekHeight();
                 } catch (Exception ignored) {}
-                if (peek <= 0) peek = dp(this, 200);
+                if (peek <= 0) peek = dp(this, 138);
                 clp.bottomMargin = dp(this, 16) + peek;
                 mapControls.setLayoutParams(clp);
             }
@@ -1598,7 +1586,6 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         hospitalMarkers.clear();
     }
 
-    /** Fungsi untuk upsertMyLocationMarker. */
     private void upsertMyLocationMarker(LatLng pos) {
         if (map == null || pos == null) return;
         Bitmap icon = buildSelfMarkerBitmap();
@@ -1615,7 +1602,6 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         }
     }
 
-    /** Fungsi untuk maybePromptEnableGps. */
     private void maybePromptEnableGps() {
         if (gpsDialogShown) return;
         if (GpsUtils.isGpsEnabled(this)) return;
@@ -1633,7 +1619,6 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
                 .show();
     }
 
-    /** Fungsi untuk distanceMeters. */
     private static double distanceMeters(LatLng from, double toLat, double toLng) {
         if (from == null) return -1d;
         try {
@@ -1645,21 +1630,18 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         }
     }
 
-    /** Fungsi untuk formatDistance. */
     private String formatDistance(double meters) {
         if (meters < 0) return "";
         if (meters < 1000) return String.format(Locale.getDefault(), "%.0f m", meters);
         return String.format(Locale.getDefault(), "%.1f km", (meters / 1000d));
     }
 
-    /** Fungsi untuk buildSelfMarkerBitmap. */
     private Bitmap buildSelfMarkerBitmap() {
         Bitmap b = decodeBase64Avatar(myPhotoB64);
         if (b != null) return buildProfileMarkerBitmapFromPhoto(this, b);
         return buildProfileMarkerBitmap(this, myPhotoUri);
     }
 
-    /** Fungsi untuk decodeBase64Avatar. */
     private static Bitmap decodeBase64Avatar(String b64) {
         String s = String.valueOf(b64 == null ? "" : b64).trim();
         if (s.isEmpty()) return null;
@@ -1671,7 +1653,6 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         }
     }
 
-    /** Fungsi untuk buildProfileMarkerBitmap. */
     private static Bitmap buildProfileMarkerBitmap(Context ctx, String photoUri) {
         final int sizePx = dp(ctx, 44);
         final int borderPx = dp(ctx, 3);
@@ -1685,7 +1666,6 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         return circularWithBorderAndShadow(scaled, borderPx, shadowPx);
     }
 
-    /** Fungsi untuk buildProfileMarkerBitmapFromPhoto. */
     private static Bitmap buildProfileMarkerBitmapFromPhoto(Context ctx, Bitmap src) {
         final int sizePx = dp(ctx, 44);
         final int borderPx = dp(ctx, 3);
@@ -1695,7 +1675,6 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         return circularWithBorderAndShadow(scaled, borderPx, shadowPx);
     }
 
-    /** Ambil atau muat data ProfileBitmap. */
     private static Bitmap loadProfileBitmap(Context ctx, String photoUri) {
         String u = String.valueOf(photoUri == null ? "" : photoUri).trim();
         if (u.isEmpty()) return null;
@@ -1710,7 +1689,6 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         }
     }
 
-    /** Fungsi untuk bitmapFromDrawable. */
     private static Bitmap bitmapFromDrawable(Context ctx, int resId, int w, int h) {
         try {
             android.graphics.drawable.Drawable d = ContextCompat.getDrawable(ctx, resId);
@@ -1729,7 +1707,6 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         }
     }
 
-    /** Fungsi untuk defaultAvatarMarkerBitmap. */
     private static Bitmap defaultAvatarMarkerBitmap(Context ctx, int sizePx, int borderPx, int shadowPx) {
         int outSize = sizePx + (shadowPx * 2);
         Bitmap out = Bitmap.createBitmap(outSize, outSize, Bitmap.Config.ARGB_8888);
@@ -1766,7 +1743,6 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         return out;
     }
 
-    /** Fungsi untuk circularWithBorderAndShadow. */
     private static Bitmap circularWithBorderAndShadow(Bitmap src, int borderPx, int shadowPx) {
         int size = Math.min(src.getWidth(), src.getHeight());
         int outSize = size + (shadowPx * 2);

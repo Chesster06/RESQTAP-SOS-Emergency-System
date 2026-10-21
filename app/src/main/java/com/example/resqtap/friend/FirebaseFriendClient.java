@@ -25,7 +25,6 @@ import java.util.concurrent.TimeUnit;
 public class FirebaseFriendClient {
     private static final String TAG = "FirebaseFriendClient";
 
-    /** Fungsi untuk db. */
     private static DatabaseReference db() {
         return FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL).getReference();
     }
@@ -39,7 +38,6 @@ public class FirebaseFriendClient {
         public String photoB64 = "";
         public long addedAt = 0L;
 
-        /** Fungsi untuk from. */
         public static FriendInfo from(DataSnapshot snap) {
             if (snap == null || !snap.exists()) return null;
             FriendInfo info = new FriendInfo();
@@ -67,7 +65,6 @@ public class FirebaseFriendClient {
         public String status = "pending";
         public long createdAt = 0L;
 
-        /** Fungsi untuk from. */
         public static FriendRequest from(DataSnapshot snap) {
             if (snap == null || !snap.exists()) return null;
             FriendRequest req = new FriendRequest();
@@ -87,12 +84,10 @@ public class FirebaseFriendClient {
         }
     }
 
-    /** Fungsi untuk await. */
     private static <T> T await(Task<T> task) throws Exception {
         return Tasks.await(task, 15, TimeUnit.SECONDS);
     }
 
-    /** Fungsi untuk format4DigitId. */
     public static String format4DigitId(String rawUid, String rawPubId) {
         if (rawPubId != null && !rawPubId.trim().isEmpty()) {
             String clean = rawPubId.trim().replaceAll("\\D", "");
@@ -112,7 +107,6 @@ public class FirebaseFriendClient {
         return "1000";
     }
 
-    /** Fungsi untuk findUserByCode. */
     public static FriendInfo findUserByCode(String input) throws Exception {
         if (input == null) return null;
         String raw = input.trim();
@@ -187,7 +181,6 @@ public class FirebaseFriendClient {
         return null;
     }
 
-    /** Fungsi untuk buildFriendInfoFromUserSnap. */
     private static FriendInfo buildFriendInfoFromUserSnap(DataSnapshot snap) {
         if (snap == null || !snap.exists()) return null;
         FriendInfo info = new FriendInfo();
@@ -274,7 +267,6 @@ public class FirebaseFriendClient {
         await(db().updateChildren(updates));
     }
 
-    /** Fungsi untuk acceptFriendRequest. */
     public static void acceptFriendRequest(Context context, String currentUid, String currentName, String currentPublicId, FriendRequest request) throws Exception {
         if (request == null) throw new RuntimeException("invalid_request");
         String cUid = String.valueOf(currentUid == null ? "" : currentUid).trim();
@@ -366,7 +358,6 @@ public class FirebaseFriendClient {
         } catch (Exception ignored) {}
     }
 
-    /** Fungsi untuk rejectFriendRequest. */
     public static void rejectFriendRequest(String currentUid, String fromUid) throws Exception {
         String cUid = String.valueOf(currentUid == null ? "" : currentUid).trim();
         String fUid = String.valueOf(fromUid == null ? "" : fromUid).trim();

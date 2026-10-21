@@ -31,7 +31,6 @@ public class RoomListAdapter extends RecyclerView.Adapter<RoomListAdapter.VH> {
         this.listener = listener;
     }
 
-    /** Fungsi untuk submit. */
     public void submit(ArrayList<FirebaseRoomClient.RoomInfo> list) {
         items.clear();
         if (list != null) items.addAll(list);
@@ -79,7 +78,6 @@ public class RoomListAdapter extends RecyclerView.Adapter<RoomListAdapter.VH> {
         });
     }
 
-    /** Ambil atau muat data ItemCount. */
     @Override
     public int getItemCount() {
         return items.size();

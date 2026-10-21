@@ -28,14 +28,12 @@ public class FriendSelectAdapter extends RecyclerView.Adapter<FriendSelectAdapte
     private final List<FriendInfo> friends = new ArrayList<>();
     private final Set<String> selectedUids = new HashSet<>();
 
-    /** Fungsi untuk setFriends. */
     public void setFriends(List<FriendInfo> list) {
         friends.clear();
         if (list != null) friends.addAll(list);
         notifyDataSetChanged();
     }
 
-    /** Ambil atau muat data SelectedFriends. */
     public List<FriendInfo> getSelectedFriends() {
         List<FriendInfo> out = new ArrayList<>();
         for (FriendInfo f : friends) {

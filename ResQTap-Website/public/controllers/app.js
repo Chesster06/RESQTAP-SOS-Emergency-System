@@ -516,8 +516,7 @@ function initKatupChatbot() {
       { label: "Live GPS tracking?", prompt: "How does Live Location tracking work in ResQTap?" },
       { label: "What are Rooms?", prompt: "Tell me about Rooms and emergency coordination." },
       { label: "Download APK", prompt: "How do I download the ResQTap APK?" },
-      { label: "Who built ResQTap?", prompt: "Who is the creator and developer of ResQTap?" },
-      { label: "Nearby Hospitals", prompt: "How to find nearby hospitals and clinics?" }
+      { label: "Who built ResQTap?", prompt: "Who is the creator and developer of ResQTap?" }
     ]
   };
 
@@ -859,7 +858,6 @@ const state = {
   aiChats: {},
   highlights: {},
   medicalCards: {},
-  hospitals: [],
   servedCases: new Set(),
   selectedSosSessionId: "",
   soslivechatSending: false,
@@ -1267,13 +1265,7 @@ async function syncFromSupabase() {
       state.medicalCards = mcMap;
     }
 
-    // 3. Hospitals & Emergency Facilities
-    const { data: hospList } = await supabase.from("hospitals").select("*");
-    if (Array.isArray(hospList)) {
-      state.hospitals = hospList;
-    }
-
-    // 4. Highlights
+    // 3. Highlights
     const { data: hl } = await supabase.from("highlights").select("*").order("display_order", { ascending: true });
     if (Array.isArray(hl) && hl.length > 0) {
       const hlMap = {};
@@ -3198,7 +3190,6 @@ function render() {
   if (els.aiChatCount) renderAiChat();
   renderAdmins();
   renderHighlights();
-  renderHospitals();
   renderDetail();
 
   // If case update modal is open and the victim cancelled the alert, auto-close modal
@@ -3233,7 +3224,6 @@ function renderNav() {
     notices: "Notifications",
     livechat: "Livechat",
     highlights: "Highlights (Mobile Carousel)",
-    hospitals: "Nearby Emergency Hospitals (Supabase)",
     logs: "Logs",
     admins: "Admins"
   };
@@ -4312,46 +4302,7 @@ function renderHighlights() {
   if (window.lucide) window.lucide.createIcons();
 }
 
-function renderHospitals() {
-  const tbody = document.getElementById("hospitalsTableBody");
-  const countEl = document.getElementById("hospitalsCount");
-  if (!tbody) return;
-  const list = Array.isArray(state.hospitals) ? state.hospitals : [];
-  if (countEl) countEl.textContent = `${list.length} Facilities (Supabase)`;
-  if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="6" class="table-empty"><div class="empty-state">No hospital facilities loaded from Supabase.</div></td></tr>`;
-    return;
-  }
-  tbody.innerHTML = list.map((h) => {
-    const cat = text(h.category || "hospital").toLowerCase();
-    const catBadge = cat === "police" 
-      ? '<span class="status-pill info">Police</span>' 
-      : cat === "fire" 
-      ? '<span class="status-pill warning">Fire Dept</span>' 
-      : '<span class="status-pill active">Hospital</span>';
-    const coords = (Number.isFinite(h.latitude) && Number.isFinite(h.longitude)) ? `${h.latitude.toFixed(4)}, ${h.longitude.toFixed(4)}` : "-";
-    const mapUrl = (Number.isFinite(h.latitude) && Number.isFinite(h.longitude)) ? `https://www.google.com/maps?q=${h.latitude},${h.longitude}` : "#";
-    return `
-      <tr>
-        <td>
-          <div class="cell-primary">
-            <strong>${escapeHtml(h.name || "Facility")}</strong>
-          </div>
-        </td>
-        <td>${catBadge}</td>
-        <td><span class="muted" style="font-size: 0.82rem;">${escapeHtml(h.address || "-")}</span></td>
-        <td>${h.phone ? `<a href="tel:${escapeHtml(h.phone)}" style="color: #0284C7; font-weight: 500;">${escapeHtml(h.phone)}</a>` : "-"}</td>
-        <td><code>${coords}</code></td>
-        <td>
-          <a class="small-button" href="${mapUrl}" target="_blank" rel="noreferrer">
-            <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i><span>Navigate</span>
-          </a>
-        </td>
-      </tr>
-    `;
-  }).join("");
-  if (window.lucide) window.lucide.createIcons();
-}
+
 
 function detailPanelMaxWidth() {
   const shellWidth = els.appShell.getBoundingClientRect().width || window.innerWidth;

@@ -60,9 +60,7 @@ public class NotificationsActivity extends BaseActivity {
     private final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, Locale.getDefault());
     private boolean showingDetail = false;
 
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +102,6 @@ public class NotificationsActivity extends BaseActivity {
         UserPrefs.setUnreadNotifications(this, 0);
     }
 
-    /** Fungsi untuk onBackPressed. */
     @Override
     public void onBackPressed() {
         if (showingDetail) {
@@ -114,9 +111,7 @@ public class NotificationsActivity extends BaseActivity {
         super.onBackPressed();
     }
 
-    // =========================================================================
     // SEKSYEN: ONDESTROY
-    // =========================================================================
     /** Pembersihan memori, buang listener, dan tutup sambungan. */
     @Override
     protected void onDestroy() {
@@ -132,7 +127,6 @@ public class NotificationsActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk listenForNotifications. */
     private void listenForNotifications() {
         com.google.firebase.auth.FirebaseUser currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
         String uid = currentUser != null ? currentUser.getUid() : "";
@@ -182,7 +176,6 @@ public class NotificationsActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk combineAndRender. */
     private void combineAndRender() {
         Map<String, Notice> byId = new LinkedHashMap<>();
 
@@ -209,7 +202,6 @@ public class NotificationsActivity extends BaseActivity {
         render(items);
     }
 
-    /** Fungsi untuk render. */
     private void render(List<Notice> items) {
         if (notificationsList == null || notificationsScroll == null || empty == null) return;
         notificationsList.removeAllViews();
@@ -396,7 +388,6 @@ public class NotificationsActivity extends BaseActivity {
         if (listContent != null) listContent.setVisibility(View.VISIBLE);
     }
 
-    /** Fungsi untuk applySelectableForeground. */
     private void applySelectableForeground(MaterialCardView card) {
         try {
             TypedValue outValue = new TypedValue();
@@ -406,7 +397,6 @@ public class NotificationsActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk renderError. */
     private void renderError(String message) {
         if (notificationsScroll != null) notificationsScroll.setVisibility(View.GONE);
         if (empty != null) {
@@ -417,7 +407,6 @@ public class NotificationsActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk confirmClearAllNotifications. */
     private void confirmClearAllNotifications() {
         new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.notification_clear_all_confirm_title)
@@ -451,7 +440,6 @@ public class NotificationsActivity extends BaseActivity {
         android.widget.Toast.makeText(this, R.string.notification_cleared_toast, android.widget.Toast.LENGTH_SHORT).show();
     }
 
-    /** Fungsi untuk dp. */
     private int dp(int value) {
         return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
     }
@@ -491,12 +479,10 @@ public class NotificationsActivity extends BaseActivity {
             );
         }
 
-        /** Fungsi untuk str. */
         private static String str(Object value) {
             return value == null ? "" : String.valueOf(value).trim();
         }
 
-        /** Fungsi untuk num. */
         private static long num(Object value) {
             if (value instanceof Number) return ((Number) value).longValue();
             try {

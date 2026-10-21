@@ -13,11 +13,9 @@ let debounceTimer = null;
 let isDeploying = false;
 let pendingDeploy = false;
 
-console.log("========================================================");
-console.log(" ResQTap Auto-Deploy Watcher Aktif!");
-console.log(` Memantau folder: ${WATCH_DIR}`);
-console.log(" Setiap perubahan fail akan auto-deploy ke Firebase Hosting.");
-console.log("========================================================");
+console.log("ResQTap Auto-Deploy Watcher Aktif!");
+console.log(`Memantau folder: ${WATCH_DIR}`);
+console.log("Setiap perubahan fail akan auto-deploy ke Firebase Hosting.");
 
 function triggerDeploy() {
   if (isDeploying) {

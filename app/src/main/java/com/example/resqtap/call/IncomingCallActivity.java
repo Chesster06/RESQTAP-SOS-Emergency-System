@@ -43,7 +43,6 @@ public class IncomingCallActivity extends BaseActivity {
     private com.google.firebase.database.ValueEventListener callStatusListener;
 
     private final BroadcastReceiver cancelReceiver = new BroadcastReceiver() {
-        /** Fungsi untuk onReceive. */
     @Override
         public void onReceive(Context context, Intent intent) {
             if ("com.example.resqtap.CALL_CANCELLED".equals(intent.getAction())) {
@@ -55,9 +54,7 @@ public class IncomingCallActivity extends BaseActivity {
         }
     };
 
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,7 +126,6 @@ public class IncomingCallActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk tolak panggilan dan buka perbualan teks senyap (Discreet / Introvert response) */
     private void declineWithSilentChat() {
         if (isHandled) return;
         isHandled = true;
@@ -216,7 +212,6 @@ public class IncomingCallActivity extends BaseActivity {
         finishAndRemoveTask();
     }
 
-    /** Fungsi untuk acceptCall. */
     private void acceptCall() {
         if (isHandled) return;
         isHandled = true;
@@ -236,7 +231,6 @@ public class IncomingCallActivity extends BaseActivity {
         finish();
     }
 
-    /** Fungsi untuk rejectCall. */
     private void rejectCall() {
         if (isHandled) return;
         isHandled = true;
@@ -249,7 +243,6 @@ public class IncomingCallActivity extends BaseActivity {
         finishAndRemoveTask();
     }
 
-    /** Fungsi untuk startRinging. */
     private void startRinging() {
         try {
             Uri uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
@@ -279,7 +272,6 @@ public class IncomingCallActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk stopRinging. */
     private void stopRinging() {
         try {
             if (ringtone != null && ringtone.isPlaying()) {
@@ -291,9 +283,7 @@ public class IncomingCallActivity extends BaseActivity {
         } catch (Exception ignored) {}
     }
 
-    // =========================================================================
     // SEKSYEN: ONDESTROY
-    // =========================================================================
     /** Pembersihan memori, buang listener, dan tutup sambungan. */
     @Override
     protected void onDestroy() {

@@ -43,9 +43,7 @@ public class RoomHubActivity extends BaseActivity {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private String uid;
 
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -197,7 +195,6 @@ public class RoomHubActivity extends BaseActivity {
         inputRoomCode.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
-            /** Fungsi untuk afterTextChanged. */
     @Override
             public void afterTextChanged(Editable s) {
                 if (s == null) return;
@@ -212,7 +209,6 @@ public class RoomHubActivity extends BaseActivity {
         });
     }
 
-    /** Fungsi untuk sanitizeCode. */
     private String sanitizeCode(String input) {
         String code = input.trim().toUpperCase();
 
@@ -224,7 +220,6 @@ public class RoomHubActivity extends BaseActivity {
         return sb.toString();
     }
 
-    /** Fungsi untuk toUserMessage. */
     private String toUserMessage(String action, Exception e) {
         if (e == null) return action + " failed.";
         Throwable root = e;

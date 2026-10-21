@@ -115,9 +115,7 @@ public class MainActivity extends BaseActivity {
     private double lastKnownLat = 0;
     private double lastKnownLng = 0;
 
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -508,9 +506,7 @@ public class MainActivity extends BaseActivity {
 
 
 
-    // =========================================================================
     // 1. ENTRANCE ANIMATIONS
-    // =========================================================================
     /** Mainkan animasi slaid dan pudar semasa kali pertama membuka dashboard. */
     private void playEntranceAnimations() {
         if (entranceAnimationPlayed) return;
@@ -873,7 +869,6 @@ public class MainActivity extends BaseActivity {
         sosSheet.show();
     }
 
-    /** Fungsi untuk ensureNotificationsPermission. */
     private void ensureNotificationsPermission() {
         if (android.os.Build.VERSION.SDK_INT < 33) return;
         try {
@@ -884,7 +879,6 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk startAdminNotificationListener. */
     private void startAdminNotificationListener() {
         if (adminNotificationListener != null) return;
         adminNotificationRef = FirebaseDatabase
@@ -947,7 +941,6 @@ public class MainActivity extends BaseActivity {
         adminNotificationRef.addValueEventListener(adminNotificationListener);
     }
 
-    /** Fungsi untuk stopAdminNotificationListener. */
     private void stopAdminNotificationListener() {
         if (adminNotificationRef != null && adminNotificationListener != null) {
             adminNotificationRef.removeEventListener(adminNotificationListener);
@@ -956,7 +949,6 @@ public class MainActivity extends BaseActivity {
         adminNotificationListener = null;
     }
 
-    /** Fungsi untuk value. */
     private static String value(DataSnapshot snapshot) {
         Object raw = snapshot == null ? null : snapshot.getValue();
         return String.valueOf(raw == null ? "" : raw).trim();
@@ -973,13 +965,11 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk postAdminNotification. */
     private void postAdminNotification(String id, String title, String message) {
         if (id == null || id.trim().isEmpty() || message == null || message.trim().isEmpty()) return;
         NotificationHelper.showLocalNotification(this, title, message);
     }
 
-    /** Fungsi untuk refreshInboxBadge. */
     private void refreshInboxBadge() {
         if (inboxUnreadDot != null) {
             boolean hasUnread = UserPrefs.getUnreadNotifications(this) > 0;
@@ -1033,7 +1023,6 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk refreshProfileUi. */
     private void refreshProfileUi() {
         String name = UserPrefs.getName(this);
         String photoUri = UserPrefs.getPhotoUri(this);
@@ -1225,9 +1214,7 @@ public class MainActivity extends BaseActivity {
         stopSosRingPulse();
     }
 
-    // =========================================================================
     // SEKSYEN: ONDESTROY
-    // =========================================================================
     /** Pembersihan memori, buang listener, dan tutup sambungan. */
     @Override
     protected void onDestroy() {
@@ -1236,7 +1223,6 @@ public class MainActivity extends BaseActivity {
         super.onDestroy();
     }
 
-    /** Fungsi untuk ensureActiveRoomTracking. */
     private void ensureActiveRoomTracking() {
         try {
             activeRoomCode = String.valueOf(UserPrefs.getActiveRoomCode(this) == null ? "" : UserPrefs.getActiveRoomCode(this)).trim();
@@ -1264,7 +1250,6 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk restoreActiveRoomIfMissing. */
     private void restoreActiveRoomIfMissing(String uid) {
         if (restoringActiveRoom) return;
         restoringActiveRoom = true;
@@ -1280,7 +1265,6 @@ public class MainActivity extends BaseActivity {
         });
     }
 
-    /** Fungsi untuk startSosPulse. */
     private void startSosPulse(MaterialButton btn) {
         stopSosPulse(btn);
         PropertyValuesHolder sx = PropertyValuesHolder.ofFloat("scaleX", 1f, 1.08f);
@@ -1292,7 +1276,6 @@ public class MainActivity extends BaseActivity {
         sosPulseAnimator.start();
     }
 
-    /** Fungsi untuk stopSosPulse. */
     private void stopSosPulse(MaterialButton btn) {
         if (sosPulseAnimator != null) {
             sosPulseAnimator.cancel();
@@ -1302,7 +1285,6 @@ public class MainActivity extends BaseActivity {
         btn.setScaleY(1f);
     }
 
-    /** Fungsi untuk startSosRingPulse. */
     private void startSosRingPulse() {
         android.view.View ringOuter = findViewById(R.id.sos_ring_outer);
         android.view.View ringMid = findViewById(R.id.sos_ring_mid);
@@ -1368,7 +1350,6 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk stopSosRingPulse. */
     private void stopSosRingPulse() {
         if (sosRingOuterAnimator != null) {
             sosRingOuterAnimator.cancel();

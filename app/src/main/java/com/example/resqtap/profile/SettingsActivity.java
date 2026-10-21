@@ -28,9 +28,7 @@ import com.google.android.material.switchmaterial.SwitchMaterial;
  * Tetapan app: theme gelap/cerah, SOS timer, vibration, dan delete account.
  */
 public class SettingsActivity extends BaseActivity {
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {

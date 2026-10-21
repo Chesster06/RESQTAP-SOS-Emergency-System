@@ -54,9 +54,7 @@ public class FriendRequestsActivity extends BaseActivity {
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,9 +93,7 @@ public class FriendRequestsActivity extends BaseActivity {
         listenFirebaseData();
     }
 
-    // =========================================================================
     // SEKSYEN: ONDESTROY
-    // =========================================================================
     /** Pembersihan memori, buang listener, dan tutup sambungan. */
     @Override
     protected void onDestroy() {
@@ -106,7 +102,6 @@ public class FriendRequestsActivity extends BaseActivity {
         stopListeners();
     }
 
-    /** Fungsi untuk safePublicId. */
     private String safePublicId(String rawUid) {
         return FirebaseFriendClient.format4DigitId(rawUid, "");
     }
@@ -118,13 +113,11 @@ public class FriendRequestsActivity extends BaseActivity {
 
         rvRequests.setLayoutManager(new LinearLayoutManager(this));
         requestsAdapter = new FriendRequestsAdapter(new FriendRequestsAdapter.OnRequestActionListener() {
-            /** Fungsi untuk onAccept. */
     @Override
             public void onAccept(FirebaseFriendClient.FriendRequest request) {
                 acceptRequest(request);
             }
 
-            /** Fungsi untuk onReject. */
     @Override
             public void onReject(FirebaseFriendClient.FriendRequest request) {
                 rejectRequest(request);
@@ -133,7 +126,6 @@ public class FriendRequestsActivity extends BaseActivity {
         rvRequests.setAdapter(requestsAdapter);
     }
 
-    /** Fungsi untuk acceptRequest. */
     private void acceptRequest(FirebaseFriendClient.FriendRequest request) {
         executor.execute(() -> {
             try {
@@ -145,7 +137,6 @@ public class FriendRequestsActivity extends BaseActivity {
         });
     }
 
-    /** Fungsi untuk rejectRequest. */
     private void rejectRequest(FirebaseFriendClient.FriendRequest request) {
         executor.execute(() -> {
             try {
@@ -158,7 +149,6 @@ public class FriendRequestsActivity extends BaseActivity {
         });
     }
 
-    /** Fungsi untuk listenFirebaseData. */
     private void listenFirebaseData() {
         if (uid.isEmpty()) return;
 
@@ -189,7 +179,6 @@ public class FriendRequestsActivity extends BaseActivity {
         requestsRef.addValueEventListener(requestsListener);
     }
 
-    /** Fungsi untuk stopListeners. */
     private void stopListeners() {
         try {
             if (requestsRef != null && requestsListener != null) {

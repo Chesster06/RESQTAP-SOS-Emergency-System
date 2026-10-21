@@ -29,9 +29,7 @@ import com.google.firebase.auth.FirebaseAuthException;
 public class ForgotPasswordActivity extends BaseActivity {
     private static final String TAG = "ForgotPasswordActivity";
 
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {

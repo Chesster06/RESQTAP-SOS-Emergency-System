@@ -125,9 +125,15 @@ public class ChatActivity extends BaseActivity {
 
     // Livechat system variables
     private static final String PREF_ACTIVE_LIVECHAT = "active_livechat_session";
+    private static final String PREF_LIVECHAT_START_TIME = "livechat_session_start_time";
     private boolean isLiveChatMode = false;
     private boolean isLiveAgentJoined = false;
     private long liveChatSessionStartTime = 0L;
+
+    /** Semak status sama ada pengguna kini sedang berada dalam sesi Livechat aktif. */
+    public boolean isLiveChatActive() {
+        return isLiveChatMode;
+    }
     private View chipLivechatView;
     private View cardLivechatView;
     private DatabaseReference liveChatRef;
@@ -178,9 +184,7 @@ public class ChatActivity extends BaseActivity {
     private boolean isShowingInitialWelcome = false;
     private long activityStartedAt = System.currentTimeMillis();
 
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -231,12 +235,8 @@ public class ChatActivity extends BaseActivity {
         if (btnNewChat != null) {
             btnNewChat.setOnClickListener(v -> {
                 if (isLiveChatMode) {
-                    isLiveChatMode = false;
-                    isLiveAgentJoined = false;
-                    liveChatSessionStartTime = 0L;
-                    chatPrefs().edit().putBoolean(PREF_ACTIVE_LIVECHAT, false).apply();
-                    detachLiveChatSystem();
-                    updateUiForLiveChat(false);
+                    Toast.makeText(this, R.string.livechat_active_cannot_reset, Toast.LENGTH_SHORT).show();
+                    return;
                 }
                 startNewChatSession();
             });
@@ -262,57 +262,81 @@ public class ChatActivity extends BaseActivity {
             });
         }
 
-        // Semak sekiranya terdapat arahan untuk membuka sesi baharu atau sesi livechat disimpan
-        boolean forceNewChat = getIntent().getBooleanExtra("EXTRA_START_NEW_CHAT", false);
-        if (forceNewChat) {
-            chatPrefs().edit().putBoolean(PREF_ACTIVE_LIVECHAT, false).apply();
-        }
-        boolean activeLivechatSaved = !forceNewChat && chatPrefs().getBoolean(PREF_ACTIVE_LIVECHAT, false);
+        // Semak status sesi livechat dari cache lokal terlebih dahulu untuk kelancaran paparan
+        boolean savedLivechatPref = chatPrefs().getBoolean(PREF_ACTIVE_LIVECHAT, false);
+        long savedStartTime = chatPrefs().getLong(PREF_LIVECHAT_START_TIME, 0L);
 
         // Sentiasa pastikan rujukan livechat bersedia
         ensureLiveChatRef();
 
-        if (activeLivechatSaved) {
+        if (savedLivechatPref) {
+            // Sesi livechat aktif belum ditutup: jangan reset chat, kembali semula ke sesi yang masih aktif
             isLiveChatMode = true;
+            liveChatSessionStartTime = savedStartTime;
             updateUiForLiveChat(true);
             setupLiveChatSystem();
-            // Sahkan status sebenar dari Firebase RTDB agar SharedPreferences basi tidak memerangkap pengguna
-            if (liveChatRef != null) {
-                liveChatRef.child("meta").addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot snapshot) {
-                        if (isDestroyed() || isFinishing()) return;
-                        String status = snapshot != null ? safe(snapshot.child("status").getValue(String.class)) : "";
-                        boolean isActive = snapshot != null && snapshot.exists()
-                                && ("open".equalsIgnoreCase(status) || "active".equalsIgnoreCase(status) || "answered".equalsIgnoreCase(status));
-                        if (!isActive) {
-                            // Tiada sesi livechat aktif di server! Reset kembali kepada AI Assistant
-                            isLiveChatMode = false;
-                            isLiveAgentJoined = false;
-                            liveChatSessionStartTime = 0L;
-                            chatPrefs().edit().putBoolean(PREF_ACTIVE_LIVECHAT, false).apply();
-                            updateUiForLiveChat(false);
-                            detachLiveChatSystem();
-                            startNewChatSession();
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError error) {}
-                });
-            }
         } else {
             isLiveChatMode = false;
             updateUiForLiveChat(false);
-            // Auto-reset untuk AI Chat: sentiasa bermula sesi perbualan baharu apabila masuk
             activityStartedAt = System.currentTimeMillis();
             clearLocalChat();
             currentSessionId = "";
             currentSessionTopic = "";
             messages.clear();
             renderMessages();
-            // Sambungkan listener liveChat agar jika admin hantar mesej atau ada rekod, sistem bersedia
             setupLiveChatSystem();
+        }
+
+        // Sahkan status sebenar daripada Firebase RTDB sebagai punca kebenaran mutlak (source of truth)
+        if (liveChatRef != null) {
+            liveChatRef.child("meta").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot snapshot) {
+                    if (isDestroyed() || isFinishing()) return;
+                    String status = snapshot != null ? safe(snapshot.child("status").getValue(String.class)) : "";
+                    boolean isActive = snapshot != null && snapshot.exists()
+                            && ("open".equalsIgnoreCase(status) || "active".equalsIgnoreCase(status) || "answered".equalsIgnoreCase(status));
+
+                    if (isActive) {
+                        // Sesi livechat masih aktif di server! Jangan reset chat, kekalkan sesi ini
+                        long sessionStart = snapshotLong(snapshot.child("sessionStartTime"));
+                        if (sessionStart <= 0L) {
+                            sessionStart = snapshotLong(snapshot.child("createdAt"));
+                        }
+                        if (sessionStart > 0L) {
+                            liveChatSessionStartTime = sessionStart;
+                        }
+                        chatPrefs().edit()
+                                .putBoolean(PREF_ACTIVE_LIVECHAT, true)
+                                .putLong(PREF_LIVECHAT_START_TIME, liveChatSessionStartTime)
+                                .apply();
+
+                        if (!isLiveChatMode) {
+                            isLiveChatMode = true;
+                            updateUiForLiveChat(true);
+                            setupLiveChatSystem();
+                        }
+                    } else {
+                        // Tiada sesi livechat aktif di server (status resolved / closed / tiada rekod)
+                        chatPrefs().edit()
+                                .putBoolean(PREF_ACTIVE_LIVECHAT, false)
+                                .putLong(PREF_LIVECHAT_START_TIME, 0L)
+                                .apply();
+
+                        if (isLiveChatMode) {
+                            isLiveChatMode = false;
+                            isLiveAgentJoined = false;
+                            liveChatSessionStartTime = 0L;
+                            updateUiForLiveChat(false);
+                            detachLiveChatSystem();
+                            startNewChatSession(true);
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError error) {}
+            });
         }
 
         setupAiChatStore();
@@ -402,7 +426,10 @@ public class ChatActivity extends BaseActivity {
                             isLiveChatMode = false;
                             isLiveAgentJoined = false;
                             liveChatSessionStartTime = 0L;
-                            chatPrefs().edit().putBoolean(PREF_ACTIVE_LIVECHAT, false).apply();
+                            chatPrefs().edit()
+                                    .putBoolean(PREF_ACTIVE_LIVECHAT, false)
+                                    .putLong(PREF_LIVECHAT_START_TIME, 0L)
+                                    .apply();
                             updateUiForLiveChat(false);
                             sendPresetPrompt("Hubungi Sokongan Admin");
                         }
@@ -431,11 +458,22 @@ public class ChatActivity extends BaseActivity {
 
     /** Mulakan sesi perbualan baharu (Wipe Firebase and local storage). */
     public void startNewChatSession() {
+        startNewChatSession(false);
+    }
+
+    public void startNewChatSession(boolean force) {
+        if (isLiveChatMode && !force) {
+            Toast.makeText(this, R.string.livechat_active_cannot_reset, Toast.LENGTH_SHORT).show();
+            return;
+        }
         if (isLiveChatMode) {
             isLiveChatMode = false;
             isLiveAgentJoined = false;
             liveChatSessionStartTime = 0L;
-            chatPrefs().edit().putBoolean(PREF_ACTIVE_LIVECHAT, false).apply();
+            chatPrefs().edit()
+                    .putBoolean(PREF_ACTIVE_LIVECHAT, false)
+                    .putLong(PREF_LIVECHAT_START_TIME, 0L)
+                    .apply();
             detachLiveChatSystem();
             updateUiForLiveChat(false);
         }
@@ -475,17 +513,13 @@ public class ChatActivity extends BaseActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
+        if (isLiveChatMode) {
+            // Sesi livechat belum diclose, jangan reset chat
+            return;
+        }
         boolean startNew = intent != null && intent.getBooleanExtra("EXTRA_START_NEW_CHAT", false);
-        if (startNew || !isLiveChatMode) {
-            if (isLiveChatMode) {
-                isLiveChatMode = false;
-                isLiveAgentJoined = false;
-                liveChatSessionStartTime = 0L;
-                chatPrefs().edit().putBoolean(PREF_ACTIVE_LIVECHAT, false).apply();
-                detachLiveChatSystem();
-                updateUiForLiveChat(false);
-            }
-            startNewChatSession();
+        if (startNew) {
+            startNewChatSession(false);
         }
     }
 
@@ -495,9 +529,7 @@ public class ChatActivity extends BaseActivity {
         saveCurrentSessionToHistory();
     }
 
-    // =========================================================================
     // SEKSYEN: ONDESTROY
-    // =========================================================================
     /** Pembersihan memori, buang listener, dan padam sesi Firebase aktif. */
     @Override
     protected void onDestroy() {
@@ -513,9 +545,7 @@ public class ChatActivity extends BaseActivity {
         executor.shutdownNow();
     }
 
-    // =========================================================================
     // SEKSYEN: LIVECHAT & MODE SWITCHER SYSTEM
-    // =========================================================================
     private void setupAttachmentLaunchers() {
         pickAttachmentLauncher = registerForActivityResult(
                 new ActivityResultContracts.OpenDocument(),
@@ -590,7 +620,10 @@ public class ChatActivity extends BaseActivity {
                         isLiveChatMode = false;
                         isLiveAgentJoined = false;
                         liveChatSessionStartTime = 0L;
-                        chatPrefs().edit().putBoolean(PREF_ACTIVE_LIVECHAT, false).apply();
+                        chatPrefs().edit()
+                                .putBoolean(PREF_ACTIVE_LIVECHAT, false)
+                                .putLong(PREF_LIVECHAT_START_TIME, 0L)
+                                .apply();
                         updateUiForLiveChat(false);
 
                         ChatMessage endedNotice = new ChatMessage("system", getString(R.string.livechat_session_ended_notice), System.currentTimeMillis());
@@ -601,11 +634,26 @@ public class ChatActivity extends BaseActivity {
                             RateServiceManager.getInstance().scheduleRatingPrompt(resolvedAt > 0 ? resolvedAt : System.currentTimeMillis());
                         }
                     } else {
-                        chatPrefs().edit().putBoolean(PREF_ACTIVE_LIVECHAT, false).apply();
+                        chatPrefs().edit()
+                                .putBoolean(PREF_ACTIVE_LIVECHAT, false)
+                                .putLong(PREF_LIVECHAT_START_TIME, 0L)
+                                .apply();
                     }
                 } else if (isOpenStatus) {
-                    if (isLiveChatMode) {
-                        chatPrefs().edit().putBoolean(PREF_ACTIVE_LIVECHAT, true).apply();
+                    long sessionStart = snapshotLong(snapshot.child("sessionStartTime"));
+                    if (sessionStart <= 0L) {
+                        sessionStart = snapshotLong(snapshot.child("createdAt"));
+                    }
+                    if (sessionStart > 0L && liveChatSessionStartTime == 0L) {
+                        liveChatSessionStartTime = sessionStart;
+                    }
+                    chatPrefs().edit()
+                            .putBoolean(PREF_ACTIVE_LIVECHAT, true)
+                            .putLong(PREF_LIVECHAT_START_TIME, liveChatSessionStartTime)
+                            .apply();
+
+                    if (!isLiveChatMode) {
+                        isLiveChatMode = true;
                         updateUiForLiveChat(true);
                     }
                 } else {
@@ -614,7 +662,10 @@ public class ChatActivity extends BaseActivity {
                         isLiveChatMode = false;
                         isLiveAgentJoined = false;
                         liveChatSessionStartTime = 0L;
-                        chatPrefs().edit().putBoolean(PREF_ACTIVE_LIVECHAT, false).apply();
+                        chatPrefs().edit()
+                                .putBoolean(PREF_ACTIVE_LIVECHAT, false)
+                                .putLong(PREF_LIVECHAT_START_TIME, 0L)
+                                .apply();
                         updateUiForLiveChat(false);
                     }
                 }
@@ -632,9 +683,13 @@ public class ChatActivity extends BaseActivity {
                 if (snapshot == null) return;
 
                 if (isLiveChatMode) {
-                    // Semasa dalam sesi Livechat: Paparkan mesej penuh sesi ini
+                    // Semasa dalam sesi Livechat: Paparkan mesej penuh sesi semasa sahaja
                     boolean hasSystemNoticeInDb = false;
                     for (DataSnapshot c : snapshot.getChildren()) {
+                        long createdAt = snapshotLong(c.child("createdAt"));
+                        if (liveChatSessionStartTime > 0 && createdAt > 0 && createdAt < liveChatSessionStartTime - 2000L) {
+                            continue;
+                        }
                         if ("system".equalsIgnoreCase(c.child("sender").getValue(String.class))) {
                             hasSystemNoticeInDb = true;
                             break;
@@ -644,6 +699,9 @@ public class ChatActivity extends BaseActivity {
                         long firstTime = System.currentTimeMillis();
                         for (DataSnapshot first : snapshot.getChildren()) {
                             long t = snapshotLong(first.child("createdAt"));
+                            if (liveChatSessionStartTime > 0 && t > 0 && t < liveChatSessionStartTime - 2000L) {
+                                continue;
+                            }
                             if (t > 0) {
                                 firstTime = t - 1;
                                 break;
@@ -663,9 +721,15 @@ public class ChatActivity extends BaseActivity {
                         String attMime = safe(attSnap.child("mimeType").getValue(String.class));
                         if (text.isEmpty() && attUrl.isEmpty()) continue;
 
+                        long createdAt = snapshotLong(child.child("createdAt"));
+
+                        // FILTER KETAT SESI BAHARU: Jangan sekali-kali restore mesej dari sesi terdahulu yang sudah ditutup
+                        if (liveChatSessionStartTime > 0 && createdAt > 0 && createdAt < liveChatSessionStartTime - 2000L) {
+                            continue;
+                        }
+
                         String sender = safe(child.child("sender").getValue(String.class));
                         String senderName = safe(child.child("senderName").getValue(String.class));
-                        long createdAt = snapshotLong(child.child("createdAt"));
                         String key = child.getKey();
 
                         boolean exists = false;
@@ -1072,7 +1136,6 @@ public class ChatActivity extends BaseActivity {
         attachAiChatListeners();
     }
 
-    /** Fungsi untuk attachAiChatListeners. */
     private void attachAiChatListeners() {
         if (!USE_DATABASE_CHAT_STORE) return;
         if (aiChatRef == null || messagesListener != null) return;
@@ -1129,7 +1192,6 @@ public class ChatActivity extends BaseActivity {
         messagesQuery.addValueEventListener(messagesListener);
     }
 
-    /** Fungsi untuk detachAiChatStore. */
     private void detachAiChatStore() {
         if (messagesQuery != null && messagesListener != null) {
             messagesQuery.removeEventListener(messagesListener);
@@ -1164,12 +1226,10 @@ public class ChatActivity extends BaseActivity {
         showThinkingIndicator("");
     }
 
-    /** Fungsi untuk chatPrefs. */
     private SharedPreferences chatPrefs() {
         return getSharedPreferences(CHAT_PREFS, MODE_PRIVATE);
     }
 
-    /** Ambil atau muat data LocalMessages. */
     private void loadLocalMessages() {
         long expiresAt = chatPrefs().getLong(CHAT_PREF_EXPIRES_AT, 0L);
         if (isExpired(expiresAt)) {
@@ -1244,7 +1304,6 @@ public class ChatActivity extends BaseActivity {
                 .apply();
     }
 
-    /** Fungsi untuk readStoredMessage. */
     private ChatMessage readStoredMessage(DataSnapshot snapshot) {
         String role = safe(snapshot.child("role").getValue(String.class));
         if (role.isEmpty()) role = safe(snapshot.child("sender").getValue(String.class));
@@ -1261,7 +1320,6 @@ public class ChatActivity extends BaseActivity {
         return new ChatMessage(role, text, createdAt);
     }
 
-    /** Fungsi untuk snapshotLong. */
     private long snapshotLong(DataSnapshot snapshot) {
         Object value = snapshot == null ? null : snapshot.getValue();
         if (value instanceof Number) return ((Number) value).longValue();
@@ -1277,7 +1335,6 @@ public class ChatActivity extends BaseActivity {
         return expiresAt > 0L && expiresAt <= System.currentTimeMillis();
     }
 
-    /** Fungsi untuk scheduleChatExpiry. */
     private void scheduleChatExpiry(long expiresAt) {
         if (expiryRunnable != null) {
             mainHandler.removeCallbacks(expiryRunnable);
@@ -1290,7 +1347,6 @@ public class ChatActivity extends BaseActivity {
         mainHandler.postDelayed(expiryRunnable, delay);
     }
 
-    /** Fungsi untuk resetExpiredChat. */
     private void resetExpiredChat() {
         if (aiChatRef != null) {
             aiChatRef.removeValue();
@@ -1414,42 +1470,65 @@ public class ChatActivity extends BaseActivity {
         if (asksSupport) {
             isLiveChatMode = true;
             isLiveAgentJoined = false;
-            liveChatSessionStartTime = System.currentTimeMillis();
-            chatPrefs().edit().putBoolean(PREF_ACTIVE_LIVECHAT, true).apply();
+            long sessionStart = System.currentTimeMillis();
+            liveChatSessionStartTime = sessionStart;
+            chatPrefs().edit()
+                    .putBoolean(PREF_ACTIVE_LIVECHAT, true)
+                    .putLong(PREF_LIVECHAT_START_TIME, sessionStart)
+                    .apply();
             updateUiForLiveChat(true);
 
             ensureLiveChatRef();
-            // Reset meta status pada Firebase supaya status resolved lama tidak menutup sesi baharu
+
+            // Sesi Baharu (New Session): Padam mesej lama di Firebase RTDB agar sesi baharu bermula bersih
             if (liveChatRef != null) {
+                liveChatRef.child("messages").removeValue();
+
                 Map<String, Object> metaOpen = new HashMap<>();
                 metaOpen.put("status", "open");
+                metaOpen.put("sessionStartTime", sessionStart);
+                metaOpen.put("sessionId", "session_" + sessionStart);
+                metaOpen.put("createdAt", ServerValue.TIMESTAMP);
                 metaOpen.put("resolvedAt", 0);
                 metaOpen.put("resolvedBy", null);
                 metaOpen.put("claimedAt", 0);
                 metaOpen.put("claimedBy", null);
+                metaOpen.put("claimedByName", null);
+                metaOpen.put("claimNotice", null);
+                metaOpen.put("adminTyping", false);
                 metaOpen.put("updatedAt", ServerValue.TIMESTAMP);
+                metaOpen.put("lastMessage", userMsgText);
+                metaOpen.put("lastSender", "user");
+                metaOpen.put("userUid", user.getUid());
+                metaOpen.put("userName", name);
+                metaOpen.put("userEmail", safe(UserPrefs.getEmail(this)));
+                metaOpen.put("unreadByUser", false);
                 liveChatRef.child("meta").updateChildren(metaOpen);
             }
 
-            setupLiveChatSystem();
-
-            // Mesej permintaan user dihantar ke Meja Bantuan Admin kerana sesi Livechat telah dibuka
-            syncUserMessageToLiveSupport(user, userMsgText, attName, dataUrl, attMime, liveMsgKey);
+            // Simpan perbualan AI terdahulu ke arkib sejarah dan bersihkan paparan untuk sesi Livechat baharu
+            saveCurrentSessionToHistory();
+            messages.clear();
+            messages.add(userMsg);
 
             long noticeTime = now + 1;
             ChatMessage transferNotice = new ChatMessage("system", getString(R.string.chat_transferred_to_admin_desc), noticeTime);
             messages.add(transferNotice);
-            syncSystemNoticeToLiveSupport(transferNotice, transferNotice.content);
 
-            saveLocalMessages();
-            saveCurrentSessionToHistory();
             renderMessages();
             scrollToBottom();
+
+            setupLiveChatSystem();
+
+            // Mesej permintaan user & notis transfer dihantar ke Meja Bantuan Admin
+            syncUserMessageToLiveSupport(user, userMsgText, attName, dataUrl, attMime, liveMsgKey);
+            syncSystemNoticeToLiveSupport(transferNotice, transferNotice.content);
 
             // Tunjukkan status pending seperti chatbot lain sebelum mesej auto dihantar
             showThinkingIndicator("livechat");
 
             mainHandler.postDelayed(() -> {
+                if (!isLiveChatMode || isFinishing() || isDestroyed()) return;
                 String autoReplyText = getString(R.string.support_livechat_waiting_agent_auto);
                 showAssistantReply(autoReplyText, "auto-support");
                 setSending(false);
@@ -1542,7 +1621,6 @@ public class ChatActivity extends BaseActivity {
         });
     }
 
-    /** Fungsi untuk ensureAiChatReference. */
     private void ensureAiChatReference(FirebaseUser user) {
         if (!USE_DATABASE_CHAT_STORE) return;
         if (user == null) return;
@@ -1556,7 +1634,6 @@ public class ChatActivity extends BaseActivity {
         attachAiChatListeners();
     }
 
-    /** Fungsi untuk baseChatMetaUpdates. */
     private Map<String, Object> baseChatMetaUpdates(FirebaseUser user) {
         Map<String, Object> updates = new HashMap<>();
         updates.put("meta/userName", displayName(user));
@@ -1577,12 +1654,10 @@ public class ChatActivity extends BaseActivity {
         return "User";
     }
 
-    /** Fungsi untuk handleChatReply. */
     private void handleChatReply(String reply) {
         runAfterTypingDelay(() -> showAssistantReply(safe(reply), "faq"));
     }
 
-    /** Fungsi untuk handleChatFailure. */
     private void handleChatFailure(String message) {
         runAfterTypingDelay(() -> {
             String clean = safe(message);
@@ -1593,7 +1668,6 @@ public class ChatActivity extends BaseActivity {
         });
     }
 
-    /** Fungsi untuk runAfterTypingDelay. */
     private void runAfterTypingDelay(Runnable action) {
         long elapsed = System.currentTimeMillis() - typingStartedAt;
         long delay = Math.max(0L, AI_TYPING_DELAY_MS - elapsed);
@@ -1635,7 +1709,6 @@ public class ChatActivity extends BaseActivity {
         final int step = fullText.length() > 240 ? 4 : (fullText.length() > 120 ? 2 : 1);
 
         typewriterRunnable = new Runnable() {
-            /** Fungsi untuk run. */
     @Override
             public void run() {
                 int next = Math.min(fullText.length(), index[0] + step);
@@ -1661,7 +1734,6 @@ public class ChatActivity extends BaseActivity {
         mainHandler.post(typewriterRunnable);
     }
 
-    /** Fungsi untuk lastUserMessage. */
     private String lastUserMessage() {
         for (int i = messages.size() - 1; i >= 0; i--) {
             ChatMessage item = messages.get(i);
@@ -1670,7 +1742,6 @@ public class ChatActivity extends BaseActivity {
         return "";
     }
 
-    /** Ambil atau muat data FaqAnswer. */
     private String getFaqAnswer(String input) {
         String trimmed = safe(input).trim();
         String lower = trimmed.toLowerCase(Locale.ROOT);
@@ -1705,7 +1776,6 @@ public class ChatActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk localAssistantReply. */
     private String localAssistantReply(String prompt) {
         String q = safe(prompt).toLowerCase(Locale.ROOT);
         String language = detectLanguage(prompt);
@@ -1796,7 +1866,6 @@ public class ChatActivity extends BaseActivity {
         return true;
     }
 
-    /** Fungsi untuk detectLanguage. */
     private String detectLanguage(String prompt) {
         String raw = safe(prompt);
         String q = raw.toLowerCase(Locale.ROOT);
@@ -1813,7 +1882,6 @@ public class ChatActivity extends BaseActivity {
         return (savedLang != null && !savedLang.isEmpty()) ? savedLang : "en";
     }
 
-    /** Fungsi untuk containsHangul. */
     private boolean containsHangul(String value) {
         for (int i = 0; i < value.length(); i++) {
             char c = value.charAt(i);
@@ -1824,7 +1892,6 @@ public class ChatActivity extends BaseActivity {
         return false;
     }
 
-    /** Fungsi untuk localizedReply. */
     private String localizedReply(String language, String key) {
         if ("ms".equals(language)) {
             if ("greeting".equals(key)) return "Hai! Saya Pembantu Keselamatan Pintar ResQTap anda. Saya sedia membantu anda menguruskan ciri kecemasan, penjejakan lokasi bilik, zon selamat, dan panduan keselamatan bila-bila masa. Ada apa yang boleh saya bantu?";
@@ -1878,7 +1945,6 @@ public class ChatActivity extends BaseActivity {
         return "I understand your query. As the ResQTap Intelligent Safety Assistant, I am designed to assist you across all safety, tracking, and emergency preparedness needs.\n\nHere are core features you can explore:\n• One-Tap SOS: Press and hold the SOS button for 3 seconds to trigger an instant emergency broadcast.\n• SOS Beacon: Activate a visual strobe beacon and loud alarm for rapid rescue spotting.\n• Safety Rooms: Form private rooms with loved ones and monitor live GPS movement on an interactive map.\n• QR Codes & Posters: Scan QR codes to easily connect trusted friends and share room invites.\n• Smart Geofencing: Get automated entry/exit alerts when members arrive at safe zones.\n\nWhich feature would you like to know more about?";
     }
 
-    /** Fungsi untuk containsAny. */
     private boolean containsAny(String value, String... needles) {
         for (String needle : needles) {
             if (value.contains(needle)) return true;
@@ -1886,7 +1952,6 @@ public class ChatActivity extends BaseActivity {
         return false;
     }
 
-    /** Fungsi untuk renderMessages. */
     private void renderMessages() {
         if (heroGreetingLayout != null) {
             heroGreetingLayout.setVisibility(messages.isEmpty() ? View.VISIBLE : View.GONE);
@@ -1899,7 +1964,6 @@ public class ChatActivity extends BaseActivity {
         scrollToBottom();
     }
 
-    /** Fungsi untuk addMessageBubble. */
     private TextView addMessageBubble(ChatMessage message) {
         if ("system".equalsIgnoreCase(message.role)) {
             addSystemNoticeBubble(message.content);
@@ -2415,19 +2479,16 @@ public class ChatActivity extends BaseActivity {
         thinkingStatusText = null;
     }
 
-    /** Fungsi untuk setSending. */
     private void setSending(boolean value) {
         sending = value;
         sendButton.setEnabled(!value);
         inputView.setEnabled(!value);
     }
 
-    /** Fungsi untuk scrollToBottom. */
     private void scrollToBottom() {
         messagesScroll.post(() -> messagesScroll.fullScroll(View.FOCUS_DOWN));
     }
 
-    /** Fungsi untuk formatTime. */
     private String formatTime(long ms) {
         if (ms <= 0) return "";
         return DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date(ms));
@@ -2444,7 +2505,6 @@ public class ChatActivity extends BaseActivity {
         }
     }
 
-    /** Fungsi untuk dp. */
     private int dp(int value) {
         return Math.round(value * getResources().getDisplayMetrics().density);
     }
@@ -2659,7 +2719,6 @@ public class ChatActivity extends BaseActivity {
         renderMessages();
     }
 
-    /** Fungsi untuk safe. */
     private String safe(Object value) {
         return String.valueOf(value == null ? "" : value).trim();
     }

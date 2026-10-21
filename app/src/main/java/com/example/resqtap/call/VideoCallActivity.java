@@ -66,9 +66,7 @@ public class VideoCallActivity extends BaseActivity implements WebRTCClient.WebR
             Manifest.permission.RECORD_AUDIO
     };
 
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -175,9 +173,7 @@ public class VideoCallActivity extends BaseActivity implements WebRTCClient.WebR
         finish();
     }
 
-    // =========================================================================
     // SEKSYEN: STARTWEBRTC
-    // =========================================================================
     /** Inisialisasi klien WebRTC dan mulakan sambungan panggilan. */
     private void startWebRTC() {
         webRTCClient = new WebRTCClient(this, rootEglBase, this);
@@ -326,9 +322,7 @@ public class VideoCallActivity extends BaseActivity implements WebRTCClient.WebR
         }
     }
 
-    // =========================================================================
     // SEKSYEN: ONDESTROY
-    // =========================================================================
     /** Pembersihan memori, buang listener, dan tutup sambungan. */
     @Override
     protected void onDestroy() {

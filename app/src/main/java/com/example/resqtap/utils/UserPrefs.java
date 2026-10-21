@@ -87,12 +87,10 @@ public final class UserPrefs {
     private UserPrefs() {
     }
 
-    /** Fungsi untuk prefs. */
     private static SharedPreferences prefs(Context context) {
         return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
     }
 
-    /** Ambil atau muat data OrCreateUid. */
     public static String getOrCreateUid(Context context) {
         SharedPreferences p = prefs(context);
         String uid = p.getString(KEY_UID, null);
@@ -104,7 +102,6 @@ public final class UserPrefs {
         return uid;
     }
 
-    /** Ambil atau muat data OrCreateDeviceId. */
     public static String getOrCreateDeviceId(Context context) {
         SharedPreferences p = prefs(context);
         String id = p.getString(KEY_DEVICE_ID, null);
@@ -116,73 +113,59 @@ public final class UserPrefs {
         return id;
     }
 
-    /** Fungsi untuk setUid. */
     public static void setUid(Context context, String uid) {
         prefs(context).edit().putString(KEY_UID, uid == null ? "" : uid.trim()).apply();
     }
 
-    /** Ambil atau muat data Uid. */
     public static String getUid(Context context) {
         return prefs(context).getString(KEY_UID, "");
     }
 
-    /** Ambil atau muat data Email. */
     public static String getEmail(Context context) {
         return prefs(context).getString(KEY_EMAIL, "");
     }
 
-    /** Fungsi untuk setEmail. */
     public static void setEmail(Context context, String email) {
         prefs(context).edit().putString(KEY_EMAIL, email == null ? "" : email.trim()).apply();
     }
 
-    /** Ambil atau muat data PublicId. */
     public static String getPublicId(Context context) {
         return prefs(context).getString(KEY_PUBLIC_ID, "");
     }
 
-    /** Fungsi untuk setPublicId. */
     public static void setPublicId(Context context, String publicId) {
         prefs(context).edit().putString(KEY_PUBLIC_ID, publicId == null ? "" : publicId.trim().toUpperCase()).apply();
     }
 
-    /** Ambil atau muat data PhotoUri. */
     public static String getPhotoUri(Context context) {
         return prefs(context).getString(KEY_PHOTO_URI, "");
     }
 
-    /** Fungsi untuk setPhotoUri. */
     public static void setPhotoUri(Context context, String uri) {
         prefs(context).edit().putString(KEY_PHOTO_URI, uri == null ? "" : uri.trim()).apply();
     }
 
-    /** Ambil atau muat data PhotoUrl. */
     public static String getPhotoUrl(Context context) {
         return prefs(context).getString(KEY_PHOTO_URL, "");
     }
 
-    /** Fungsi untuk setPhotoUrl. */
     public static void setPhotoUrl(Context context, String url) {
         prefs(context).edit().putString(KEY_PHOTO_URL, url == null ? "" : url.trim()).apply();
     }
 
-    /** Ambil atau muat data PhotoB64. */
     public static String getPhotoB64(Context context) {
         return prefs(context).getString(KEY_PHOTO_B64, "");
     }
 
-    /** Fungsi untuk setPhotoB64. */
     public static void setPhotoB64(Context context, String b64) {
         prefs(context).edit().putString(KEY_PHOTO_B64, b64 == null ? "" : b64.trim()).apply();
     }
 
-    /** Fungsi untuk setUidFromPhone. */
     public static void setUidFromPhone(Context context, String phone) {
         String uid = deriveUidFromPhone(phone);
         prefs(context).edit().putString(KEY_UID, uid).apply();
     }
 
-    /** Fungsi untuk deriveUidFromPhone. */
     private static String deriveUidFromPhone(String phone) {
         String normalized = normalizePhone(phone);
         if (normalized.isEmpty()) return generateShortUid();
@@ -202,7 +185,6 @@ public final class UserPrefs {
         }
     }
 
-    /** Fungsi untuk normalizePhone. */
     private static String normalizePhone(String phone) {
         String p = String.valueOf(phone == null ? "" : phone).trim();
         if (p.isEmpty()) return "";
@@ -214,7 +196,6 @@ public final class UserPrefs {
         return sb.toString();
     }
 
-    /** Fungsi untuk generateShortUid. */
     private static String generateShortUid() {
         final String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         SecureRandom r = new SecureRandom();
@@ -223,7 +204,6 @@ public final class UserPrefs {
         return sb.toString();
     }
 
-    /** Fungsi untuk generateDeviceId. */
     private static String generateDeviceId() {
         final String hex = "0123456789abcdef";
         SecureRandom r = new SecureRandom();
@@ -233,12 +213,10 @@ public final class UserPrefs {
         return sb.toString();
     }
 
-    /** Ambil atau muat data Name. */
     public static String getName(Context context) {
         return prefs(context).getString(KEY_NAME, "");
     }
 
-    /** Fungsi untuk setName. */
     public static void setName(Context context, String name) {
         prefs(context).edit().putString(KEY_NAME, name == null ? "" : name.trim()).apply();
     }
@@ -248,7 +226,6 @@ public final class UserPrefs {
         return prefs(context).getString(KEY_FIRST_NAME, "");
     }
 
-    /** Fungsi untuk setFirstName. */
     public static void setFirstName(Context context, String firstName) {
         prefs(context).edit().putString(KEY_FIRST_NAME, firstName == null ? "" : firstName.trim()).apply();
     }
@@ -258,17 +235,14 @@ public final class UserPrefs {
         return prefs(context).getString(KEY_LAST_NAME, "");
     }
 
-    /** Fungsi untuk setLastName. */
     public static void setLastName(Context context, String lastName) {
         prefs(context).edit().putString(KEY_LAST_NAME, lastName == null ? "" : lastName.trim()).apply();
     }
 
-    /** Ambil atau muat data LastAdminNotificationId. */
     public static String getLastAdminNotificationId(Context context) {
         return prefs(context).getString(KEY_LAST_ADMIN_NOTIFICATION_ID, "");
     }
 
-    /** Fungsi untuk setLastAdminNotificationId. */
     public static void setLastAdminNotificationId(Context context, String notificationId) {
         prefs(context).edit().putString(KEY_LAST_ADMIN_NOTIFICATION_ID, notificationId == null ? "" : notificationId.trim()).apply();
     }
@@ -325,42 +299,34 @@ public final class UserPrefs {
                 .apply();
     }
 
-    /** Ambil atau muat data PendingPhotoUri. */
     public static String getPendingPhotoUri(Context context) {
         return prefs(context).getString(KEY_PENDING_PHOTO_URI, "");
     }
 
-    /** Fungsi untuk setPendingPhotoUri. */
     public static void setPendingPhotoUri(Context context, String uri) {
         prefs(context).edit().putString(KEY_PENDING_PHOTO_URI, uri == null ? "" : uri.trim()).apply();
     }
 
-    /** Ambil atau muat data BloodType. */
     public static String getBloodType(Context context) {
         return prefs(context).getString(KEY_BLOOD_TYPE, "");
     }
 
-    /** Fungsi untuk setBloodType. */
     public static void setBloodType(Context context, String bloodType) {
         prefs(context).edit().putString(KEY_BLOOD_TYPE, bloodType == null ? "" : bloodType.trim()).apply();
     }
 
-    /** Ambil atau muat data Allergies. */
     public static String getAllergies(Context context) {
         return prefs(context).getString(KEY_ALLERGIES, "");
     }
 
-    /** Fungsi untuk setAllergies. */
     public static void setAllergies(Context context, String allergies) {
         prefs(context).edit().putString(KEY_ALLERGIES, allergies == null ? "" : allergies.trim()).apply();
     }
 
-    /** Ambil atau muat data ExistingConditions. */
     public static String getExistingConditions(Context context) {
         return prefs(context).getString(KEY_EXISTING_CONDITIONS, "");
     }
 
-    /** Fungsi untuk setExistingConditions. */
     public static void setExistingConditions(Context context, String conditions) {
         prefs(context).edit().putString(KEY_EXISTING_CONDITIONS, conditions == null ? "" : conditions.trim()).apply();
     }
@@ -370,17 +336,14 @@ public final class UserPrefs {
         return prefs(context).getBoolean(KEY_HIDE_MEDICAL_INFO, false);
     }
 
-    /** Fungsi untuk setHideMedicalInfo. */
     public static void setHideMedicalInfo(Context context, boolean hide) {
         prefs(context).edit().putBoolean(KEY_HIDE_MEDICAL_INFO, hide).apply();
     }
 
-    /** Ambil atau muat data VibrationStrength. */
     public static String getVibrationStrength(Context context) {
         return prefs(context).getString(KEY_VIBRATION_STRENGTH, "medium");
     }
 
-    /** Fungsi untuk setVibrationStrength. */
     public static void setVibrationStrength(Context context, String strength) {
         prefs(context).edit().putString(KEY_VIBRATION_STRENGTH, strength == null ? "medium" : strength).apply();
     }
@@ -390,7 +353,6 @@ public final class UserPrefs {
         return prefs(context).getBoolean(KEY_TTS_ENABLED, false);
     }
 
-    /** Fungsi untuk setTtsEnabled. */
     public static void setTtsEnabled(Context context, boolean enabled) {
         prefs(context).edit().putBoolean(KEY_TTS_ENABLED, enabled).apply();
     }
@@ -400,7 +362,6 @@ public final class UserPrefs {
         return prefs(context).getBoolean(KEY_FULLSCREEN_QUICK_MESSAGE, false);
     }
 
-    /** Fungsi untuk setFullscreenQuickMessage. */
     public static void setFullscreenQuickMessage(Context context, boolean enabled) {
         prefs(context).edit().putBoolean(KEY_FULLSCREEN_QUICK_MESSAGE, enabled).apply();
     }
@@ -410,18 +371,15 @@ public final class UserPrefs {
         return prefs(context).getBoolean(KEY_APP_LOCK_ENABLED, false);
     }
 
-    /** Fungsi untuk setAppLockEnabled. */
     public static void setAppLockEnabled(Context context, boolean enabled) {
         prefs(context).edit().putBoolean(KEY_APP_LOCK_ENABLED, enabled).apply();
     }
 
-    /** Ambil atau muat data status kewujudan AppLockPin. */
     public static boolean hasAppLockPin(Context context) {
         String pin = prefs(context).getString(KEY_APP_LOCK_PIN, "");
         return pin != null && !pin.trim().isEmpty();
     }
 
-    /** Ambil atau muat data AppLockPin (mengembalikan hash atau raw jika legacy). */
     public static String getAppLockPin(Context context) {
         return prefs(context).getString(KEY_APP_LOCK_PIN, "");
     }
@@ -510,7 +468,6 @@ public final class UserPrefs {
         return valid;
     }
 
-    /** Fungsi untuk setAppLockPin dengan hashing automatik PBKDF2. */
     public static void setAppLockPin(Context context, String pin) {
         String toSave = (pin == null || pin.isEmpty()) ? "" : hashPin(context, pin);
         prefs(context).edit().putString(KEY_APP_LOCK_PIN, toSave).apply();
@@ -521,18 +478,15 @@ public final class UserPrefs {
         return prefs(context).getBoolean(KEY_FINGERPRINT_ENABLED, false);
     }
 
-    /** Fungsi untuk setFingerprintEnabled. */
     public static void setFingerprintEnabled(Context context, boolean enabled) {
         prefs(context).edit().putBoolean(KEY_FINGERPRINT_ENABLED, enabled).apply();
     }
 
-    /** Ambil atau muat data status kewujudan BiometricPin. */
     public static boolean hasBiometricPin(Context context) {
         String pin = prefs(context).getString(KEY_BIOMETRIC_PIN, "");
         return pin != null && !pin.trim().isEmpty();
     }
 
-    /** Ambil atau muat data BiometricPin. */
     public static String getBiometricPin(Context context) {
         return prefs(context).getString(KEY_BIOMETRIC_PIN, "");
     }
@@ -549,7 +503,6 @@ public final class UserPrefs {
         return valid;
     }
 
-    /** Fungsi untuk setBiometricPin dengan hashing automatik. */
     public static void setBiometricPin(Context context, String pin) {
         String toSave = (pin == null || pin.isEmpty()) ? "" : hashPin(context, pin);
         prefs(context).edit().putString(KEY_BIOMETRIC_PIN, toSave).apply();
@@ -560,17 +513,14 @@ public final class UserPrefs {
         return prefs(context).getBoolean(KEY_DURESS_SAFEGUARD_ENABLED, true);
     }
 
-    /** Fungsi untuk setDuressSafeguardEnabled. */
     public static void setDuressSafeguardEnabled(Context context, boolean enabled) {
         prefs(context).edit().putBoolean(KEY_DURESS_SAFEGUARD_ENABLED, enabled).apply();
     }
 
-    /** Ambil atau muat data Language. */
     public static String getLanguage(Context context) {
         return prefs(context).getString(KEY_LANGUAGE, "en");
     }
 
-    /** Fungsi untuk setLanguage. */
     public static void setLanguage(Context context, String lang) {
         String normalized = String.valueOf(lang == null ? "" : lang).trim().toLowerCase(java.util.Locale.ROOT);
         if (normalized.startsWith("ms")) normalized = "ms";
@@ -581,112 +531,90 @@ public final class UserPrefs {
         prefs(context).edit().putString(KEY_LANGUAGE, normalized).apply();
     }
 
-    /** Ambil atau muat data Address. */
     public static String getAddress(Context context) {
         return prefs(context).getString(KEY_ADDRESS, "");
     }
 
-    /** Fungsi untuk setAddress. */
     public static void setAddress(Context context, String address) {
         prefs(context).edit().putString(KEY_ADDRESS, address == null ? "" : address).apply();
     }
 
-    /** Ambil atau muat data Religion. */
     public static String getReligion(Context context) {
         return prefs(context).getString(KEY_RELIGION, "");
     }
 
-    /** Fungsi untuk setReligion. */
     public static void setReligion(Context context, String religion) {
         prefs(context).edit().putString(KEY_RELIGION, religion == null ? "" : religion).apply();
     }
 
-    /** Ambil atau muat data PhoneNumber. */
     public static String getPhoneNumber(Context context) {
         return prefs(context).getString(KEY_PHONE, "");
     }
 
-    /** Fungsi untuk setPhoneNumber. */
     public static void setPhoneNumber(Context context, String phone) {
         prefs(context).edit().putString(KEY_PHONE, phone == null ? "" : phone).apply();
     }
 
-    /** Ambil atau muat data DateOfBirth. */
     public static String getDateOfBirth(Context context) {
         return prefs(context).getString(KEY_DOB, "");
     }
 
-    /** Fungsi untuk setDateOfBirth. */
     public static void setDateOfBirth(Context context, String dob) {
         prefs(context).edit().putString(KEY_DOB, dob == null ? "" : dob).apply();
     }
 
-    /** Ambil atau muat data Ethnicity. */
     public static String getEthnicity(Context context) {
         return prefs(context).getString(KEY_ETHNICITY, "");
     }
 
-    /** Fungsi untuk setEthnicity. */
     public static void setEthnicity(Context context, String ethnicity) {
         prefs(context).edit().putString(KEY_ETHNICITY, ethnicity == null ? "" : ethnicity).apply();
     }
 
-    /** Ambil atau muat data IcNumber. */
     public static String getIcNumber(Context context) {
         return prefs(context).getString(KEY_IC_NUMBER, "");
     }
 
-    /** Fungsi untuk setIcNumber. */
     public static void setIcNumber(Context context, String ic) {
         prefs(context).edit().putString(KEY_IC_NUMBER, ic == null ? "" : ic).apply();
     }
 
-    /** Ambil atau muat data Gender. */
     public static String getGender(Context context) {
         return prefs(context).getString(KEY_GENDER, "");
     }
 
-    /** Fungsi untuk setGender. */
     public static void setGender(Context context, String gender) {
         prefs(context).edit().putString(KEY_GENDER, gender == null ? "" : gender).apply();
     }
 
-    /** Ambil atau muat data Weight. */
     public static String getWeight(Context context) {
         return prefs(context).getString(KEY_WEIGHT, "");
     }
 
-    /** Fungsi untuk setWeight. */
     public static void setWeight(Context context, String weight) {
         prefs(context).edit().putString(KEY_WEIGHT, weight == null ? "" : weight.trim()).apply();
     }
 
-    /** Ambil atau muat data Height. */
     public static String getHeight(Context context) {
         return prefs(context).getString(KEY_HEIGHT, "");
     }
 
-    /** Fungsi untuk setHeight. */
     public static void setHeight(Context context, String height) {
         prefs(context).edit().putString(KEY_HEIGHT, height == null ? "" : height.trim()).apply();
     }
 
-    /** Ambil atau muat data Medications. */
     public static String getMedications(Context context) {
         return prefs(context).getString(KEY_MEDICATIONS, "");
     }
 
-    /** Fungsi untuk setMedications. */
     public static void setMedications(Context context, String medications) {
         prefs(context).edit().putString(KEY_MEDICATIONS, medications == null ? "" : medications).apply();
     }
 
-    /** Ambil atau muat data OrganDonor. */
     public static String getOrganDonor(Context context) {
         return prefs(context).getString(KEY_ORGAN_DONOR, "");
     }
 
-    /** Fungsi untuk setOrganDonor. */
     public static void setOrganDonor(Context context, String donor) {
         prefs(context).edit().putString(KEY_ORGAN_DONOR, donor == null ? "" : donor).apply();
     }
@@ -834,7 +762,6 @@ public final class UserPrefs {
         return out;
     }
 
-    /** Fungsi untuk addEmergencyContact. */
     public static void addEmergencyContact(Context context, EmergencyContact c) {
         if (c == null) return;
         String id = c.id == null ? "" : c.id.trim();
@@ -851,7 +778,6 @@ public final class UserPrefs {
         saveEmergencyContacts(context, list);
     }
 
-    /** Fungsi untuk setEmergencyContacts. */
     public static void setEmergencyContacts(Context context, java.util.ArrayList<EmergencyContact> contacts) {
         java.util.ArrayList<EmergencyContact> list = new java.util.ArrayList<>();
         if (contacts != null) list.addAll(contacts);
@@ -940,12 +866,10 @@ public final class UserPrefs {
         return false;
     }
 
-    /** Fungsi untuk normalizeName. */
     private static String normalizeName(String name) {
         return String.valueOf(name == null ? "" : name).trim().toUpperCase(java.util.Locale.ROOT);
     }
 
-    /** Fungsi untuk normalizePhoneNumber. */
     private static String normalizePhoneNumber(String phone) {
         String p = String.valueOf(phone == null ? "" : phone).trim();
         if (p.isEmpty()) return "";
@@ -1005,7 +929,6 @@ public final class UserPrefs {
         return prefs(context).getBoolean(KEY_LOW_BATTERY_ALERT, false);
     }
 
-    /** Fungsi untuk setLowBatteryAlert. */
     public static void setLowBatteryAlert(Context context, boolean enabled) {
         prefs(context).edit().putBoolean(KEY_LOW_BATTERY_ALERT, enabled).apply();
     }
@@ -1015,71 +938,59 @@ public final class UserPrefs {
         return prefs(context).getBoolean(KEY_BATTERY_SAVER_MODE, false);
     }
 
-    /** Fungsi untuk setBatterySaverMode. */
     public static void setBatterySaverMode(Context context, boolean enabled) {
         prefs(context).edit().putBoolean(KEY_BATTERY_SAVER_MODE, enabled).apply();
     }
 
-    /** Ambil atau muat data UnreadNotifications. */
     public static int getUnreadNotifications(Context context) {
         return prefs(context).getInt(KEY_NOTIF_UNREAD, 0);
     }
 
-    /** Fungsi untuk setUnreadNotifications. */
     public static void setUnreadNotifications(Context context, int count) {
         int safe = Math.max(0, count);
         prefs(context).edit().putInt(KEY_NOTIF_UNREAD, safe).apply();
     }
 
-    /** Fungsi untuk incrementUnreadNotifications. */
     public static void incrementUnreadNotifications(Context context) {
         int next = getUnreadNotifications(context) + 1;
         setUnreadNotifications(context, next);
     }
 
-    /** Ambil atau muat data FcmToken. */
     public static String getFcmToken(Context context) {
         return prefs(context).getString(KEY_FCM_TOKEN, "");
     }
 
-    /** Fungsi untuk setFcmToken. */
     public static void setFcmToken(Context context, String token) {
         prefs(context).edit().putString(KEY_FCM_TOKEN, token == null ? "" : token.trim()).apply();
     }
 
-    /** Ambil atau muat data ActiveRoomCode. */
     public static String getActiveRoomCode(Context context) {
         return prefs(context).getString(KEY_ACTIVE_ROOM_CODE, "");
     }
 
-    /** Fungsi untuk setActiveRoomCode. */
     public static void setActiveRoomCode(Context context, String roomCode) {
         String code = String.valueOf(roomCode == null ? "" : roomCode).trim().toUpperCase(java.util.Locale.ROOT);
         prefs(context).edit().putString(KEY_ACTIVE_ROOM_CODE, code).apply();
     }
 
-    /** Ambil atau muat data SosLastSeenAt. */
     public static long getSosLastSeenAt(Context context, String roomCode) {
         String code = String.valueOf(roomCode == null ? "" : roomCode).trim().toUpperCase(java.util.Locale.ROOT);
         if (code.isEmpty()) return 0L;
         return prefs(context).getLong(KEY_SOS_LAST_SEEN_AT_PREFIX + code, 0L);
     }
 
-    /** Fungsi untuk setSosLastSeenAt. */
     public static void setSosLastSeenAt(Context context, String roomCode, long createdAtMs) {
         String code = String.valueOf(roomCode == null ? "" : roomCode).trim().toUpperCase(java.util.Locale.ROOT);
         if (code.isEmpty()) return;
         prefs(context).edit().putLong(KEY_SOS_LAST_SEEN_AT_PREFIX + code, Math.max(0L, createdAtMs)).apply();
     }
 
-    /** Ambil atau muat data SosLastHandledId. */
     public static String getSosLastHandledId(Context context, String roomCode) {
         String code = String.valueOf(roomCode == null ? "" : roomCode).trim().toUpperCase(java.util.Locale.ROOT);
         if (code.isEmpty()) return "";
         return prefs(context).getString(KEY_SOS_LAST_HANDLED_ID_PREFIX + code, "");
     }
 
-    /** Fungsi untuk setSosLastHandledId. */
     public static void setSosLastHandledId(Context context, String roomCode, String alertId) {
         String code = String.valueOf(roomCode == null ? "" : roomCode).trim().toUpperCase(java.util.Locale.ROOT);
         if (code.isEmpty()) return;
@@ -1087,14 +998,12 @@ public final class UserPrefs {
         prefs(context).edit().putString(KEY_SOS_LAST_HANDLED_ID_PREFIX + code, id).apply();
     }
 
-    /** Ambil atau muat data SosListenerBaselineAt. */
     public static long getSosListenerBaselineAt(Context context, String roomCode) {
         String code = String.valueOf(roomCode == null ? "" : roomCode).trim().toUpperCase(java.util.Locale.ROOT);
         if (code.isEmpty()) return 0L;
         return prefs(context).getLong(KEY_SOS_LISTENER_BASELINE_PREFIX + code, 0L);
     }
 
-    /** Fungsi untuk setSosListenerBaselineAt. */
     public static void setSosListenerBaselineAt(Context context, String roomCode, long baselineMs) {
         String code = String.valueOf(roomCode == null ? "" : roomCode).trim().toUpperCase(java.util.Locale.ROOT);
         if (code.isEmpty()) return;
@@ -1106,7 +1015,6 @@ public final class UserPrefs {
         return prefs(context).getBoolean(KEY_ROOM_MAP_VISIBLE, false);
     }
 
-    /** Fungsi untuk setRoomMapVisible. */
     public static void setRoomMapVisible(Context context, boolean visible) {
         prefs(context).edit().putBoolean(KEY_ROOM_MAP_VISIBLE, visible).apply();
     }
@@ -1116,12 +1024,10 @@ public final class UserPrefs {
         return prefs(context).getBoolean(KEY_BATTERY_OPT_PROMPTED, false);
     }
 
-    /** Fungsi untuk setBatteryOptPrompted. */
     public static void setBatteryOptPrompted(Context context, boolean prompted) {
         prefs(context).edit().putBoolean(KEY_BATTERY_OPT_PROMPTED, prompted).apply();
     }
 
-    /** Fungsi untuk setPendingSosFocus. */
     public static void setPendingSosFocus(Context context, String roomId, String senderUid, String alertId, long createdAtMs) {
         if (context == null) return;
         String room = String.valueOf(roomId == null ? "" : roomId).trim().toUpperCase(java.util.Locale.ROOT);
@@ -1137,22 +1043,18 @@ public final class UserPrefs {
                 .apply();
     }
 
-    /** Ambil atau muat data PendingSosFocusRoom. */
     public static String getPendingSosFocusRoom(Context context) {
         return prefs(context).getString(KEY_SOS_FOCUS_ROOM, "");
     }
 
-    /** Ambil atau muat data PendingSosFocusSenderUid. */
     public static String getPendingSosFocusSenderUid(Context context) {
         return prefs(context).getString(KEY_SOS_FOCUS_SENDER_UID, "");
     }
 
-    /** Ambil atau muat data PendingSosFocusAlertId. */
     public static String getPendingSosFocusAlertId(Context context) {
         return prefs(context).getString(KEY_SOS_FOCUS_ALERT_ID, "");
     }
 
-    /** Ambil atau muat data PendingSosFocusCreatedAt. */
     public static long getPendingSosFocusCreatedAt(Context context) {
         return prefs(context).getLong(KEY_SOS_FOCUS_CREATED_AT, 0L);
     }
@@ -1162,12 +1064,10 @@ public final class UserPrefs {
         return prefs(context).getBoolean(KEY_SOS_FOCUS_CONSUMED, true);
     }
 
-    /** Fungsi untuk markPendingSosFocusConsumed. */
     public static void markPendingSosFocusConsumed(Context context) {
         prefs(context).edit().putBoolean(KEY_SOS_FOCUS_CONSUMED, true).apply();
     }
 
-    /** Fungsi untuk setSosUiBlink. */
     public static void setSosUiBlink(Context context, String roomId, String senderUid, String alertId, long untilMs) {
         if (context == null) return;
         String room = String.valueOf(roomId == null ? "" : roomId).trim().toUpperCase(java.util.Locale.ROOT);
@@ -1182,22 +1082,18 @@ public final class UserPrefs {
                 .apply();
     }
 
-    /** Ambil atau muat data SosUiRoom. */
     public static String getSosUiRoom(Context context) {
         return prefs(context).getString(KEY_SOS_UI_ROOM, "");
     }
 
-    /** Ambil atau muat data SosUiSenderUid. */
     public static String getSosUiSenderUid(Context context) {
         return prefs(context).getString(KEY_SOS_UI_SENDER_UID, "");
     }
 
-    /** Ambil atau muat data SosUiAlertId. */
     public static String getSosUiAlertId(Context context) {
         return prefs(context).getString(KEY_SOS_UI_ALERT_ID, "");
     }
 
-    /** Ambil atau muat data SosUiUntilMs. */
     public static long getSosUiUntilMs(Context context) {
         return prefs(context).getLong(KEY_SOS_UI_UNTIL_MS, 0L);
     }
@@ -1224,7 +1120,6 @@ public final class UserPrefs {
         if (room.equals(storedRoom) && aId.equals(storedAlert)) clearSosUiBlink(context);
     }
 
-    /** Ambil atau muat data NightMode. */
     public static int getNightMode(Context context) {
         if (!prefs(context).getBoolean("theme_v2_light_default_applied", false)) {
             prefs(context).edit()
@@ -1240,7 +1135,6 @@ public final class UserPrefs {
         return mode;
     }
 
-    /** Fungsi untuk setNightMode. */
     public static void setNightMode(Context context, int mode) {
         prefs(context).edit().putInt(KEY_NIGHT_MODE, mode).apply();
     }
@@ -1250,7 +1144,6 @@ public final class UserPrefs {
         return prefs(context).getBoolean(KEY_MAP_TYPE_SATELLITE, false);
     }
 
-    /** Fungsi untuk setMapTypeSatellite. */
     public static void setMapTypeSatellite(Context context, boolean satellite) {
         prefs(context).edit().putBoolean(KEY_MAP_TYPE_SATELLITE, satellite).apply();
     }
@@ -1260,7 +1153,6 @@ public final class UserPrefs {
         return prefs(context).getBoolean(KEY_MAP_TRAFFIC_ENABLED, false);
     }
 
-    /** Fungsi untuk setMapTrafficEnabled. */
     public static void setMapTrafficEnabled(Context context, boolean enabled) {
         prefs(context).edit().putBoolean(KEY_MAP_TRAFFIC_ENABLED, enabled).apply();
     }

@@ -54,9 +54,7 @@ public class MyQrActivity extends BaseActivity {
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,9 +128,7 @@ public class MyQrActivity extends BaseActivity {
         generateAndDisplayMyQr();
     }
 
-    // =========================================================================
     // SEKSYEN: ONDESTROY
-    // =========================================================================
     /** Pembersihan memori, buang listener, dan tutup sambungan. */
     @Override
     protected void onDestroy() {
@@ -140,7 +136,6 @@ public class MyQrActivity extends BaseActivity {
         executor.shutdownNow();
     }
 
-    /** Fungsi untuk generateAndDisplayMyQr. */
     private void generateAndDisplayMyQr() {
         executor.execute(() -> {
             String payload = QrCodeUtils.createQrPayload(uid, publicId, name);

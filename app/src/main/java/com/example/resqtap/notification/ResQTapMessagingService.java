@@ -19,14 +19,12 @@ import java.util.Map;
  * FCM Service: handle push notification background untuk SOS alert, call, dan admin notice.
  */
 public class ResQTapMessagingService extends FirebaseMessagingService {
-    /** Fungsi untuk onNewToken. */
     @Override
     public void onNewToken(String token) {
         super.onNewToken(token);
         persistToken(this, token);
     }
 
-    /** Fungsi untuk onMessageReceived. */
     @Override
     public void onMessageReceived(RemoteMessage message) {
         super.onMessageReceived(message);
@@ -87,7 +85,6 @@ public class ResQTapMessagingService extends FirebaseMessagingService {
         }
     }
 
-    /** Fungsi untuk persistToken. */
     private static void persistToken(Context context, String token) {
         String clean = safe(token);
         if (clean.isEmpty()) return;
@@ -105,13 +102,11 @@ public class ResQTapMessagingService extends FirebaseMessagingService {
         }
     }
 
-    /** Fungsi untuk value. */
     private static String value(Map<String, String> data, String key) {
         if (data == null || key == null) return "";
         return safe(data.get(key));
     }
 
-    /** Fungsi untuk safe. */
     private static String safe(String value) {
         return value == null ? "" : value.trim();
     }

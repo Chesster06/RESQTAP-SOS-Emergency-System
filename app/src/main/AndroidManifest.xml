@@ -44,11 +44,7 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
-        <!-- ================================================================= -->
-        <!-- PHASE 1: LANDING PAGE, AUTHENTICATION & ACCESS VERIFICATION        -->
-        <!-- ================================================================= -->
-
-        <!-- 1.1 Splash Screen: Application entry point & QR Connect Deep Links handler -->
+        <!-- Authentication -->
         <activity
             android:name=".app.SplashActivity"
             android:theme="@style/Theme.ResQTap.Splash"
@@ -59,7 +55,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- App Links & Deep Links for Instant Connect / QR Friend Pairing -->
+            <!-- App Links & Deep Links for QR Connect -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -80,152 +76,111 @@
             </intent-filter>
         </activity>
 
-        <!-- 1.2 Get Started: First-time onboarding introduction screen -->
         <activity
             android:name=".auth.GetStartedActivity"
             android:exported="false" />
 
-        <!-- 1.3 Login: Email & Password verification / Google Sign-In -->
         <activity
             android:name=".auth.LoginActivity"
             android:exported="false" />
 
-        <!-- 1.4 Forgot Password: Password reset dispatch via email link -->
         <activity
             android:name=".auth.ForgotPasswordActivity"
             android:exported="false" />
 
-        <!-- 1.5 Account Registration: New user registration form -->
         <activity
             android:name=".auth.RegisterActivity"
             android:exported="false" />
 
-        <!-- ================================================================= -->
-        <!-- PHASE 2: MAIN DASHBOARD (HOME) & EMERGENCY UTILITY MODULES         -->
-        <!-- ================================================================= -->
-
-        <!-- 2.1 Main Dashboard (Home): Primary SOS trigger, room status & tab navigation -->
+        <!-- Main dashboard and emergency utilities -->
         <activity
             android:name=".home.MainActivity"
             android:exported="false"
             android:launchMode="singleTop"
             android:windowSoftInputMode="adjustNothing" />
 
-        <!-- 2.2 Quick Message: Pre-composed emergency distress dispatch templates -->
         <activity
             android:name=".chat.QuickMessageActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustNothing" />
 
-        <!-- 2.2.1 BIM Sign Dictionary: 465 categorized signs dictionary & search -->
-        <activity
-            android:name=".chat.BimSignDictionaryActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustNothing" />
-
-        <!-- 2.3 Nearby Hospitals: GPS-driven medical care & emergency room locator -->
         <activity
             android:name=".map.NearbyHospitalActivity"
             android:exported="false" />
 
-        <!-- 2.4 Emergency Contacts Management: Add / edit next-of-kin & authority contacts -->
         <activity
             android:name=".contacts.EmergencyContactsActivity"
             android:exported="false"
             android:theme="@style/Theme.ResQTap.BottomSheetActivity"
             android:windowSoftInputMode="adjustResize" />
 
-        <!-- 2.5 Emergency Contacts List: Full directory of registered emergency contacts -->
         <activity
             android:name=".contacts.EmergencyContactsListActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustNothing" />
 
-        <!-- 2.6 Medical News & Guidelines: First-aid instructions & health advisories -->
         <activity
             android:name=".news.MedicalNewsActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustNothing" />
 
-        <!-- 2.7 Notifications Center: Audit history of alerts, room invitations & activity -->
         <activity
             android:name=".notification.NotificationsActivity"
             android:exported="false" />
 
-        <!-- 2.8 Customer Support & Help Desk: Ticket submission & support inquiries -->
         <activity
             android:name=".report.SupportActivity"
             android:exported="false" />
 
-        <!-- 2.9 Incident Reporting: Location-tagged emergency incident report submission -->
         <activity
             android:name=".report.ReportActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
-        <!-- ================================================================= -->
-        <!-- PHASE 3: TRUSTED CONTACT NETWORK (FRIENDS & QR CONNECT)            -->
-        <!-- ================================================================= -->
-
-        <!-- 3.1 Friends List: Trusted personal emergency contact network -->
+        <!-- Contacts and QR connect -->
         <activity
             android:name=".friend.FriendsActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
-        <!-- 3.2 Friend Requests: Manage inbound and outbound connection requests -->
         <activity
             android:name=".friend.FriendRequestsActivity"
             android:exported="false" />
 
-        <!-- 3.3 Personal QR Code: Generate dynamic QR code for instant peer pairing -->
         <activity
             android:name=".friend.MyQrActivity"
             android:exported="false" />
 
-        <!-- 3.4 QR Scanner: Camera scanner for rapid contact connection without typing ID -->
         <activity
             android:name=".friend.ScanQrActivity"
             android:exported="false" />
 
-        <!-- ================================================================= -->
-        <!-- PHASE 4: EMERGENCY ROOMS & LIVE TRACKING                           -->
-        <!-- ================================================================= -->
-
-        <!-- 4.1 Room Hub: Central emergency room management and operations hub -->
+        <!-- Rooms and location tracking -->
         <activity
             android:name=".room.RoomHubActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustNothing" />
 
-        <!-- 4.2 Active Rooms List: Displays all emergency rooms joined by the user -->
         <activity
             android:name=".room.RoomListActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustNothing" />
 
-        <!-- 4.3 Live Room Map: Interactive map displaying concurrent member positions -->
         <activity
             android:name=".room.RoomMapActivity"
             android:exported="false" />
 
-        <!-- 4.4 Room Group Chat: Real-time multi-user communication room channel -->
         <activity
             android:name=".room.RoomChatActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
-        <!-- 4.5 Background Location Tracking Service (Foreground GPS & Telemetry) -->
         <service
             android:name=".room.LiveRoomTrackingService"
             android:exported="false"
             android:foregroundServiceType="location|dataSync" />
 
-        <!-- ================================================================= -->
-        <!-- PHASE 5: CORE SOS ENGINE & EMERGENCY DISPATCH                      -->
-        <!-- ================================================================= -->
-
-        <!-- 5.1 SOS Dispatch Broadcast (Radar & GPS): Emits live emergency distress signal -->
+        <!-- SOS dispatch and alerts -->
         <activity
             android:name=".sos.SendingAlarmActivity"
             android:showOnLockScreen="true"
@@ -234,7 +189,6 @@
             android:launchMode="singleTop"
             android:exported="false" />
 
-        <!-- 5.2 Inbound SOS Siren Alarm: Lock-screen audio/haptic alarm for room members -->
         <activity
             android:name=".sos.SosAlarmActivity"
             android:showOnLockScreen="true"
@@ -243,20 +197,17 @@
             android:launchMode="singleTop"
             android:exported="false" />
 
-        <!-- 5.3 SOS Case Progress (4-Stage Stepper): Visual status tracking for incident lifecycle -->
         <activity
             android:name=".sos.SosProgressActivity"
             android:exported="false"
             android:launchMode="singleTop" />
 
-        <!-- 5.4 SOS Emergency Livechat: Direct real-time chat between victim and responders -->
         <activity
             android:name=".sos.SosLivechatActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize"
             android:launchMode="singleTop" />
 
-        <!-- 5.5 Alarm Snooze Receiver: Handles notification-based alarm silencing -->
         <receiver
             android:name=".sos.SosSnoozeReceiver"
             android:exported="false">
@@ -265,11 +216,7 @@
             </intent-filter>
         </receiver>
 
-        <!-- ================================================================= -->
-        <!-- PHASE 6: WEBRTC CALLING & PUSH MESSAGING                           -->
-        <!-- ================================================================= -->
-
-        <!-- 6.1 Inbound Call Overlay: Full-screen incoming voice/video call prompt -->
+        <!-- Calling and messaging -->
         <activity
             android:name=".call.IncomingCallActivity"
             android:showOnLockScreen="true"
@@ -277,43 +224,36 @@
             android:excludeFromRecents="true"
             android:exported="false" />
 
-        <!-- 6.2 Video Calling: Interactive full-duplex WebRTC video conference -->
         <activity
             android:name=".call.VideoCallActivity"
             android:showOnLockScreen="true"
             android:turnScreenOn="true"
             android:exported="false" />
 
-        <!-- 6.3 Voice Calling: Real-time WebRTC emergency voice intercom session -->
         <activity
             android:name=".call.VoiceCallActivity"
             android:showOnLockScreen="true"
             android:turnScreenOn="true"
             android:exported="false" />
 
-        <!-- 6.4 WebRTC Background Calling Service: Manages ongoing media projections & streams -->
         <service
             android:name=".call.CallService"
             android:exported="false"
             android:foregroundServiceType="mediaProjection|camera|microphone" />
 
-        <!-- 6.5 Direct Chat: One-on-one direct peer messaging -->
         <activity
             android:name=".chat.ChatActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
-        <!-- 6.6 Support Livechat: Real-time support channel with active desk agents -->
         <activity
             android:name=".chat.LivechatActivity"
             android:exported="false" />
 
-        <!-- 6.7 Fullscreen Message Viewer: Inspect extended messages or media attachments -->
         <activity
             android:name=".chat.FullscreenMessageActivity"
             android:exported="false" />
 
-        <!-- 6.8 Firebase Cloud Messaging (FCM) Service: Processes high-priority push notifications -->
         <service
             android:name=".notification.ResQTapMessagingService"
             android:exported="false">
@@ -322,56 +262,42 @@
             </intent-filter>
         </service>
 
-        <!-- ================================================================= -->
-        <!-- PHASE 7: APPLICATION SECURITY (APP LOCK, BIOMETRICS & PIN)         -->
-        <!-- ================================================================= -->
-
-        <!-- 7.1 App Lock Screen: Fingerprint biometric or 4-digit PIN access gate -->
+        <!-- App security and biometric lock -->
         <activity
             android:name=".security.AppLockActivity"
             android:exported="false"
             android:launchMode="singleTop"
             android:windowSoftInputMode="adjustNothing" />
 
-        <!-- 7.2 Security PIN Setup: Create, verify, or update 4-digit security passcode -->
         <activity
             android:name=".security.SetPinActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustNothing" />
 
-        <!-- ================================================================= -->
-        <!-- PHASE 8: USER PROFILE & SYSTEM INFORMATION (ABOUT RESQTAP)         -->
-        <!-- ================================================================= -->
-
-        <!-- 8.1 User Profile: Displays personal records, health tags & profile photo -->
+        <!-- User profile and settings -->
         <activity
             android:name=".profile.ProfileActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustNothing" />
 
-        <!-- 8.2 Edit Profile: Modify display name, phone number, and emergency medical data -->
         <activity
             android:name=".profile.EditProfileActivity"
             android:exported="false" />
 
-        <!-- 8.3 General Settings: Configure Dark Mode themes, siren audio & alert behavior -->
         <activity
             android:name=".profile.SettingsActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustNothing" />
 
-        <!-- 8.4 Security Settings: Enable Fingerprint Biometrics, App Lock, and PIN security -->
         <activity
             android:name=".profile.SecuritySettingsActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustNothing" />
 
-        <!-- 8.5 Language Preferences: Locale toggling between Bahasa Melayu and English -->
         <activity
             android:name=".profile.LanguageActivity"
             android:exported="false" />
 
-        <!-- 8.6 About ResQTap: System version, developer info, terms of service & credits -->
         <activity
             android:name=".profile.AboutResQTapActivity"
             android:exported="false" />

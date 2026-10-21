@@ -108,7 +108,6 @@ public final class MapTypeBottomSheet {
         dialog.show();
     }
 
-    /** Fungsi untuk applyResQTapMapStyle. */
     private static void applyResQTapMapStyle(Activity activity, GoogleMap map, boolean enabled) {
         if (activity == null || map == null) return;
         try {
@@ -117,7 +116,6 @@ public final class MapTypeBottomSheet {
         }
     }
 
-    /** Fungsi untuk setSelected. */
     private static void setSelected(MaterialCardView card, ImageView check, boolean selected) {
         if (card != null) {
             int stroke = selected ? R.color.brand_primary : R.color.divider;

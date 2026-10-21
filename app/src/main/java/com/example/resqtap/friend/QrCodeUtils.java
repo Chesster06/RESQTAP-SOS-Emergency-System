@@ -38,7 +38,6 @@ public class QrCodeUtils {
         return !trimmed.matches(".*[.#$\\[\\]/].*");
     }
 
-    /** Fungsi untuk createQrPayload. */
     public static String createQrPayload(String uid, String publicId, String name) {
         try {
             JSONObject obj = new JSONObject();
@@ -52,7 +51,6 @@ public class QrCodeUtils {
         }
     }
 
-    /** Fungsi untuk parseQrPayload. */
     public static QrPayload parseQrPayload(String scannedData) {
         QrPayload payload = new QrPayload();
         if (scannedData == null || scannedData.trim().isEmpty()) return payload;
@@ -94,7 +92,6 @@ public class QrCodeUtils {
         return payload;
     }
 
-    /** Fungsi untuk generateQrCodeBitmap. */
     public static Bitmap generateQrCodeBitmap(String content, int width, int height) {
         if (content == null || content.trim().isEmpty()) return null;
         try {

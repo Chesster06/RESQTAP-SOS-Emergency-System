@@ -28,7 +28,6 @@ public final class NotificationHelper {
     public static final String CHANNEL_ID_LOCAL = "local_notifications_v1";
     private static final String SOS_TAG = "sos_alert";
 
-    /** Fungsi untuk createNotificationChannel. */
     public static void createNotificationChannel(Context context) {
         if (context == null) return;
         if (Build.VERSION.SDK_INT < 26) return;
@@ -112,7 +111,6 @@ public final class NotificationHelper {
         notificationManager.notify(9911, builder.build());
     }
 
-    /** Fungsi untuk ensureSosChannel. */
     public static void ensureSosChannel(Context context) {
         if (context == null) return;
         if (Build.VERSION.SDK_INT < 26) return;
@@ -240,14 +238,12 @@ public final class NotificationHelper {
         }
     }
 
-    /** Fungsi untuk cancelSos. */
     public static void cancelSos(Context context, String alertId) {
         if (context == null) return;
         String aId = String.valueOf(alertId == null ? "" : alertId).trim();
         NotificationManagerCompat.from(context).cancel(SOS_TAG, notificationIdForAlert(aId));
     }
 
-    /** Fungsi untuk notificationIdForAlert. */
     private static int notificationIdForAlert(String alertId) {
         String aId = String.valueOf(alertId == null ? "" : alertId).trim();
         if (aId.isEmpty()) {

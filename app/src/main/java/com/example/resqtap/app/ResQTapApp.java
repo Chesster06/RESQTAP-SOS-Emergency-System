@@ -30,16 +30,13 @@ public class ResQTapApp extends Application {
         return instance;
     }
 
-    /** Fungsi untuk attachBaseContext. */
     @Override
     protected void attachBaseContext(Context base) {
         Context wrapped = LocaleUtils.wrap(base);
         super.attachBaseContext(wrapped == null ? base : wrapped);
     }
 
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     public void onCreate() {

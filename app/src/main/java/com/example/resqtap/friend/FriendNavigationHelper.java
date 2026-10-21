@@ -11,7 +11,6 @@ import android.content.Intent;
 public final class FriendNavigationHelper {
     private FriendNavigationHelper() {}
 
-    /** Fungsi untuk navigate. */
     public static void navigate(Activity from, Class<?> to) {
         if (from == null || to == null || from.getClass().equals(to)) return;
         Intent intent = new Intent(from, to);

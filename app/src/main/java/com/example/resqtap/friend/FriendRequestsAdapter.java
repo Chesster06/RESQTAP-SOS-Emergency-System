@@ -44,7 +44,6 @@ public class FriendRequestsAdapter extends RecyclerView.Adapter<FriendRequestsAd
         this.listener = listener;
     }
 
-    /** Fungsi untuk setRequests. */
     public void setRequests(List<FirebaseFriendClient.FriendRequest> newRequests) {
         requests.clear();
         if (newRequests != null) requests.addAll(newRequests);

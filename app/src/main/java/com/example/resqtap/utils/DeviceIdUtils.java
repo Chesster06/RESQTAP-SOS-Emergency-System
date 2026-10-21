@@ -13,7 +13,6 @@ import com.google.firebase.auth.FirebaseUser;
 public final class DeviceIdUtils {
     private DeviceIdUtils() {}
 
-    /** Ambil atau muat data StableUid. */
     public static String getStableUid(Context context) {
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();

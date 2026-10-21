@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=admin-call-buttons-112">
+  <link rel="stylesheet" href="/styles.css?v=orig-restore-115">
   <!-- Leaflet.js: open-source map library for Live Map view -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css"/>
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
@@ -150,12 +150,6 @@
           <i data-lucide="clipboard-list" aria-hidden="true"></i>
           <strong>Incident reports</strong>
           <span>Submit reports with status, location, media, and admin review notes for follow-up work.</span>
-        </div>
-        <div class="feature-card reveal is-visible">
-          <i data-lucide="hospital" aria-hidden="true"></i>
-          <strong>Nearby hospitals</strong>
-          <span>Surface nearby care options from the app so users can move from alert to action faster.</span>
-        </div>
       </div>
     </section>
 
@@ -504,10 +498,7 @@
           <i data-lucide="sparkles" aria-hidden="true"></i>
           <span>Highlights</span>
         </button>
-        <button class="nav-button" data-view="hospitals" data-label="Hospitals" type="button">
-          <i data-lucide="hospital" aria-hidden="true"></i>
-          <span>Hospitals</span>
-        </button>
+
         <button class="nav-button" data-view="notices" data-label="Notifications" type="button">
           <i data-lucide="bell-ring" aria-hidden="true"></i>
           <span>Notifications</span>
@@ -880,34 +871,7 @@
         </div>
       </section>
 
-      <section id="hospitalsView" class="view-section hidden">
-        <div class="panel">
-          <div class="panel-header">
-            <div>
-              <h3>Emergency Hospitals & Facilities</h3>
-              <p class="muted" style="margin: 4px 0 0; font-size: 0.85rem;">Direktori hospital, klinik & balai kecemasan diselaraskan secara langsung daripada Supabase PostgreSQL (PostGIS Enabled).</p>
-            </div>
-            <div class="history-controls">
-              <span id="hospitalsCount" class="muted">Loading facilities...</span>
-            </div>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Facility Name</th>
-                  <th>Category</th>
-                  <th>Address</th>
-                  <th>Contact</th>
-                  <th>Coordinates</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="hospitalsTableBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
+
 
       <section id="logsView" class="view-section hidden">
         <div class="panel">
@@ -1386,7 +1350,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=admin-clear-auth-fix-1"></script>
+  <script type="module" src="/app.js?v=orig-restore-115"></script>
 </body>
 </html>
 

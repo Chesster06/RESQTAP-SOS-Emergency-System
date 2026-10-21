@@ -8,9 +8,7 @@
     android:background="@color/bg"
     tools:context=".profile.EditProfileActivity">
 
-    <!-- ══════════════════════════════════════
-         TOP BAR — Clean & Centered Title
-         ══════════════════════════════════════ -->
+    <!-- Top bar -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/top_bar"
         android:layout_width="0dp"
@@ -49,9 +47,7 @@
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- ══════════════════════════════════════
-         SCROLLABLE BODY
-         ══════════════════════════════════════ -->
+    <!-- Scrollable body -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scroll"
         android:layout_width="0dp"

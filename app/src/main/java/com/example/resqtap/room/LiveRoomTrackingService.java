@@ -114,9 +114,7 @@ public class LiveRoomTrackingService extends Service {
         }
     }
 
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     public void onCreate() {
@@ -124,7 +122,6 @@ public class LiveRoomTrackingService extends Service {
         ensureChannel();
         fused = LocationServices.getFusedLocationProviderClient(this);
         batteryReceiver = new android.content.BroadcastReceiver() {
-            /** Fungsi untuk onReceive. */
     @Override
     public void onReceive(android.content.Context context, Intent intent) {
                 if (Intent.ACTION_BATTERY_LOW.equals(intent.getAction()) || Intent.ACTION_BATTERY_CHANGED.equals(intent.getAction())) {
@@ -148,7 +145,6 @@ public class LiveRoomTrackingService extends Service {
         } catch (Exception ignored) {}
     }
 
-    /** Fungsi untuk onStartCommand. */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         ensureChannel();
@@ -233,9 +229,7 @@ public class LiveRoomTrackingService extends Service {
         return START_STICKY;
     }
 
-    // =========================================================================
     // SEKSYEN: ONDESTROY
-    // =========================================================================
     /** Pembersihan memori, buang listener, dan tutup sambungan. */
     @Override
     public void onDestroy() {
@@ -253,7 +247,6 @@ public class LiveRoomTrackingService extends Service {
         super.onDestroy();
     }
 
-    /** Fungsi untuk startRoomDeletedListener. */
     private void startRoomDeletedListener() {
         if (roomDeletedListener != null) return;
         roomDeletedListener = FirebaseRoomClient.listenRoomDeleted(roomCode, () -> {
@@ -278,7 +271,6 @@ public class LiveRoomTrackingService extends Service {
         });
     }
 
-    /** Fungsi untuk stopRoomDeletedListener. */
     private void stopRoomDeletedListener() {
         if (roomDeletedListener == null) return;
         try {
@@ -288,7 +280,6 @@ public class LiveRoomTrackingService extends Service {
         roomDeletedListener = null;
     }
 
-    /** Fungsi untuk startForceLeaveListener. */
     private void startForceLeaveListener() {
         if (forceLeaveListener != null) return;
         forceLeaveListener = FirebaseRoomClient.listenForceLeave(roomCode, uid, (byUid, atMillis) -> {
@@ -314,7 +305,6 @@ public class LiveRoomTrackingService extends Service {
         });
     }
 
-    /** Fungsi untuk stopForceLeaveListener. */
     private void stopForceLeaveListener() {
         if (forceLeaveListener == null) return;
         try {
@@ -324,12 +314,10 @@ public class LiveRoomTrackingService extends Service {
         forceLeaveListener = null;
     }
 
-    /** Fungsi untuk startForegroundNotificationWatchdog. */
     private void startForegroundNotificationWatchdog() {
 
         stopForegroundNotificationWatchdog();
         fgEnsureRunnable = new Runnable() {
-            /** Fungsi untuk run. */
     @Override
     public void run() {
                 try {
@@ -347,7 +335,6 @@ public class LiveRoomTrackingService extends Service {
         fgHandler.postDelayed(fgEnsureRunnable, 5000L);
     }
 
-    /** Fungsi untuk stopForegroundNotificationWatchdog. */
     private void stopForegroundNotificationWatchdog() {
         try {
             Runnable r = fgEnsureRunnable;
@@ -357,13 +344,11 @@ public class LiveRoomTrackingService extends Service {
         fgEnsureRunnable = null;
     }
 
-    /** Fungsi untuk onBind. */
     @Override
     public IBinder onBind(Intent intent) {
         return null;
     }
 
-    /** Fungsi untuk startTracking. */
     private void startTracking() {
         if (running) return;
         if (!PermissionUtils.hasAnyLocation(this)) return;
@@ -384,7 +369,6 @@ public class LiveRoomTrackingService extends Service {
 
         if (callback == null) {
             callback = new LocationCallback() {
-                /** Fungsi untuk onLocationResult. */
     @Override
     public void onLocationResult(LocationResult result) {
                     if (result == null) return;
@@ -405,7 +389,6 @@ public class LiveRoomTrackingService extends Service {
         }
     }
 
-    /** Fungsi untuk stopTracking. */
     private void stopTracking() {
         if (!running) return;
         if (callback == null) return;
@@ -722,7 +705,6 @@ public class LiveRoomTrackingService extends Service {
 
     private static volatile boolean loggedEnv = false;
 
-    /** Fungsi untuk logServiceEnvOnce. */
     private void logServiceEnvOnce(String reason) {
         if (loggedEnv) return;
         loggedEnv = true;
@@ -755,7 +737,6 @@ public class LiveRoomTrackingService extends Service {
         }
     }
 
-    /** Fungsi untuk startIncomingCallListener. */
     private void startIncomingCallListener() {
         if (uid == null || uid.trim().isEmpty()) return;
         if (com.example.resqtap.call.IncomingCallManager.getInstance() != null) {
@@ -763,12 +744,10 @@ public class LiveRoomTrackingService extends Service {
         }
     }
 
-    /** Fungsi untuk stopIncomingCallListener. */
     private void stopIncomingCallListener() {
         // Do not stop globally if user is still logged in, IncomingCallManager handles lifecycle
     }
 
-    /** Fungsi untuk triggerVibrate. */
     private void triggerVibrate() {
         try {
             if (android.os.Build.VERSION.SDK_INT >= 31) {
@@ -789,7 +768,6 @@ public class LiveRoomTrackingService extends Service {
         }
     }
 
-    /** Fungsi untuk ensureChannel. */
     private void ensureChannel() {
         if (Build.VERSION.SDK_INT < 26) return;
         NotificationManager nm = getSystemService(NotificationManager.class);
@@ -803,7 +781,6 @@ public class LiveRoomTrackingService extends Service {
         nm.createNotificationChannel(ch);
     }
 
-    /** Fungsi untuk buildNotification. */
     private Notification buildNotification(String room) {
         Intent open = new Intent(this, RoomMapActivity.class);
         open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);

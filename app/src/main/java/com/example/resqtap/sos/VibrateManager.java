@@ -21,12 +21,10 @@ public final class VibrateManager {
     private static volatile Vibrator activeVibrator;
     private static volatile VibratorManager activeVibratorManager;
 
-    /** Ambil atau muat data ActiveAlertId. */
     public static String getActiveAlertId() {
         return activeAlertId == null ? "" : activeAlertId;
     }
 
-    /** Fungsi untuk startEmergency10s. */
     public static void startEmergency10s(Context context, String alertId) {
         if (context == null) return;
         String id = String.valueOf(alertId == null ? "" : alertId).trim();
@@ -66,7 +64,6 @@ public final class VibrateManager {
         }
     }
 
-    /** Fungsi untuk stop. */
     public static void stop(Context context, String alertId) {
         if (context == null) return;
         String id = String.valueOf(alertId == null ? "" : alertId).trim();
@@ -86,7 +83,6 @@ public final class VibrateManager {
         cancelInternal(context);
     }
 
-    /** Fungsi untuk stopAll. */
     public static void stopAll(Context context) {
         synchronized (LOCK) {
             activeAlertId = "";
@@ -153,7 +149,6 @@ public final class VibrateManager {
         } catch (Exception ignored) {}
     }
 
-    /** Ambil atau muat data Vibrator. */
     private static Vibrator getVibrator(Context context) {
         try {
             if (Build.VERSION.SDK_INT >= 31) {

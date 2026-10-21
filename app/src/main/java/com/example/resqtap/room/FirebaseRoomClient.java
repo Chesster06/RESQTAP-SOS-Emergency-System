@@ -146,7 +146,6 @@ public final class FirebaseRoomClient {
     private FirebaseRoomClient() {
     }
 
-    /** Fungsi untuk db. */
     private static DatabaseReference db() {
 
         return FirebaseDatabase.getInstance(DATABASE_URL).getReference();
@@ -186,7 +185,6 @@ public final class FirebaseRoomClient {
         void onResult(String roomCode);
     }
 
-    /** Fungsi untuk normalizeCode. */
     private static String normalizeCode(String code) {
         String in = String.valueOf(code == null ? "" : code).trim().toUpperCase();
         StringBuilder sb = new StringBuilder();
@@ -197,7 +195,6 @@ public final class FirebaseRoomClient {
         return sb.toString();
     }
 
-    /** Fungsi untuk await. */
     private static <T> T await(Task<T> task) throws Exception {
         try {
             return Tasks.await(task, TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -220,7 +217,6 @@ public final class FirebaseRoomClient {
         }
     }
 
-    /** Fungsi untuk createRoom. */
     public static void createRoom(String roomCode, String uid, String name, String password) throws Exception {
         String code = normalizeCode(roomCode);
         String u = String.valueOf(uid == null ? "" : uid).trim();
@@ -304,7 +300,6 @@ public final class FirebaseRoomClient {
         } catch (Exception ignored) {}
     }
 
-    /** Fungsi untuk createRoomWithFriends. */
     public static String createRoomWithFriends(String roomName, String creatorUid, String creatorName, List<com.example.resqtap.friend.FirebaseFriendClient.FriendInfo> friends) throws Exception {
         String u = String.valueOf(creatorUid == null ? "" : creatorUid).trim();
         if (u.isEmpty()) throw new RuntimeException("invalid_uid");
@@ -370,7 +365,6 @@ public final class FirebaseRoomClient {
         return code;
     }
 
-    /** Fungsi untuk addFriendToRoom. */
     public static void addFriendToRoom(String roomCode, String roomName, String friendUid, String friendName, String inviterName) throws Exception {
         String code = String.valueOf(roomCode == null ? "" : roomCode).trim();
         String fUid = String.valueOf(friendUid == null ? "" : friendUid).trim();
@@ -411,7 +405,6 @@ public final class FirebaseRoomClient {
         await(db().updateChildren(updates));
     }
 
-    /** Fungsi untuk joinRoom. */
     public static void joinRoom(String roomCode, String uid, String name, String password) throws Exception {
         String code = normalizeCode(roomCode);
         String u = String.valueOf(uid == null ? "" : uid).trim();
@@ -478,12 +471,10 @@ public final class FirebaseRoomClient {
         await(db().updateChildren(updates));
     }
 
-    /** Fungsi untuk publishLocation. */
     public static void publishLocation(String roomCode, String uid, String name, String photoUrl, double lat, double lng) throws Exception {
         publishLocation(roomCode, uid, name, photoUrl, "", lat, lng, -1);
     }
 
-    /** Fungsi untuk publishLocation. */
     public static void publishLocation(String roomCode, String uid, String name, String photoUrl, String photoB64, double lat, double lng, int batteryPct) throws Exception {
         String code = normalizeCode(roomCode);
         String u = String.valueOf(uid == null ? "" : uid).trim();
@@ -510,12 +501,10 @@ public final class FirebaseRoomClient {
         await(db().updateChildren(updates));
     }
 
-    /** Fungsi untuk publishLocationQueued. */
     public static void publishLocationQueued(String roomCode, String uid, String name, String photoUrl, double lat, double lng) {
         publishLocationQueued(roomCode, uid, name, photoUrl, "", lat, lng, -1);
     }
 
-    /** Fungsi untuk publishLocationQueued. */
     public static void publishLocationQueued(String roomCode, String uid, String name, String photoUrl, String photoB64, double lat, double lng, int batteryPct) {
         try {
             String u = String.valueOf(uid == null ? "" : uid).trim();
@@ -552,17 +541,14 @@ public final class FirebaseRoomClient {
         }
     }
 
-    /** Fungsi untuk upsertMemberPresence. */
     public static void upsertMemberPresence(String roomCode, String uid, String name) throws Exception {
         upsertMemberPresence(roomCode, uid, name, "");
     }
 
-    /** Fungsi untuk upsertMemberPresence. */
     public static void upsertMemberPresence(String roomCode, String uid, String name, String photoUrl) throws Exception {
         upsertMemberPresence(roomCode, uid, name, photoUrl, "", -1);
     }
 
-    /** Fungsi untuk upsertMemberPresence. */
     public static void upsertMemberPresence(String roomCode, String uid, String name, String photoUrl, String photoB64, int batteryPct) throws Exception {
         String code = normalizeCode(roomCode);
         String u = String.valueOf(uid == null ? "" : uid).trim();
@@ -585,12 +571,10 @@ public final class FirebaseRoomClient {
         await(db().child("rooms").child(code).child("members").child(u).updateChildren(member));
     }
 
-    /** Fungsi untuk upsertMemberPresenceQueued. */
     public static void upsertMemberPresenceQueued(String roomCode, String uid, String name, String photoUrl) {
         upsertMemberPresenceQueued(roomCode, uid, name, photoUrl, "", -1);
     }
 
-    /** Fungsi untuk upsertMemberPresenceQueued. */
     public static void upsertMemberPresenceQueued(String roomCode, String uid, String name, String photoUrl, String photoB64, int batteryPct) {
         try {
             String u = String.valueOf(uid == null ? "" : uid).trim();
@@ -633,7 +617,6 @@ public final class FirebaseRoomClient {
         }
     }
 
-    /** Ambil atau muat data CreatorUid. */
     public static String fetchCreatorUid(String roomCode) throws Exception {
         String code = normalizeCode(roomCode);
         if (code.length() < 4) throw new RuntimeException("invalid_room_code");
@@ -641,7 +624,6 @@ public final class FirebaseRoomClient {
         return snap == null ? "" : String.valueOf(snap.getValue() == null ? "" : snap.getValue()).trim();
     }
 
-    /** Fungsi untuk backfillMemberPhotoUrlQueued. */
     public static void backfillMemberPhotoUrlQueued(String roomCode, String uid, String photoUrl) {
         try {
             String code = normalizeCode(roomCode);
@@ -705,7 +687,6 @@ public final class FirebaseRoomClient {
         void onPhotoB64(String uid, String photoB64);
     }
 
-    /** Ambil atau muat data UserPhotoB64Queued. */
     public static void fetchUserPhotoB64Queued(String uid, PhotoB64Handler handler) {
         try {
             String u = String.valueOf(uid == null ? "" : uid).trim();
@@ -722,7 +703,6 @@ public final class FirebaseRoomClient {
         }
     }
 
-    /** Fungsi untuk backfillMemberPhotoB64Queued. */
     public static void backfillMemberPhotoB64Queued(String roomCode, String uid, String photoB64) {
         try {
             String code = normalizeCode(roomCode);
@@ -847,7 +827,6 @@ public final class FirebaseRoomClient {
         }
     }
 
-    /** Ambil atau muat data ServerNowQueued. */
     public static void fetchServerNowQueued(ServerTimeResult cb) {
         try {
             db().child(".info").child("serverTimeOffset").get()
@@ -869,7 +848,6 @@ public final class FirebaseRoomClient {
         }
     }
 
-    /** Fungsi untuk cancelRoomSosQueued. */
     public static void cancelRoomSosQueued(String roomCode, String sosId, String fromDeviceId) {
         try {
             String code = normalizeCode(roomCode);
@@ -1133,12 +1111,10 @@ public final class FirebaseRoomClient {
         }
     }
 
-    /** Fungsi untuk listenBells. */
     public static ChildEventListener listenBells(String roomCode, String uid, BellHandler handler) {
         return listenBells(roomCode, uid, "", handler);
     }
 
-    /** Fungsi untuk listenBells. */
     public static ChildEventListener listenBells(String roomCode, String uid, String deviceId, BellHandler handler) {
         String code = normalizeCode(roomCode);
         String u = String.valueOf(uid == null ? "" : uid).trim();
@@ -1195,12 +1171,10 @@ public final class FirebaseRoomClient {
         return l;
     }
 
-    /** Fungsi untuk listenRoomSos. */
     public static ChildEventListener listenRoomSos(String roomCode, String deviceId, RoomSosHandler handler) {
         return listenRoomSosSince(roomCode, deviceId, 0L, handler);
     }
 
-    /** Fungsi untuk listenRoomSosSince. */
     public static ChildEventListener listenRoomSosSince(String roomCode, String deviceId, long sinceCreatedAtMs, RoomSosHandler handler) {
         String code = normalizeCode(roomCode);
         if (code.length() < 4) throw new RuntimeException("invalid_room_code");
@@ -1334,7 +1308,6 @@ public final class FirebaseRoomClient {
         }
     }
 
-    /** Fungsi untuk ackRoomSos. */
     public static void ackRoomSos(String roomCode, String sosId, String deviceId) {
         try {
             String code = normalizeCode(roomCode);
@@ -1354,7 +1327,6 @@ public final class FirebaseRoomClient {
         }
     }
 
-    /** Fungsi untuk cleanupRoomSos. */
     private static void cleanupRoomSos(String normalizedRoomCode, String sosId) {
         try {
             String code = String.valueOf(normalizedRoomCode == null ? "" : normalizedRoomCode).trim();
@@ -1379,7 +1351,6 @@ public final class FirebaseRoomClient {
         }
     }
 
-    /** Fungsi untuk ackBell. */
     public static void ackBell(String roomCode, String toUid, String bellId, String deviceId) {
         try {
             String code = normalizeCode(roomCode);
@@ -1401,7 +1372,6 @@ public final class FirebaseRoomClient {
         }
     }
 
-    /** Fungsi untuk cleanupBell. */
     private static void cleanupBell(String normalizedRoomCode, String toUid, String bellId) {
         try {
             String code = String.valueOf(normalizedRoomCode == null ? "" : normalizedRoomCode).trim();
@@ -1495,7 +1465,6 @@ public final class FirebaseRoomClient {
         void onPhotoUrl(String uid, String photoUrl);
     }
 
-    /** Ambil atau muat data UserPhotoUrlQueued. */
     public static void fetchUserPhotoUrlQueued(String uid, PhotoUrlHandler handler) {
         if (handler != null) handler.onPhotoUrl(uid, "");
     }
@@ -1507,7 +1476,6 @@ public final class FirebaseRoomClient {
         // Profil diuruskan oleh Supabase
     }
 
-    /** Fungsi untuk upsertEmergencyContact. */
     public static void upsertEmergencyContact(String uid, EmergencyContact contact) throws Exception {
         String u = String.valueOf(uid == null ? "" : uid).trim();
         if (u.isEmpty()) throw new RuntimeException("invalid_uid");
@@ -1522,7 +1490,6 @@ public final class FirebaseRoomClient {
         // Hubungan kecemasan diuruskan oleh Supabase
     }
 
-    /** Ambil atau muat data Members. */
     public static ArrayList<Member> fetchMembers(String roomCode, int maxAgeSeconds) throws Exception {
         String code = normalizeCode(roomCode);
         if (code.length() < 4) throw new RuntimeException("invalid_room_code");
@@ -1555,7 +1522,6 @@ public final class FirebaseRoomClient {
         return out;
     }
 
-    /** Ambil atau muat data UserRooms. */
     public static ArrayList<RoomInfo> fetchUserRooms(String uid) throws Exception {
         String u = String.valueOf(uid == null ? "" : uid).trim();
         if (u.isEmpty()) throw new RuntimeException("invalid_uid");
@@ -1621,7 +1587,6 @@ public final class FirebaseRoomClient {
         return out;
     }
 
-    /** Ambil atau muat data MostRecentUserRoomCodeQueued. */
     public static void fetchMostRecentUserRoomCodeQueued(String uid, RoomCodeResult cb) {
         String u = String.valueOf(uid == null ? "" : uid).trim();
         if (u.isEmpty()) {
@@ -1831,7 +1796,6 @@ public final class FirebaseRoomClient {
         await(db().updateChildren(updates));
     }
 
-    /** Fungsi untuk kickMemberAsCreatorQueued. */
     public static void kickMemberAsCreatorQueued(String creatorUid, String roomCode, String targetUid) {
         try {
             String code = normalizeCode(roomCode);
@@ -1856,7 +1820,6 @@ public final class FirebaseRoomClient {
         }
     }
 
-    /** Fungsi untuk requestForceLeaveAsCreatorQueued. */
     public static void requestForceLeaveAsCreatorQueued(String uid, String roomCode, String targetUid) {
         String u = String.valueOf(uid == null ? "" : uid).trim();
         String code = normalizeCode(roomCode);
@@ -1882,7 +1845,6 @@ public final class FirebaseRoomClient {
         void onDeleted();
     }
 
-    /** Fungsi untuk listenForceLeave. */
     public static ValueEventListener listenForceLeave(String roomCode, String uid, ForceLeaveHandler handler) {
         try {
             String code = normalizeCode(roomCode);
@@ -1941,7 +1903,6 @@ public final class FirebaseRoomClient {
         }
     }
 
-    /** Fungsi untuk listenRoomDeleted. */
     public static ValueEventListener listenRoomDeleted(String roomCode, RoomDeletedHandler handler) {
         try {
             String code = normalizeCode(roomCode);

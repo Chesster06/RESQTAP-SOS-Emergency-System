@@ -60,9 +60,7 @@ public class WebRTCClient {
         initPeerConnectionFactory();
     }
 
-    // =========================================================================
     // 1. SETUP WEBRTC FACTORY & CODEC
-    // =========================================================================
     /** Sediakan PeerConnectionFactory, codec perkakasan video, dan modul audio. */
     private void initPeerConnectionFactory() {
         PeerConnectionFactory.InitializationOptions initializationOptions =
@@ -91,9 +89,7 @@ public class WebRTCClient {
         audioDeviceModule.release();
     }
 
-    // =========================================================================
     // 2. LOCAL MEDIA STREAM (KAMERA & MIC)
-    // =========================================================================
     /** Mulakan tangkapan video kamera tempatan dan paparkan pada SurfaceViewRenderer. */
     public void startLocalVideo(SurfaceViewRenderer localView) {
         try {
@@ -149,7 +145,6 @@ public class WebRTCClient {
         return videoCapturer;
     }
 
-    /** Fungsi untuk createCameraCapturer. */
     private VideoCapturer createCameraCapturer(CameraEnumerator enumerator) {
         if (enumerator == null) return null;
         final String[] deviceNames = enumerator.getDeviceNames();
@@ -182,9 +177,7 @@ public class WebRTCClient {
         return null;
     }
 
-    // =========================================================================
     // 3. SETUP PEERCONNECTION & CALL
-    // =========================================================================
     /** Bina PeerConnection dengan senarai pelayan STUN/TURN dan pasang trek media tempatan. */
     public void call() {
         List<PeerConnection.IceServer> iceServers = new ArrayList<>();
@@ -202,17 +195,14 @@ public class WebRTCClient {
     @Override
             public void onIceConnectionChange(PeerConnection.IceConnectionState iceConnectionState) {}
 
-            /** Fungsi untuk onConnectionChange. */
     @Override
             public void onConnectionChange(PeerConnection.PeerConnectionState newState) {
                 if (listener != null) listener.onConnectionStateChange(newState);
             }
 
-            /** Fungsi untuk onIceConnectionReceivingChange. */
     @Override
             public void onIceConnectionReceivingChange(boolean b) {}
 
-            /** Fungsi untuk onIceGatheringChange. */
     @Override
             public void onIceGatheringChange(PeerConnection.IceGatheringState iceGatheringState) {}
 
@@ -222,11 +212,9 @@ public class WebRTCClient {
                 if (listener != null) listener.onIceCandidate(iceCandidate);
             }
 
-            /** Fungsi untuk onIceCandidatesRemoved. */
     @Override
             public void onIceCandidatesRemoved(IceCandidate[] iceCandidates) {}
 
-            /** Fungsi untuk onAddStream. */
     @Override
             public void onAddStream(MediaStream mediaStream) {
                 if (mediaStream.videoTracks.size() > 0) {
@@ -234,21 +222,17 @@ public class WebRTCClient {
                 }
             }
 
-            /** Fungsi untuk onRemoveStream. */
     @Override
             public void onRemoveStream(MediaStream mediaStream) {
                 if (listener != null) listener.onRemoveRemoteStream();
             }
 
-            /** Fungsi untuk onDataChannel. */
     @Override
             public void onDataChannel(DataChannel dataChannel) {}
 
-            /** Fungsi untuk onRenegotiationNeeded. */
     @Override
             public void onRenegotiationNeeded() {}
 
-            /** Fungsi untuk onAddTrack. */
     @Override
             public void onAddTrack(org.webrtc.RtpReceiver rtpReceiver, MediaStream[] mediaStreams) {
                 if (rtpReceiver.track() instanceof VideoTrack) {
@@ -272,7 +256,6 @@ public class WebRTCClient {
         }
     }
 
-    /** Fungsi untuk createAnswer. */
     public void createAnswer(org.webrtc.SdpObserver observer) {
         if (peerConnection != null) {
             peerConnection.createAnswer(new SimpleSdpObserver() {
@@ -307,9 +290,7 @@ public class WebRTCClient {
         }
     }
 
-    // =========================================================================
     // 6. TEARDOWN & CLEANUP MEMORY
-    // =========================================================================
     /** Tutup sambungan PeerConnection, lepaskan kamera, dan bersihkan semua sumber media. */
     public void close() {
         if (videoCapturer != null) {

@@ -180,9 +180,7 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
     private LatLng lastNavigatedSelfLatLng;
     private LatLng lastNavigatedTargetLatLng;
 
-    // =========================================================================
     // SEKSYEN: ONCREATE
-    // =========================================================================
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -336,7 +334,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
             final android.widget.TextView sheetTitle = findViewById(R.id.sheet_title);
             if (membersSheetBehavior != null && sheetTitle != null) {
                 sheetTitle.getViewTreeObserver().addOnGlobalLayoutListener(new android.view.ViewTreeObserver.OnGlobalLayoutListener() {
-                    /** Fungsi untuk onGlobalLayout. */
     @Override
                     public void onGlobalLayout() {
                         try {
@@ -476,7 +473,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         double durationSeconds = 0;
     }
 
-    /** Fungsi untuk startNavigationTo. */
     private void startNavigationTo(FirebaseRoomClient.Member m) {
         if (m == null) return;
         if (m.lat == 0d && m.lng == 0d) {
@@ -515,7 +511,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         } catch (Exception ignored) {}
     }
 
-    /** Fungsi untuk cancelNavigation. */
     private void cancelNavigation() {
         if (navigationPolyline != null) {
             navigationPolyline.remove();
@@ -544,7 +539,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk zoomToFullRoute. */
     private void zoomToFullRoute() {
         if (map == null || navigationPolyline == null) return;
 
@@ -617,7 +611,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Ambil atau muat data RouteAndDraw. */
     private void fetchRouteAndDraw(LatLng myPos, LatLng targetPos) {
         new Thread(() -> {
             RouteResult finalResult = null;
@@ -689,7 +682,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }).start();
     }
 
-    /** Fungsi untuk tryFetchRoute. */
     private RouteResult tryFetchRoute(LatLng myPos, LatLng targetPos) {
         String urlStr = "https://router.project-osrm.org/route/v1/driving/"
                 + myPos.longitude + "," + myPos.latitude + ";"
@@ -714,7 +706,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         return null;
     }
 
-    /** Fungsi untuk parseOsrmRoute. */
     private RouteResult parseOsrmRoute(String jsonStr) {
         RouteResult result = new RouteResult();
         try {
@@ -744,7 +735,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         return result;
     }
 
-    /** Fungsi untuk drawNavigationRoute. */
     private void drawNavigationRoute(LatLng myPos, java.util.List<LatLng> points, LatLng targetPos) {
         if (map == null || points == null || points.isEmpty()) return;
 
@@ -785,7 +775,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk calculateBearing. */
     private float calculateBearing(LatLng start, LatLng end) {
         double lat1 = Math.toRadians(start.latitude);
         double lng1 = Math.toRadians(start.longitude);
@@ -866,7 +855,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         requestLocationIfNeeded();
     }
 
-    /** Fungsi untuk onSaveInstanceState. */
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -908,9 +896,7 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    // =========================================================================
     // SEKSYEN: ONDESTROY
-    // =========================================================================
     /** Pembersihan memori, buang listener, dan tutup sambungan. */
     @Override
     protected void onDestroy() {
@@ -928,7 +914,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         geocodeExecutor.shutdownNow();
     }
 
-    /** Fungsi untuk startForceLeaveListener. */
     private void startForceLeaveListener() {
         if (forceLeaveListener != null) return;
         forceLeaveListener = FirebaseRoomClient.listenForceLeave(roomCode, uid, (byUid, atMillis) -> {
@@ -952,7 +937,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         });
     }
 
-    /** Fungsi untuk stopForceLeaveListener. */
     private void stopForceLeaveListener() {
         if (forceLeaveListener == null) return;
         try {
@@ -962,7 +946,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         forceLeaveListener = null;
     }
 
-    /** Fungsi untuk startRoomDeletedListener. */
     private void startRoomDeletedListener() {
         if (roomDeletedListener != null) return;
         roomDeletedListener = FirebaseRoomClient.listenRoomDeleted(roomCode, () -> {
@@ -985,7 +968,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         });
     }
 
-    /** Fungsi untuk stopRoomDeletedListener. */
     private void stopRoomDeletedListener() {
         if (roomDeletedListener == null) return;
         try {
@@ -995,7 +977,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         roomDeletedListener = null;
     }
 
-    /** Fungsi untuk startRoomSosListener. */
     private void startRoomSosListener() {
         if (roomSosListener != null) return;
         try {
@@ -1013,7 +994,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
 
                 SosPrefs.bumpBaselineAtListenerStart(RoomMapActivity.this, roomCode, baseline);
                 roomSosListener = FirebaseRoomClient.listenRoomSosSince(roomCode, deviceId, baseline, new FirebaseRoomClient.RoomSosHandler() {
-                /** Fungsi untuk onSos. */
                 @Override
                 public void onSos(String senderUid, String senderName, String roomId, long createdAtMs, String alertId, String status) {
                     if (roomPermissions != null && !roomPermissions.allowSosAlarm) {
@@ -1033,7 +1013,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
                     runOnUiThread(() -> setActiveSosBlink(from, 20_000L));
                 }
 
-                /** Fungsi untuk onSosCancelled. */
     @Override
                 public void onSosCancelled(String senderUid, String roomId, String alertId, long cancelledAtMs) {
                     String from = String.valueOf(senderUid == null ? "" : senderUid).trim();
@@ -1051,7 +1030,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
                     });
                 }
 
-                /** Fungsi untuk onSosServed. */
     @Override
                 public void onSosServed(String senderUid, String roomId, String alertId, String servedByName) {
                     // Do not stop alarm when admin serves - alarm remains until user snoozes
@@ -1062,14 +1040,12 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk stopRoomSosListener. */
     private void stopRoomSosListener() {
         if (roomSosListener == null) return;
         FirebaseRoomClient.removeRoomSosListener(roomCode, roomSosListener);
         roomSosListener = null;
     }
 
-    /** Fungsi untuk setActiveSosBlink. */
     private void setActiveSosBlink(String uid, long durationMs) {
         if (roomPermissions != null && !roomPermissions.allowSosAlarm) return;
         String u = String.valueOf(uid == null ? "" : uid).trim();
@@ -1095,7 +1071,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         mainHandler.postDelayed(clearActiveSosRunnable, Math.max(0L, durationMs) + 100L);
     }
 
-    /** Fungsi untuk triggerVibrate. */
     private void triggerVibrate() {
         try {
             if (Build.VERSION.SDK_INT >= 31) {
@@ -1116,7 +1091,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk startRtdbConnectionMonitor. */
     private void startRtdbConnectionMonitor() {
         if (rtdbConnListener != null) return;
         try {
@@ -1152,7 +1126,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk stopRtdbConnectionMonitor. */
     private void stopRtdbConnectionMonitor() {
         if (rtdbConnRef == null || rtdbConnListener == null) return;
         try {
@@ -1163,7 +1136,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         rtdbConnRef = null;
     }
 
-    /** Fungsi untuk logNetworkState. */
     private void logNetworkState() {
         try {
             android.net.ConnectivityManager cm = (android.net.ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -1215,7 +1187,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         });
     }
 
-    /** Fungsi untuk startLiveRoomTrackingService. */
     private void startLiveRoomTrackingService() {
 
         Intent i = new Intent(this, LiveRoomTrackingService.class);
@@ -1232,7 +1203,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk stopLiveRoomTrackingService. */
     private void stopLiveRoomTrackingService() {
         Intent i = new Intent(this, LiveRoomTrackingService.class);
         i.setAction(LiveRoomTrackingService.ACTION_STOP);
@@ -1242,7 +1212,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk onMapReady. */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
@@ -1318,7 +1287,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         requestLocationIfNeeded();
     }
 
-    /** Fungsi untuk applySavedMapType. */
     private void applySavedMapType() {
         if (map == null) return;
         try {
@@ -1329,7 +1297,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk applyResQTapMapStyle. */
     private void applyResQTapMapStyle(boolean enabled) {
         if (map == null) return;
         try {
@@ -1338,12 +1305,10 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk toggleMapType. */
     private void toggleMapType() {
         MapTypeBottomSheet.show(this, map);
     }
 
-    /** Fungsi untuk startPolling. */
     private void startPolling() {
         pollingExecutor.execute(() -> {
 
@@ -1383,7 +1348,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         });
     }
 
-    /** Fungsi untuk applyMembers. */
     private void applyMembers(ArrayList<FirebaseRoomClient.Member> members) {
         if (map == null) return;
         if (members != null && !pendingKickUids.isEmpty()) {
@@ -1533,7 +1497,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk maybeFocusPendingSender. */
     private void maybeFocusPendingSender(ArrayList<FirebaseRoomClient.Member> members) {
         try {
             String focusUid = String.valueOf(pendingFocusUid == null ? "" : pendingFocusUid).trim();
@@ -1555,7 +1518,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk restoreBlinkFromPrefs. */
     private void restoreBlinkFromPrefs() {
         try {
             String room = String.valueOf(UserPrefs.getSosUiRoom(this) == null ? "" : UserPrefs.getSosUiRoom(this)).trim().toUpperCase(java.util.Locale.ROOT);
@@ -1575,7 +1537,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk focusMemberOnMap. */
     private void focusMemberOnMap(FirebaseRoomClient.Member m) {
         if (m == null) return;
         if (map == null) return;
@@ -1622,7 +1583,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk confirmRemoveMember. */
     private void confirmRemoveMember(FirebaseRoomClient.Member m) {
         if (m == null) return;
         String targetUid = String.valueOf(m.uid == null ? "" : m.uid).trim();
@@ -1658,7 +1618,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         Toast.makeText(this, getString(R.string.toast_removed_person, String.valueOf(targetName == null ? "" : targetName)), Toast.LENGTH_SHORT).show();
     }
 
-    /** Fungsi untuk canUseRemoveMode. */
     private boolean canUseRemoveMode() {
         return uid != null
                 && creatorUid != null
@@ -1687,13 +1646,11 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         fabSos.setVisibility(canSos ? android.view.View.VISIBLE : android.view.View.GONE);
     }
 
-    /** Fungsi untuk setRemoveMode. */
     private void setRemoveMode(boolean enabled) {
         removeMode = enabled && canUseRemoveMode();
         if (membersAdapter != null) membersAdapter.setRemoveMode(removeMode);
     }
 
-    /** Fungsi untuk dispatchTouchEvent. */
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
         try {
@@ -1711,7 +1668,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         return super.dispatchTouchEvent(ev);
     }
 
-    /** Ambil atau muat data MarkerSnippet. */
     private String getMarkerSnippet(String memberUid, double lat, double lng) {
         String u = String.valueOf(memberUid == null ? "" : memberUid).trim();
         if (lat == 0 && lng == 0) return "";
@@ -1722,7 +1678,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         return "";
     }
 
-    /** Fungsi untuk maybeLookupPhotoUrlForMember. */
     private void maybeLookupPhotoUrlForMember(String memberUid) {
         String u = String.valueOf(memberUid == null ? "" : memberUid).trim();
         if (u.isEmpty()) return;
@@ -1742,7 +1697,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         });
     }
 
-    /** Fungsi untuk maybeLookupPhotoB64ForMember. */
     private void maybeLookupPhotoB64ForMember(String memberUid) {
         String u = String.valueOf(memberUid == null ? "" : memberUid).trim();
         if (u.isEmpty()) return;
@@ -1886,7 +1840,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
             notifyDataSetChanged();
         }
 
-        /** Fungsi untuk applySosPinIfNeeded. */
         private void applySosPinIfNeeded() {
             String sosUid = String.valueOf(activeSosUid == null ? "" : activeSosUid).trim();
             if (sosUid.isEmpty()) return;
@@ -1920,7 +1873,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
             }
         }
 
-        /** Fungsi untuk restoreOriginalOrderIfAny. */
         private void restoreOriginalOrderIfAny() {
             if (sosOriginalOrder.isEmpty()) return;
             java.util.Collections.sort(items, (a, b) -> {
@@ -1949,7 +1901,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
             }
         }
 
-        /** Ambil atau muat data ItemId. */
     @Override
         public long getItemId(int position) {
             if (getItemViewType(position) == VT_REMOVE_FOOTER) return ("remove_footer").hashCode();
@@ -2118,7 +2069,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
             }
         }
 
-        /** Ambil atau muat data ItemViewType. */
     @Override
         public int getItemViewType(int position) {
             if (showRemoveFooter && !items.isEmpty() && position == items.size()) return VT_REMOVE_FOOTER;
@@ -2143,7 +2093,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
             maybeReverseGeocode(m.uid, m.lat, m.lng, key);
         }
 
-        /** Fungsi untuk formatLastSeen. */
         private String formatLastSeen(long ageMs, boolean online) {
             if (online) return "Live now";
             long mins = ageMs / 60000L;
@@ -2155,7 +2104,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
             return "Seen " + days + "d ago";
         }
 
-        /** Ambil atau muat data ItemCount. */
     @Override
         public int getItemCount() {
             return items.size() + ((showRemoveFooter && !items.isEmpty()) ? 1 : 0);
@@ -2213,7 +2161,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
             }
         }
 
-        /** Fungsi untuk startBlink. */
         private void startBlink(android.view.View v) {
             try {
                 if (v.getVisibility() != android.view.View.VISIBLE) v.setVisibility(android.view.View.VISIBLE);
@@ -2233,7 +2180,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
             }
         }
 
-        /** Fungsi untuk stopBlink. */
         private void stopBlink(android.view.View v) {
             try {
                 Object tag = v.getTag();
@@ -2251,7 +2197,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk buildAddrKey. */
     private static String buildAddrKey(String uid, double lat, double lng) {
         String u = String.valueOf(uid == null ? "" : uid).trim();
         double rLat = Math.round(lat * 10000d) / 10000d;
@@ -2259,7 +2204,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         return u + ":" + rLat + "," + rLng;
     }
 
-    /** Fungsi untuk maybeReverseGeocode. */
     private void maybeReverseGeocode(String uid, double lat, double lng, String key) {
         String u = String.valueOf(uid == null ? "" : uid).trim();
         if (u.isEmpty()) return;
@@ -2300,7 +2244,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         });
     }
 
-    /** Fungsi untuk reverseGeocodeLabel. */
     private String reverseGeocodeLabel(double lat, double lng) {
         try {
             if (!android.location.Geocoder.isPresent()) return "";
@@ -2337,14 +2280,12 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk safe. */
     private static String safe(String s) {
         if (s == null) return "";
         s = s.trim();
         return s;
     }
 
-    /** Fungsi untuk requestLocationIfNeeded. */
     private void requestLocationIfNeeded() {
         if (map == null) return;
         if (!GpsUtils.isGpsEnabled(this)) {
@@ -2363,7 +2304,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk centerCameraOnMe. */
     private void centerCameraOnMe() {
         if (map == null) return;
         try {
@@ -2395,7 +2335,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk startLocationUpdates. */
     private void startLocationUpdates() {
         if (!PermissionUtils.hasAnyLocation(this)) return;
         if (map == null) return;
@@ -2413,7 +2352,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
 
         if (locationCallback == null) {
             locationCallback = new LocationCallback() {
-                /** Fungsi untuk onLocationResult. */
     @Override
                 public void onLocationResult(LocationResult result) {
                     if (result == null) return;
@@ -2424,7 +2362,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
                     publishToBackend(me);
                 }
 
-                /** Fungsi untuk onLocationAvailability. */
     @Override
                 public void onLocationAvailability(LocationAvailability availability) {
 
@@ -2449,7 +2386,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk stopLocationUpdates. */
     private void stopLocationUpdates() {
         if (!isRequestingUpdates) return;
         if (locationCallback == null) return;
@@ -2460,14 +2396,12 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         isRequestingUpdates = false;
     }
 
-    /** Fungsi untuk publishToBackend. */
     private void publishToBackend(LatLng me) {
         updateMyBatteryPct();
         int pct = myBatteryPct;
         executor.execute(() -> FirebaseRoomClient.publishLocationQueued(roomCode, uid, displayName, myPhotoUrl, myPhotoB64, me.latitude, me.longitude, pct));
     }
 
-    /** Fungsi untuk upsertMyLocationMarker. */
     private void upsertMyLocationMarker(LatLng pos) {
         if (map == null || pos == null) return;
         Bitmap icon = buildSelfMarkerBitmap();
@@ -2507,7 +2441,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk buildSelfMarkerBitmap. */
     private Bitmap buildSelfMarkerBitmap() {
         try {
             Bitmap b = decodeBase64Avatar(myPhotoB64);
@@ -2517,7 +2450,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         return buildProfileMarkerBitmap(this, myPhotoUri);
     }
 
-    /** Fungsi untuk buildProfileMarkerBitmap. */
     private static Bitmap buildProfileMarkerBitmap(Context ctx, String photoUri) {
         final int sizePx = dp(ctx, 44);
         final int borderPx = dp(ctx, 3);
@@ -2531,7 +2463,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         return circularWithBorderAndShadow(scaled, borderPx, shadowPx);
     }
 
-    /** Fungsi untuk buildProfileMarkerBitmapFromPhoto. */
     private static Bitmap buildProfileMarkerBitmapFromPhoto(Context ctx, Bitmap src) {
         final int sizePx = dp(ctx, 44);
         final int borderPx = dp(ctx, 3);
@@ -2541,7 +2472,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         return circularWithBorderAndShadow(scaled, borderPx, shadowPx);
     }
 
-    /** Fungsi untuk maybeLoadRemoteMarkerIcon. */
     private void maybeLoadRemoteMarkerIcon(String memberUid, String photoUrl, Marker marker) {
         String u = String.valueOf(memberUid == null ? "" : memberUid).trim();
         String url = String.valueOf(photoUrl == null ? "" : photoUrl).trim();
@@ -2562,7 +2492,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         });
     }
 
-    /** Fungsi untuk maybeLoadRemoteAvatarInto. */
     private void maybeLoadRemoteAvatarInto(ShapeableImageView view, String photoUrl) {
         if (view == null) return;
         String url = String.valueOf(photoUrl == null ? "" : photoUrl).trim();
@@ -2582,7 +2511,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         void onBitmap(Bitmap bmp);
     }
 
-    /** Fungsi untuk enqueueRemotePhoto. */
     private void enqueueRemotePhoto(String url, BitmapHandler onReady) {
         if (url == null || url.trim().isEmpty() || onReady == null) return;
         String key = url.trim();
@@ -2612,7 +2540,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         });
     }
 
-    /** Fungsi untuk downloadBitmapFromStorage. */
     private static Bitmap downloadBitmapFromStorage(String gsUrl, int maxDim) {
         try {
             com.google.firebase.storage.StorageReference ref =
@@ -2637,7 +2564,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk decodeBase64Avatar. */
     private Bitmap decodeBase64Avatar(String b64) {
         String s = String.valueOf(b64 == null ? "" : b64).trim();
         if (s.isEmpty()) return null;
@@ -2655,7 +2581,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk downloadBitmap. */
     private static Bitmap downloadBitmap(String url, int maxDim) {
         try {
             java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new java.net.URL(url).openConnection();
@@ -2684,7 +2609,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk defaultAvatarMarkerBitmap. */
     private static Bitmap defaultAvatarMarkerBitmap(Context ctx, int sizePx, int borderPx, int shadowPx) {
         int outSize = sizePx + (shadowPx * 2);
         Bitmap out = Bitmap.createBitmap(outSize, outSize, Bitmap.Config.ARGB_8888);
@@ -2731,7 +2655,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         return out;
     }
 
-    /** Ambil atau muat data ProfileBitmap. */
     private static Bitmap loadProfileBitmap(Context ctx, String photoUri) {
         String u = String.valueOf(photoUri == null ? "" : photoUri).trim();
         if (u.isEmpty()) return null;
@@ -2746,7 +2669,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk bitmapFromDrawable. */
     private static Bitmap bitmapFromDrawable(Context ctx, int resId, int w, int h) {
         try {
             Drawable d = ContextCompat.getDrawable(ctx, resId);
@@ -2769,7 +2691,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    /** Fungsi untuk circularWithBorderAndShadow. */
     private static Bitmap circularWithBorderAndShadow(Bitmap src, int borderPx, int shadowPx) {
         int size = Math.min(src.getWidth(), src.getHeight());
         int outSize = size + (shadowPx * 2);
@@ -2808,7 +2729,6 @@ public class RoomMapActivity extends BaseActivity implements OnMapReadyCallback 
         return out;
     }
 
-    /** Fungsi untuk dp. */
     private static int dp(Context ctx, int dp) {
         float density = ctx.getResources().getDisplayMetrics().density;
         return Math.round(dp * density);

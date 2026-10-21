@@ -4,15 +4,11 @@
  * untuk Portal Web ResQTap.
  */
 
-// ==========================================
-// SUPABASE CONFIGURATION
-// ==========================================
+// Supabase configuration
 export const SUPABASE_URL = "https://umcxapvojtoxqlpnrwdw.supabase.co";
 export const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtY3hhcHZvanRveHFscG5yd2R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzMTg2OTksImV4cCI6MjEwNjg5NDY5OX0.8qDJYad_rTwlzAqmF0Z1OiRgQ9ocxaluN7MIjz0mL0M";
 
-// ==========================================
-// FIREBASE CLIENT CONFIGURATION
-// ==========================================
+// Firebase client configuration
 export const firebaseConfig = {
   apiKey: "AIzaSyDZ8X0sDpjbaMLt20DVA4ocNOzw9rqy-Xw",
   authDomain: "resqtap-b9ff5.firebaseapp.com",

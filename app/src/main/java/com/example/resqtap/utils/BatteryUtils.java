@@ -13,7 +13,6 @@ import android.os.BatteryManager;
 public final class BatteryUtils {
     private BatteryUtils() {}
 
-    /** Ambil atau muat data BatteryPct. */
     public static int getBatteryPct(Context ctx) {
         if (ctx == null) return -1;
         try {

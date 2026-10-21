@@ -21,7 +21,6 @@ public final class SosAudioManager {
     private static volatile MediaPlayer player;
     private static volatile Runnable hardStopRunnable;
 
-    /** Fungsi untuk start10s. */
     public static void start10s(Context context, String alertId) {
         if (context == null) return;
         String id = String.valueOf(alertId == null ? "" : alertId).trim();
@@ -87,7 +86,6 @@ public final class SosAudioManager {
         }
     }
 
-    /** Fungsi untuk stop. */
     public static void stop(Context context, String alertId) {
         if (context == null) return;
         String id = String.valueOf(alertId == null ? "" : alertId).trim();
@@ -98,14 +96,12 @@ public final class SosAudioManager {
         }
     }
 
-    /** Fungsi untuk stopAll. */
     public static void stopAll() {
         synchronized (LOCK) {
             stopLocked();
         }
     }
 
-    /** Fungsi untuk stopLocked. */
     private static void stopLocked() {
         activeAlertId = "";
         try {

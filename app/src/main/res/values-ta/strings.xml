@@ -597,36 +597,5 @@
     <string name="marker_info_status_active">செயலில் உள்ளது (24 மணிநேரம்)</string>
     <string name="marker_info_distance_label">தூரம்:</string>
     <string name="marker_info_directions">வழிகளைப் பெறுங்கள்</string>
-
-    <string name="sign_language_tab">சைகை</string>
-    <string name="sign_language_title">சைகை மொழி நேரலை உரைபெயர்ப்பு</string>
-    <string name="sign_language_subtitle">முன்னால் உள்ளவரின் சைகை மொழியை ஸ்கேன் செய்து நேரலையாக வாக்கியங்களாக மாற்றுங்கள்.</string>
-    <string name="sign_camera_permission">சைகை மொழியைக் கண்டறிய கேமரா அனுமதி தேவை.</string>
-    <string name="sign_camera_switch">கேமரா மாற்று</string>
-    <string name="sign_status_live">நேரலை உரைமாற்றம்</string>
-    <string name="sign_status_scanning">சைகை தேடப்படுகிறது...</string>
-    <string name="sign_status_idle">கேமரா தயார்</string>
-    <string name="sign_detected_heading">தற்போதைய சைகை</string>
-    <string name="sign_confidence_badge">நேரலை AI பார்வை</string>
-    <string name="sign_transcript_title">நேரலை சைகை உரை</string>
-    <string name="sign_transcript_placeholder">முன்னால் சைகை செய்பவரை நோக்கி கேமராவைக் காட்டுங்கள். சைகைகள் முழு வாக்கியமாக இங்கே தோன்றும்...</string>
-    <string name="sign_speak_action">வாக்கியத்தை வாசி</string>
-    <string name="sign_send_sos_action">SOS-க்கு அனுப்பு</string>
-    <string name="sign_clear_transcript">அழி</string>
-    <string name="sign_detecting_idle">முன்னால் சைகை செய்பவரை நோக்கி கேமராவைக் காட்டுங்கள்...</string>
-    <string name="sign_sent_to_chat">வாக்கியம் அவசர அரட்டைக்கு அனுப்பப்பட்டது!</string>
-    <string name="sign_sim_stream_title">சைகை மாதிரி சோதனை</string>
-
-    <!-- BIM SignBank Expressive Signs -->
-    <string name="bim_expressive_title">BIM சைகை வங்கி • வெளிப்பாட்டு சைகைகள்</string>
-    <string name="bim_expressive_subtitle">அன்றாட வாழ்க்கை / வெளிப்பாட்டுக் குழு • 112 அதிகாரப்பூர்வ சைகைகள்</string>
-    <string name="bim_search_hint">BIM சைகைகளைத் தேடுக (எ.கா: தெளிவு, வீடு, நினைவு)...</string>
-    <string name="bim_empty_search">உங்கள் தேடலுக்கு ஏற்ற சைகைகள் எதுவும் கிடைக்கவில்லை.</string>
-    <string name="bim_catalog_hint">வாக்கியத்தில் சேர்க்க சைகையைத் தொடவும் • விவரங்கள் &amp; BIM வீடியோவிற்கு நீண்ட நேரம் அழுத்தவும்</string>
-    <string name="bim_tap_to_insert">சேர்க்க தட்டவும்</string>
-    <string name="bim_detail_title">சைகை விவரங்கள்</string>
-    <string name="bim_btn_insert_transcript">வாக்கிய டிரான்ஸ்கிரிப்டில் சேர்க்கவும்</string>
-    <string name="bim_watch_video">அதிகாரப்பூர்வ BIM வீடியோவைப் பார்க்கவும்</string>
-    <string name="bim_video_error">வீடியோ இணைப்பைத் திறக்க முடியவில்லை</string>
 </resources>
 

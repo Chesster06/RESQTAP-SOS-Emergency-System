@@ -32,7 +32,6 @@ public final class BatteryOptimizationHelper {
         }
     }
 
-    /** Fungsi untuk promptOnce. */
     public static void promptOnce(Activity activity) {
         if (activity == null) return;
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return;
@@ -67,7 +66,6 @@ public final class BatteryOptimizationHelper {
         }
     }
 
-    /** Fungsi untuk openDisableBatteryOptimization. */
     public static void openDisableBatteryOptimization(Activity activity) {
         if (activity == null) return;
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return;

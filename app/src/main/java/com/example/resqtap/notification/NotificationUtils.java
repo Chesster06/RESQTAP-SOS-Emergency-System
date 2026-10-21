@@ -26,7 +26,6 @@ public final class NotificationUtils {
     public static final String CHANNEL_ID_BELL = "bell_alerts_v4_custom";
     public static final String CHANNEL_ID_ADMIN = "admin_notifications_v1";
 
-    /** Fungsi untuk ensureBellChannel. */
     public static void ensureBellChannel(Context context) {
         if (context == null) return;
         if (Build.VERSION.SDK_INT < 26) return;
@@ -63,7 +62,6 @@ public final class NotificationUtils {
         nm.createNotificationChannel(ch);
     }
 
-    /** Fungsi untuk notifyBell. */
     public static void notifyBell(Context context, String roomCode, String fromName) {
         if (context == null) return;
         ensureBellChannel(context);
@@ -104,7 +102,6 @@ public final class NotificationUtils {
         }
     }
 
-    /** Fungsi untuk ensureAdminChannel. */
     public static void ensureAdminChannel(Context context) {
         if (context == null) return;
         if (Build.VERSION.SDK_INT < 26) return;
@@ -124,7 +121,6 @@ public final class NotificationUtils {
         nm.createNotificationChannel(ch);
     }
 
-    /** Fungsi untuk notifyAdmin. */
     public static void notifyAdmin(Context context, String notificationId, String title, String body) {
         if (context == null) return;
         ensureAdminChannel(context);
@@ -161,7 +157,6 @@ public final class NotificationUtils {
         }
     }
 
-    /** Fungsi untuk notifySosAlert. */
     public static void notifySosAlert(Context context, String roomCode, String fromName) {
         if (context == null) return;
         ensureBellChannel(context);
@@ -222,7 +217,6 @@ public final class NotificationUtils {
         }
     }
 
-    /** Fungsi untuk notifyRoomCreated. */
     public static void notifyRoomCreated(Context context, String roomCode) {
         if (context == null) return;
         try {
@@ -261,7 +255,6 @@ public final class NotificationUtils {
         }
     }
 
-    /** Fungsi untuk notifyRoomJoined. */
     public static void notifyRoomJoined(Context context, String roomCode) {
         if (context == null) return;
         try {
@@ -300,7 +293,6 @@ public final class NotificationUtils {
         }
     }
 
-    /** Fungsi untuk notifyRoomDeleted. */
     public static void notifyRoomDeleted(Context context, String roomCode, boolean isCreator) {
         if (context == null) return;
         try {

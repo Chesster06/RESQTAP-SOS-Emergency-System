@@ -22,7 +22,6 @@ public final class LocaleUtils {
     private LocaleUtils() {
     }
 
-    /** Ambil atau muat data SavedLanguageTag. */
     public static String getSavedLanguageTag(Context context) {
         String tag = String.valueOf(UserPrefs.getLanguage(context) == null ? "" : UserPrefs.getLanguage(context)).trim();
         if (tag.isEmpty()) return "en";
@@ -34,7 +33,6 @@ public final class LocaleUtils {
         return "en";
     }
 
-    /** Fungsi untuk wrap. */
     public static Context wrap(Context context) {
         if (context == null) return null;
         String tag = getSavedLanguageTag(context);
@@ -48,7 +46,6 @@ public final class LocaleUtils {
         return context.createConfigurationContext(config);
     }
 
-    /** Fungsi untuk applySavedLocale. */
     public static void applySavedLocale(Context context) {
         if (context == null) return;
         try {
@@ -59,7 +56,6 @@ public final class LocaleUtils {
         }
     }
 
-    /** Fungsi untuk setLocaleAndPersist. */
     public static void setLocaleAndPersist(Context context, String tag) {
         if (context == null) return;
         String normalized = String.valueOf(tag == null ? "" : tag).trim().toLowerCase(java.util.Locale.ROOT);
@@ -78,7 +74,6 @@ public final class LocaleUtils {
         }
     }
 
-    /** Fungsi untuk restartApp. */
     public static void restartApp(Activity activity) {
         if (activity == null) return;
         try {
@@ -90,7 +85,6 @@ public final class LocaleUtils {
         }
     }
 
-    /** Fungsi untuk localeForTag. */
     private static Locale localeForTag(String tag) {
         String normalized = String.valueOf(tag == null ? "" : tag).trim().toLowerCase(Locale.ROOT);
         if (normalized.startsWith("ms")) return new Locale("ms");
@@ -99,7 +93,6 @@ public final class LocaleUtils {
         return Locale.ENGLISH;
     }
 
-    /** Fungsi untuk applyDefaultLocale. */
     private static void applyDefaultLocale(Locale locale) {
         if (locale == null) return;
         Locale.setDefault(locale);

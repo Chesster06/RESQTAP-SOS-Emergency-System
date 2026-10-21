@@ -598,36 +598,5 @@
     <string name="marker_info_status_active">正常开放（24小时）</string>
     <string name="marker_info_distance_label">距离：</string>
     <string name="marker_info_directions">获取路线</string>
-
-    <string name="sign_language_tab">手语</string>
-    <string name="sign_language_title">手语识别与转文字</string>
-    <string name="sign_language_subtitle">使用摄像头扫描对方手语动作，实时转录生成完整句子转录。</string>
-    <string name="sign_camera_permission">需要相机权限以检测手语手势。</string>
-    <string name="sign_camera_switch">切换摄像头</string>
-    <string name="sign_status_live">实时转录中</string>
-    <string name="sign_status_scanning">正在扫描手势...</string>
-    <string name="sign_status_idle">相机就绪</string>
-    <string name="sign_detected_heading">当前手势</string>
-    <string name="sign_confidence_badge">实时AI视觉</string>
-    <string name="sign_transcript_title">手语实时转录</string>
-    <string name="sign_transcript_placeholder">将摄像头对准前方打手语的人，手势将在此实时转录连贯句子...</string>
-    <string name="sign_speak_action">朗读句子</string>
-    <string name="sign_send_sos_action">发送至SOS</string>
-    <string name="sign_clear_transcript">清空</string>
-    <string name="sign_detecting_idle">请将摄像头对准前方正在打手语的人...</string>
-    <string name="sign_sent_to_chat">转录句子已发送至紧急聊天室！</string>
-    <string name="sign_sim_stream_title">手势流测试（模拟）</string>
-
-    <!-- BIM SignBank Expressive Signs -->
-    <string name="bim_expressive_title">BIM手语库 • 表达手语</string>
-    <string name="bim_expressive_subtitle">日常生活/表达分类 • 112个官方手语</string>
-    <string name="bim_search_hint">搜索BIM手语（例如：清楚、想念、回家）...</string>
-    <string name="bim_empty_search">未找到匹配的手语词汇。</string>
-    <string name="bim_catalog_hint">轻触手语添加到句子 • 长按或点击视频图标查看详情与BIM官方视频</string>
-    <string name="bim_tap_to_insert">点击添加</string>
-    <string name="bim_detail_title">手语详情</string>
-    <string name="bim_btn_insert_transcript">添加到句子转录</string>
-    <string name="bim_watch_video">观看BIM官方视频</string>
-    <string name="bim_video_error">无法打开视频链接</string>
 </resources>
 
