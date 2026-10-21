@@ -253,13 +253,7 @@ public class SosProgressActivity extends BaseActivity {
         alertListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!snapshot.exists()) {
-                    // Alert was removed
-                    UserPrefs.clearActiveSosProgress(SosProgressActivity.this);
-                    Intent intent = new Intent(SosProgressActivity.this, MainActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                    startActivity(intent);
-                    finish();
+                if (snapshot == null || !snapshot.exists()) {
                     return;
                 }
 

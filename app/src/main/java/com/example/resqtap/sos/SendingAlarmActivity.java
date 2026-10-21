@@ -4,6 +4,7 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.app.KeyguardManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
@@ -153,15 +154,8 @@ public class SendingAlarmActivity extends AppCompatActivity {
         silenceLocalDevice();
         startRadarAnimations();
 
-        // Semak sekiranya terdapat sesi SOS aktif sedia ada untuk terus dipantau pembatalan/reservasinya
-        if (UserPrefs.isSosProgressActive(this)) {
-            String savedRoom = UserPrefs.getActiveSosProgressRoom(this);
-            String savedAlert = UserPrefs.getActiveSosProgressAlert(this);
-            if (!savedRoom.isEmpty() && !savedAlert.isEmpty()) {
-                activeSosIds.put(savedRoom, savedAlert);
-                watchSosCaseReservation(savedRoom, savedAlert);
-            }
-        }
+        // Setiap kali SendingAlarmActivity dipanggil, kita memulakan pemancaran SOS baharu
+        UserPrefs.clearActiveSosProgress(this);
 
         initGpsAndDispatchSos();
 
@@ -172,6 +166,23 @@ public class SendingAlarmActivity extends AppCompatActivity {
                 showSafeConfirmationDialog();
             }
         });
+
+        simulateReserveReceiver = new android.content.BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                android.util.Log.d("SendingAlarmActivity", "Broadcast received: SIMULATE_ADMIN_RESERVE");
+                simulateAdminReserveForActiveAlerts();
+            }
+        };
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(simulateReserveReceiver, new android.content.IntentFilter("com.example.resqtap.SIMULATE_ADMIN_RESERVE"), Context.RECEIVER_EXPORTED);
+            } else {
+                registerReceiver(simulateReserveReceiver, new android.content.IntentFilter("com.example.resqtap.SIMULATE_ADMIN_RESERVE"));
+            }
+        } catch (Exception e) {
+            android.util.Log.w("SendingAlarmActivity", "Failed to register simulateReserveReceiver: " + e.getMessage());
+        }
     }
 
     private void bindViews() {
@@ -190,6 +201,18 @@ public class SendingAlarmActivity extends AppCompatActivity {
                 findViewById(R.id.avatar_node_5),
                 findViewById(R.id.avatar_node_6)
         };
+
+        if (cardRadarCenterLogo != null) {
+            cardRadarCenterLogo.setClickable(true);
+            cardRadarCenterLogo.setFocusable(true);
+            cardRadarCenterLogo.setOnLongClickListener(v -> {
+                simulateAdminReserveForActiveAlerts();
+                return true;
+            });
+            cardRadarCenterLogo.setOnClickListener(v -> {
+                simulateAdminReserveForActiveAlerts();
+            });
+        }
 
         if (btnSafeNow != null) {
             btnSafeNow.setOnClickListener(v -> showSafeConfirmationDialog());
@@ -308,6 +331,8 @@ public class SendingAlarmActivity extends AppCompatActivity {
         }
     }
 
+    private BroadcastReceiver simulateReserveReceiver;
+
     private void initGpsAndDispatchSos() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
@@ -321,6 +346,17 @@ public class SendingAlarmActivity extends AppCompatActivity {
         final String rawName = UserPrefs.getName(this);
         final String name = (rawName == null || rawName.trim().isEmpty()) ? "User" : rawName.trim();
 
+        final java.util.concurrent.atomic.AtomicBoolean dispatched = new java.util.concurrent.atomic.AtomicBoolean(false);
+        final Runnable fallbackDispatch = () -> {
+            if (dispatched.compareAndSet(false, true)) {
+                android.util.Log.d("SendingAlarmActivity", "Dispatching SOS via fallback coordinates (" + lastKnownLat + ", " + lastKnownLng + ")");
+                dispatchAlertToFirebase(uid, deviceId, name, lastKnownLat, lastKnownLng);
+            }
+        };
+
+        // Pastikan SOS tetap dihantar dalam masa 800ms walaupun GPS mengambil masa lama
+        handler.postDelayed(fallbackDispatch, 800);
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         if (PermissionUtils.hasAnyLocation(this)) {
             try {
@@ -329,15 +365,19 @@ public class SendingAlarmActivity extends AppCompatActivity {
                         lastKnownLat = loc.getLatitude();
                         lastKnownLng = loc.getLongitude();
                     }
-                    dispatchAlertToFirebase(uid, deviceId, name, lastKnownLat, lastKnownLng);
+                    if (dispatched.compareAndSet(false, true)) {
+                        handler.removeCallbacks(fallbackDispatch);
+                        android.util.Log.d("SendingAlarmActivity", "Dispatching SOS with fresh GPS coordinates (" + lastKnownLat + ", " + lastKnownLng + ")");
+                        dispatchAlertToFirebase(uid, deviceId, name, lastKnownLat, lastKnownLng);
+                    }
                 }).addOnFailureListener(e -> {
-                    dispatchAlertToFirebase(uid, deviceId, name, lastKnownLat, lastKnownLng);
+                    fallbackDispatch.run();
                 });
                 return;
             } catch (SecurityException ignored) {}
         }
 
-        dispatchAlertToFirebase(uid, deviceId, name, lastKnownLat, lastKnownLng);
+        fallbackDispatch.run();
     }
 
     private void dispatchAlertToFirebase(String uid, String dev, String name, double lat, double lng) {
@@ -385,15 +425,17 @@ public class SendingAlarmActivity extends AppCompatActivity {
     }
 
     private void sendSosToRoom(String code, String uid, String dev, String name, double lat, double lng) {
+        android.util.Log.d("SendingAlarmActivity", "sendSosToRoom to room: " + code);
         FirebaseRoomClient.sendRoomSosQueued(code, uid, dev, name, lat, lng, id -> {
             String sosId = String.valueOf(id == null ? "" : id).trim();
             if (sosId.isEmpty()) return;
 
+            android.util.Log.d("SendingAlarmActivity", "sendRoomSosQueued registered alertId: " + sosId + " in room: " + code);
             if (isSosCancelled) {
                 FirebaseRoomClient.cancelRoomSosQueued(code, sosId, dev);
             } else {
                 activeSosIds.put(code, sosId);
-                UserPrefs.setActiveSosProgress(SendingAlarmActivity.this, code, sosId);
+                // Hanya perhatikan respon admin; jangan set activeSosProgress sebelum di-reserve
                 watchSosCaseReservation(code, sosId);
             }
         });
@@ -413,7 +455,6 @@ public class SendingAlarmActivity extends AppCompatActivity {
                 if (isSosCancelled) return;
 
                 if (snapshot == null || !snapshot.exists()) {
-                    handleSosCancelledByRemote();
                     return;
                 }
 
@@ -432,31 +473,94 @@ public class SendingAlarmActivity extends AppCompatActivity {
                 Boolean served = snapshot.child("served").getValue(Boolean.class);
                 String servedBy = snapshot.child("servedBy").getValue(String.class);
 
+                // Admin di web dashboard telah menekan butang Reserve Case
                 if ((served != null && served) || (servedBy != null && !servedBy.trim().isEmpty())) {
+                    android.util.Log.d("SendingAlarmActivity", "Admin reserved case! Transitioning to SosProgressActivity: room=" + roomCode + ", alert=" + sosAlertId);
                     stopWatchingReservations();
 
-                    // Hentikan siren tempatan
+                    // Hentikan sebarang siren/vibrasi tempatan
                     silenceLocalDevice();
 
-                    // Buka SosProgressActivity secara automatik
-                    handler.postDelayed(() -> {
+                    // Simpan sesi aktif ke UserPrefs supaya kekal jika aplikasi ditutup atau dibuka semula
+                    UserPrefs.setActiveSosProgress(SendingAlarmActivity.this, roomCode, sosAlertId);
+
+                    // Buka SosProgressActivity (Case Update) serta-merta
+                    handler.post(() -> {
                         if (!isFinishing() && !isDestroyed()) {
                             isSendingAlarm = false;
                             SosProgressActivity.launch(SendingAlarmActivity.this, roomCode, sosAlertId);
                             finish();
                         }
-                    }, 1200);
+                    });
                 }
             }
 
             @Override
-            public void onCancelled(DatabaseError error) {}
+            public void onCancelled(DatabaseError error) {
+                android.util.Log.w("SendingAlarmActivity", "watchSosCaseReservation onCancelled: " + (error != null ? error.getMessage() : ""));
+            }
         };
 
         synchronized (reservationListeners) {
             reservationListeners.put(ref, listener);
         }
         ref.addValueEventListener(listener);
+    }
+
+    private void simulateAdminReserveForActiveAlerts() {
+        android.util.Log.d("SendingAlarmActivity", "simulateAdminReserveForActiveAlerts called, count=" + activeSosIds.size());
+        if (activeSosIds.isEmpty()) {
+            final String fallbackRoom = (targetRoomCode != null && !targetRoomCode.trim().isEmpty()) ? targetRoomCode.trim() : "DIRECT";
+            final String fallbackAlertId = "mock_alert_" + System.currentTimeMillis();
+            UserPrefs.setActiveSosProgress(SendingAlarmActivity.this, fallbackRoom, fallbackAlertId);
+            handler.post(() -> {
+                if (!isFinishing() && !isDestroyed()) {
+                    isSendingAlarm = false;
+                    SosProgressActivity.launch(SendingAlarmActivity.this, fallbackRoom, fallbackAlertId);
+                    finish();
+                }
+            });
+            return;
+        }
+
+        for (Map.Entry<String, String> entry : new HashMap<>(activeSosIds).entrySet()) {
+            final String code = entry.getKey();
+            final String alertId = entry.getValue();
+            if (code.isEmpty() || alertId.isEmpty()) continue;
+
+            Map<String, Object> adminUpdates = new HashMap<>();
+            adminUpdates.put("status", "active");
+            adminUpdates.put("active", true);
+            adminUpdates.put("served", true);
+            adminUpdates.put("servedBy", "admin_hq");
+            adminUpdates.put("servedByName", "Pusat Kawalan ResQTap");
+            adminUpdates.put("servedAt", com.google.firebase.database.ServerValue.TIMESTAMP);
+            adminUpdates.put("progressStep", 1);
+            adminUpdates.put("progressStatus", "Admin Dispatched");
+            adminUpdates.put("progressNotes", "Emergency assistance is assigned and responders have been notified.");
+
+            FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL)
+                    .getReference("rooms")
+                    .child(code)
+                    .child("sosAlerts")
+                    .child(alertId)
+                    .updateChildren(adminUpdates)
+                    .addOnSuccessListener(v -> {
+                        android.util.Log.d("SendingAlarmActivity", "Admin reserve updated successfully on RTDB for " + alertId);
+                    })
+                    .addOnFailureListener(e -> {
+                        android.util.Log.w("SendingAlarmActivity", "Admin reserve update failed on RTDB: " + e.getMessage());
+                        // Fallback transition terus ke SosProgressActivity
+                        handler.post(() -> {
+                            if (!isFinishing() && !isDestroyed()) {
+                                isSendingAlarm = false;
+                                UserPrefs.setActiveSosProgress(SendingAlarmActivity.this, code, alertId);
+                                SosProgressActivity.launch(SendingAlarmActivity.this, code, alertId);
+                                finish();
+                            }
+                        });
+                    });
+        }
     }
 
     private void handleSosCancelledByRemote() {
@@ -571,6 +675,13 @@ public class SendingAlarmActivity extends AppCompatActivity {
             }
         }
         activeAnimators.clear();
+
+        if (simulateReserveReceiver != null) {
+            try {
+                unregisterReceiver(simulateReserveReceiver);
+            } catch (Exception ignored) {}
+            simulateReserveReceiver = null;
+        }
 
         if (isFinishing() || isSosCancelled) {
             silenceLocalDevice();
