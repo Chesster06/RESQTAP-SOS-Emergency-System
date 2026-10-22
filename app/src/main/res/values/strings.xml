@@ -1249,4 +1249,11 @@ Terms Version: 1.0</string>
     <string name="marker_info_distance_label">Distance:</string>
     <string name="marker_info_directions">Get Directions</string>
     <string name="capsule_estimated_arrival">Estimated Arrival</string>
+    <string name="user_marker_title_default">Your Location</string>
+    <string name="user_marker_status_label">Status:</string>
+    <string name="user_marker_status_active">GPS Active (Accurate)</string>
+    <string name="user_marker_coordinates_label">Coordinates:</string>
+    <string name="user_marker_locating_address">Locating address…</string>
+    <string name="user_marker_btn_copy_gps">Copy GPS</string>
+    <string name="user_marker_toast_copied">GPS coordinates copied: %1$s</string>
 </resources>

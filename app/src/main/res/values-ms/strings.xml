@@ -1093,5 +1093,12 @@
     <string name="marker_info_distance_label">Jarak:</string>
     <string name="marker_info_directions">Dapatkan Arah</string>
     <string name="capsule_estimated_arrival">Anggaran Tiba</string>
+    <string name="user_marker_title_default">Lokasi Anda</string>
+    <string name="user_marker_status_label">Status:</string>
+    <string name="user_marker_status_active">GPS Aktif (Tepat)</string>
+    <string name="user_marker_coordinates_label">Koordinat:</string>
+    <string name="user_marker_locating_address">Mencari alamat lokasi…</string>
+    <string name="user_marker_btn_copy_gps">Salin GPS</string>
+    <string name="user_marker_toast_copied">Koordinat GPS disalin: %1$s</string>
 </resources>
 

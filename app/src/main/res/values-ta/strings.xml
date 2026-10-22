@@ -598,5 +598,12 @@
     <string name="marker_info_distance_label">தூரம்:</string>
     <string name="marker_info_directions">வழிகளைப் பெறுங்கள்</string>
     <string name="capsule_estimated_arrival">மதிப்பிடப்பட்ட வருகை</string>
+    <string name="user_marker_title_default">உங்கள் இருப்பிடம்</string>
+    <string name="user_marker_status_label">நிலை:</string>
+    <string name="user_marker_status_active">GPS செயலில் உள்ளது (துல்லியமானது)</string>
+    <string name="user_marker_coordinates_label">ஆயத்தொலைவுகள்:</string>
+    <string name="user_marker_locating_address">முகவரியைத் தேடுகிறது…</string>
+    <string name="user_marker_btn_copy_gps">GPS ஐ நகலெடு</string>
+    <string name="user_marker_toast_copied">GPS ஆயத்தொலைவுகள் நகலெடுக்கப்பட்டன: %1$s</string>
 </resources>
 

@@ -599,5 +599,12 @@
     <string name="marker_info_distance_label">距离：</string>
     <string name="marker_info_directions">获取路线</string>
     <string name="capsule_estimated_arrival">预计到达时间</string>
+    <string name="user_marker_title_default">您的位置</string>
+    <string name="user_marker_status_label">状态：</string>
+    <string name="user_marker_status_active">GPS 已开启（高精度）</string>
+    <string name="user_marker_coordinates_label">坐标：</string>
+    <string name="user_marker_locating_address">正在获取地址…</string>
+    <string name="user_marker_btn_copy_gps">复制 GPS</string>
+    <string name="user_marker_toast_copied">已复制 GPS 坐标：%1$s</string>
 </resources>
 
