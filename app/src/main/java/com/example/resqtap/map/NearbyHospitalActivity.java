@@ -1707,6 +1707,9 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
             markerRotationAnimator.cancel();
         }
 
+        if (toNavigation) {
+            navigationDirectionBitmap = buildNavigationDirectionBitmap(this);
+        }
         final Bitmap avatarBmp = buildSelfMarkerBitmap();
         final Bitmap navBmp = getNavigationDirectionBitmap();
         final float startRot = myLocationMarker.getRotation();
@@ -1820,7 +1823,7 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
 
     /**
      * 3D Navigation Direction Arrow / Chevron Icon (ResQTap Hot Pink 3D Style).
-     * Reka bentuk 3D timbul berbucu bulat (rounded) kemas di dalam bulatan bayang, tanpa bucu tajam.
+     * Reka bentuk 3D timbul ultra-rounded (bucu bulat penuh) kemas di dalam bulatan bayang.
      */
     private static Bitmap buildNavigationDirectionBitmap(Context ctx) {
         final int sizePx = dp(ctx, 72);
@@ -1831,179 +1834,128 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         float cy = sizePx / 2f;
 
         // 1. Bayang Bulatan Sentuhan Jalan Raya (Ambient Ground Shadow Disc)
-        // Bulatan asas dibuat kemas dan jelas di atas jalan raya
-        float discRadius = dp(ctx, 24f);
+        // Bulatan asas dibuat kemas dan jelas di atas jalan raya (diameter 50dp)
+        float discRadius = dp(ctx, 25f);
         Paint haloPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         haloPaint.setColor(Color.parseColor("#34271724"));
         haloPaint.setStyle(Paint.Style.FILL);
-        canvas.drawCircle(cx, cy + dp(ctx, 1.5f), discRadius, haloPaint);
+        canvas.drawCircle(cx, cy + dp(ctx, 1.8f), discRadius, haloPaint);
 
         Paint haloInnerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         haloInnerPaint.setColor(Color.parseColor("#330F020B"));
         haloInnerPaint.setStyle(Paint.Style.FILL);
-        canvas.drawCircle(cx, cy + dp(ctx, 2.5f), dp(ctx, 17f), haloInnerPaint);
+        canvas.drawCircle(cx, cy + dp(ctx, 2.8f), dp(ctx, 17f), haloInnerPaint);
 
-        // 2. Dimensi Anak Panah (Kecil & kemas di dalam bulatan, tidak terkena garisan bulatan)
-        float w = dp(ctx, 27f);
-        float h = dp(ctx, 30f);
+        // 2. Dimensi & Rangka Asas Anak Panah (Kecil di dalam bulatan, bucu bulat penuh)
+        // W = 26dp, H = 29dp (Jarak maksimum dari tengah ~19.5dp, jauh daripada sempadan bulatan 25dp)
+        float W = dp(ctx, 26f);
+        float H = dp(ctx, 29f);
         float notch = dp(ctx, 8.5f);
-        float rTop = dp(ctx, 4.2f);
-        float rWing = dp(ctx, 3.8f);
-        float rNotch = dp(ctx, 3.2f);
+        float R = dp(ctx, 4.5f); // Jejari kebulatan bucu (Radius 4.5dp = diameter kubah 9.0dp bulat licin)
 
-        // 3. Lapisan Ketebalan 3D Vertikal (Extruded Side Walls dengan bucu bulat)
+        // 3. Lapisan Ketebalan 3D Vertikal (Multi-Layer Extrusion Walls)
         // 3A. Dasar Gelap Bawah
-        Path bevelBottom = createSmoothRoundedChevronPath(cx, cy + dp(ctx, 3.6f), w, h, notch, rTop, rWing, rNotch);
+        Path baseSkeletonBottom = createChevronSkeleton(cx, cy + dp(ctx, 3.8f), W, H, notch, R);
         Paint paintBottom = new Paint(Paint.ANTI_ALIAS_FLAG);
         paintBottom.setColor(Color.parseColor("#4A0028"));
-        paintBottom.setStyle(Paint.Style.FILL);
-        canvas.drawPath(bevelBottom, paintBottom);
+        drawRoundedChevron(canvas, baseSkeletonBottom, R * 2f, paintBottom);
 
         // 3B. Dinding Sisi Tengah
-        Path bevelMid = createSmoothRoundedChevronPath(cx, cy + dp(ctx, 2.0f), w, h, notch, rTop, rWing, rNotch);
+        Path baseSkeletonMid = createChevronSkeleton(cx, cy + dp(ctx, 2.0f), W, H, notch, R);
         Paint paintMid = new Paint(Paint.ANTI_ALIAS_FLAG);
         paintMid.setColor(Color.parseColor("#880E4F"));
-        paintMid.setStyle(Paint.Style.FILL);
-        canvas.drawPath(bevelMid, paintMid);
+        drawRoundedChevron(canvas, baseSkeletonMid, R * 2f, paintMid);
 
         // 3C. Chamfer Rim
-        Path bevelTop = createSmoothRoundedChevronPath(cx, cy + dp(ctx, 0.8f), w, h, notch, rTop, rWing, rNotch);
+        Path baseSkeletonTop = createChevronSkeleton(cx, cy + dp(ctx, 0.8f), W, H, notch, R);
         Paint paintTop = new Paint(Paint.ANTI_ALIAS_FLAG);
         paintTop.setColor(Color.parseColor("#F8BBD0"));
-        paintTop.setStyle(Paint.Style.FILL);
-        canvas.drawPath(bevelTop, paintTop);
+        drawRoundedChevron(canvas, baseSkeletonTop, R * 2f, paintTop);
 
         // 4. Bingkai Putih Timbul 3D dengan bucu bulat penuh (Smooth White Rounded Frame)
-        Path outerPath = createSmoothRoundedChevronPath(cx, cy, w, h, notch, rTop, rWing, rNotch);
+        Path outerSkeleton = createChevronSkeleton(cx, cy, W, H, notch, R);
         Paint whitePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         whitePaint.setColor(Color.WHITE);
-        whitePaint.setStyle(Paint.Style.FILL);
         whitePaint.setShadowLayer(dp(ctx, 2.5f), 0f, dp(ctx, 1.2f), 0x30000000);
-        canvas.drawPath(outerPath, whitePaint);
+        drawRoundedChevron(canvas, outerSkeleton, R * 2f, whitePaint);
 
         // 5. Badan Utama Anak Panah Merah / Hot Pink Berbucu Bulat (Rounded Pink Core)
-        float innerW = w - dp(ctx, 5.8f);
-        float innerH = h - dp(ctx, 5.8f);
-        float innerNotch = notch - dp(ctx, 1.8f);
-        float innerRTop = Math.max(dp(ctx, 1.5f), rTop - dp(ctx, 1.2f));
-        float innerRWing = Math.max(dp(ctx, 1.5f), rWing - dp(ctx, 1.2f));
-        float innerRNotch = Math.max(dp(ctx, 1.5f), rNotch - dp(ctx, 1.0f));
+        float innerW = W - dp(ctx, 5.5f);
+        float innerH = H - dp(ctx, 5.5f);
+        float innerNotch = notch - dp(ctx, 1.6f);
+        float innerR = R - dp(ctx, 1.0f); // ~3.5dp jejari (kubah bulat ~7dp)
         float innerCy = cy - dp(ctx, 0.4f);
 
-        Path innerPath = createSmoothRoundedChevronPath(cx, innerCy, innerW, innerH, innerNotch, innerRTop, innerRWing, innerRNotch);
-
-        // Alur bayang dalam
-        Path innerShadow = createSmoothRoundedChevronPath(cx, innerCy + dp(ctx, 0.8f), innerW, innerH, innerNotch, innerRTop, innerRWing, innerRNotch);
+        // 5A. Bayang alur dalam
+        Path innerSkeletonShadow = createChevronSkeleton(cx, innerCy + dp(ctx, 0.8f), innerW, innerH, innerNotch, innerR);
         Paint shadowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         shadowPaint.setColor(Color.parseColor("#5A002C"));
-        shadowPaint.setStyle(Paint.Style.FILL);
-        canvas.drawPath(innerShadow, shadowPaint);
+        drawRoundedChevron(canvas, innerSkeletonShadow, innerR * 2f, shadowPaint);
 
-        // Lukis teras merah/pink dengan klip bucu bulat penuh (Zero sharp edges!)
-        canvas.save();
-        canvas.clipPath(innerPath);
-
-        // 5A. Sayap Kiri (Lit Neon Hot Pink)
-        Paint leftPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        LinearGradient leftGradient = new LinearGradient(
-                cx, innerCy - (innerH / 2f),
-                cx - (innerW / 2f), innerCy + (innerH / 2f),
-                Color.parseColor("#FF2E93"),
-                Color.parseColor("#E60067"),
+        // 5B. Teras Hot Pink Dwi-Prisma dengan Bucu Bulat Penuh (Zero sharp points!)
+        Path innerSkeleton = createChevronSkeleton(cx, innerCy, innerW, innerH, innerNotch, innerR);
+        Paint corePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        LinearGradient dualFacetGradient = new LinearGradient(
+                cx - (innerW / 2f), innerCy,
+                cx + (innerW / 2f), innerCy,
+                new int[] {
+                        Color.parseColor("#FF2E93"), // Sayap Kiri: Neon Hot Pink
+                        Color.parseColor("#FF0077"), // Sayap Kiri tengah: Vibrant Hot Pink
+                        Color.parseColor("#C2185B"), // Sayap Kanan tengah: Deep Magenta
+                        Color.parseColor("#880E4F")  // Sayap Kanan luar: Dark Crimson
+                },
+                new float[] { 0.0f, 0.499f, 0.501f, 1.0f },
                 Shader.TileMode.CLAMP
         );
-        leftPaint.setShader(leftGradient);
-        canvas.drawRect(0, 0, cx, sizePx, leftPaint);
-
-        // 5B. Sayap Kanan (Shaded Deep Crimson)
-        Paint rightPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        LinearGradient rightGradient = new LinearGradient(
-                cx, innerCy - (innerH / 2f),
-                cx + (innerW / 2f), innerCy + (innerH / 2f),
-                Color.parseColor("#D81B60"),
-                Color.parseColor("#880E4F"),
-                Shader.TileMode.CLAMP
-        );
-        rightPaint.setShader(rightGradient);
-        canvas.drawRect(cx, 0, sizePx, sizePx, rightPaint);
+        corePaint.setShader(dualFacetGradient);
+        drawRoundedChevron(canvas, innerSkeleton, innerR * 2f, corePaint);
 
         // 5C. Garis Rabung 3D Tengah
         Paint spinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        spinePaint.setColor(Color.argb(80, 255, 255, 255));
+        spinePaint.setColor(Color.argb(70, 255, 255, 255));
         spinePaint.setStrokeWidth(dp(ctx, 0.8f));
         spinePaint.setStyle(Paint.Style.STROKE);
         float topInnerY = innerCy - (innerH / 2f);
         float bottomInnerNotchY = innerCy + (innerH / 2f) - innerNotch;
         canvas.drawLine(cx, topInnerY, cx, bottomInnerNotchY, spinePaint);
 
-        canvas.restore();
-
-        // 6. Kilauan Muncung Bulat (Glossy Rounded Tip Sheen)
+        // 6. Kilauan Kubah Muncung Bulat (Glossy Specular Sheen on Rounded Dome)
         Paint glossPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        glossPaint.setColor(Color.argb(140, 255, 255, 255));
+        glossPaint.setColor(Color.argb(160, 255, 255, 255));
         glossPaint.setStyle(Paint.Style.FILL);
-        float glossTopY = innerCy - (innerH / 2f) + dp(ctx, 2.5f);
-        canvas.drawCircle(cx, glossTopY, dp(ctx, 2.0f), glossPaint);
+        float glossTopY = innerCy - (innerH / 2f) + innerR * 0.7f;
+        canvas.drawCircle(cx, glossTopY, innerR * 0.55f, glossPaint);
 
         return bitmap;
     }
 
     /**
-     * Membina bentuk Chevron dengan bucu bulat (smooth rounded corners) menggunakan Quadratic Beziers.
-     * Muncung hadapan, kedua-dua hujung sayap, dan lekuk dalam semuanya dibundarkan licin tanpa bucu tajam.
+     * Melukis bentuk chevron dengan bucu bulat sempurna (Minkowski sum / Skia native round join & cap).
+     * Kaedah ini menjamin semua bucu (muncung, sayap, lekuk) dibundarkan secara bulat tanpa sebarang bucu tajam.
      */
-    private static Path createSmoothRoundedChevronPath(float cx, float cy, float width, float height, float notchDepth, float rTop, float rWing, float rNotch) {
+    private static void drawRoundedChevron(Canvas canvas, Path skeleton, float strokeWidth, Paint paint) {
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
+        paint.setStrokeWidth(strokeWidth);
+        paint.setStrokeJoin(Paint.Join.ROUND);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        canvas.drawPath(skeleton, paint);
+    }
+
+    /**
+     * Membina rangka (skeleton) chevron yang diselaraskan untuk penebalan bucu bulat (stroke join round).
+     */
+    private static Path createChevronSkeleton(float cx, float cy, float width, float height, float notchDepth, float cornerRadius) {
         Path path = new Path();
-        float topY = cy - (height / 2f);
-        float bottomY = cy + (height / 2f);
-        float leftX = cx - (width / 2f);
-        float rightX = cx + (width / 2f);
-        float notchY = bottomY - notchDepth;
+        float topY = cy - (height / 2f) + cornerRadius;
+        float bottomY = cy + (height / 2f) - cornerRadius;
+        float leftX = cx - (width / 2f) + cornerRadius;
+        float rightX = cx + (width / 2f) - cornerRadius;
+        float notchY = cy + (height / 2f) - notchDepth + (cornerRadius * 0.6f);
 
-        // Vektor Left Wing (3) -> Apex (0)
-        float dx30 = cx - leftX;
-        float dy30 = topY - bottomY;
-        float len30 = (float) Math.hypot(dx30, dy30);
-        float ux30 = dx30 / len30;
-        float uy30 = dy30 / len30;
-
-        // Vektor Apex (0) -> Right Wing (1)
-        float dx01 = rightX - cx;
-        float dy01 = bottomY - topY;
-        float len01 = (float) Math.hypot(dx01, dy01);
-        float ux01 = dx01 / len01;
-        float uy01 = dy01 / len01;
-
-        // Vektor Right Wing (1) -> Notch (2)
-        float dx12 = cx - rightX;
-        float dy12 = notchY - bottomY;
-        float len12 = (float) Math.hypot(dx12, dy12);
-        float ux12 = dx12 / len12;
-        float uy12 = dy12 / len12;
-
-        // Vektor Notch (2) -> Left Wing (3)
-        float dx23 = leftX - cx;
-        float dy23 = bottomY - notchY;
-        float len23 = (float) Math.hypot(dx23, dy23);
-        float ux23 = dx23 / len23;
-        float uy23 = dy23 / len23;
-
-        // 1. Mula sebelum Apex di sebelah kiri & bundarkan Apex
-        path.moveTo(cx - ux30 * rTop, topY - uy30 * rTop);
-        path.quadTo(cx, topY, cx + ux01 * rTop, topY + uy01 * rTop);
-
-        // 2. Garis ke Sayap Kanan & bundarkan hujung Sayap Kanan
-        path.lineTo(rightX - ux01 * rWing, bottomY - uy01 * rWing);
-        path.quadTo(rightX, bottomY, rightX + ux12 * rWing, bottomY + uy12 * rWing);
-
-        // 3. Garis ke Lekuk Notch & bundarkan Notch
-        path.lineTo(cx - ux12 * rNotch, notchY - uy12 * rNotch);
-        path.quadTo(cx, notchY, cx + ux23 * rNotch, notchY + uy23 * rNotch);
-
-        // 4. Garis ke Sayap Kiri & bundarkan hujung Sayap Kiri
-        path.lineTo(leftX - ux23 * rWing, bottomY - uy23 * rWing);
-        path.quadTo(leftX, bottomY, leftX + ux30 * rWing, bottomY + uy30 * rWing);
-
+        path.moveTo(cx, topY);
+        path.lineTo(rightX, bottomY);
+        path.lineTo(cx, notchY);
+        path.lineTo(leftX, bottomY);
         path.close();
         return path;
     }
