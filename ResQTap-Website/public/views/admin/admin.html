@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=admin-profile-v10">
+  <link rel="stylesheet" href="/styles.css?v=admin-profile-v11">
   <!-- Leaflet.js: open-source map library for Live Map view -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css"/>
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
@@ -1059,14 +1059,7 @@
                 <div class="admin-identity-info">
                   <div class="admin-name-badge-row">
                     <h2 id="profileDisplayHeaderName" class="admin-name-title">Administrator</h2>
-                    <span class="admin-role-tag">
-                      <i data-lucide="shield-check" aria-hidden="true"></i>
-                      <span id="profileRoleBadge">Administrator</span>
-                    </span>
-                    <span class="admin-status-active">
-                      <span class="status-pulse-dot"></span>
-                      <span>Active</span>
-                    </span>
+                    <span id="profileRoleBadge" class="hidden">Administrator</span>
                   </div>
                   <p id="profileDisplayHeaderEmail" class="admin-email-text">admin@resqtap.com</p>
                   
@@ -1569,7 +1562,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=admin-profile-v10"></script>
+  <script type="module" src="/app.js?v=admin-profile-v11"></script>
 </body>
 </html>
 
