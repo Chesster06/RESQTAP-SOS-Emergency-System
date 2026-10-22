@@ -16,6 +16,12 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.LinearInterpolator;
+import android.view.animation.OvershootInterpolator;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -130,6 +136,8 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
     private float currentNavBearing = 0f;
     private LocationCallback navLocationCallback;
     private Bitmap navigationDirectionBitmap;
+    private ValueAnimator markerTransitionAnimator;
+    private ValueAnimator markerRotationAnimator;
 
     private String myPhotoUri = "";
     private String myPhotoB64 = "";
@@ -561,6 +569,12 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
     protected void onPause() {
         super.onPause();
         stopNavigationLocationUpdates();
+        if (markerTransitionAnimator != null) {
+            markerTransitionAnimator.cancel();
+        }
+        if (markerRotationAnimator != null) {
+            markerRotationAnimator.cancel();
+        }
         if (cancellationTokenSource != null) {
             cancellationTokenSource.cancel();
             cancellationTokenSource = null;
@@ -573,6 +587,14 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
     protected void onDestroy() {
         super.onDestroy();
         stopNavigationLocationUpdates();
+        if (markerTransitionAnimator != null) {
+            markerTransitionAnimator.cancel();
+            markerTransitionAnimator = null;
+        }
+        if (markerRotationAnimator != null) {
+            markerRotationAnimator.cancel();
+            markerRotationAnimator = null;
+        }
         if (navigationDirectionBitmap != null && !navigationDirectionBitmap.isRecycled()) {
             try { navigationDirectionBitmap.recycle(); } catch (Exception ignored) {}
             navigationDirectionBitmap = null;
@@ -1286,9 +1308,9 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
             return;
         }
 
-        // 4. Tukar serta-merta ikon profil pengguna kepada Direction Icon dan mulakan tracking
+        // 4. Animasi penukaran ikon profil pengguna kepada Direction Icon 3D dan mulakan tracking GPS
         currentNavBearing = calculateBearing(currentLatLng, target);
-        upsertMyLocationMarker(currentLatLng);
+        animateMarkerSwitch(true, currentNavBearing);
         startNavigationLocationUpdates();
 
         // 5. Lukis laluan navigasi polyline secara in-app
@@ -1383,7 +1405,7 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
                 bearing = calculateBearing(startPt, nextPt);
             }
             currentNavBearing = bearing;
-            upsertMyLocationMarker(userPos);
+            smoothRotateMarkerTo(bearing);
 
             // Pad camera so route ahead is nicely visible above bottom sheet
             int padBottom = dp(this, 140);
@@ -1478,9 +1500,7 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         activeNavHospital = null;
         isNavigating3D = false;
         currentNavBearing = 0f;
-        if (currentLatLng != null) {
-            upsertMyLocationMarker(currentLatLng);
-        }
+        animateMarkerSwitch(false, 0f);
         if (cardNavigationInfo != null) {
             cardNavigationInfo.setVisibility(View.GONE);
         }
@@ -1623,6 +1643,11 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
 
     private void upsertMyLocationMarker(LatLng pos) {
         if (map == null || pos == null) return;
+        if (markerTransitionAnimator != null && markerTransitionAnimator.isRunning()) {
+            if (myLocationMarker != null) myLocationMarker.setPosition(pos);
+            return;
+        }
+
         boolean navigating = isNavigating();
         Bitmap icon = navigating ? getNavigationDirectionBitmap() : buildSelfMarkerBitmap();
         float rot = navigating ? currentNavBearing : 0f;
@@ -1646,6 +1671,127 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         }
     }
 
+    /**
+     * Animasi peralihan lancar antara Profile Avatar dan Ikon Navigasi 3D.
+     * Menggunakan pop-shrink kemudian pop-grow dengan pantulan spring (OvershootInterpolator) & putaran haluan.
+     */
+    private void animateMarkerSwitch(boolean toNavigation, float targetBearing) {
+        if (myLocationMarker == null || map == null) {
+            if (currentLatLng != null) upsertMyLocationMarker(currentLatLng);
+            return;
+        }
+
+        if (markerTransitionAnimator != null && markerTransitionAnimator.isRunning()) {
+            markerTransitionAnimator.cancel();
+        }
+        if (markerRotationAnimator != null && markerRotationAnimator.isRunning()) {
+            markerRotationAnimator.cancel();
+        }
+
+        final Bitmap avatarBmp = buildSelfMarkerBitmap();
+        final Bitmap navBmp = getNavigationDirectionBitmap();
+        final float startRot = myLocationMarker.getRotation();
+        final float endRot = toNavigation ? targetBearing : 0f;
+
+        markerTransitionAnimator = ValueAnimator.ofFloat(0f, 1f);
+        markerTransitionAnimator.setDuration(420);
+        markerTransitionAnimator.setInterpolator(new LinearInterpolator());
+
+        final AccelerateInterpolator shrinkInterp = new AccelerateInterpolator(1.5f);
+        final OvershootInterpolator growInterp = new OvershootInterpolator(1.4f);
+        final boolean[] switched = new boolean[]{false};
+
+        markerTransitionAnimator.addUpdateListener(anim -> {
+            if (myLocationMarker == null) return;
+            float val = (float) anim.getAnimatedValue();
+
+            if (val < 0.38f) {
+                // Fasa 1: Mengecutkan ikon semasa (1.0 -> 0.05)
+                float shrinkProgress = val / 0.38f;
+                float scale = Math.max(0.05f, 1f - shrinkInterp.getInterpolation(shrinkProgress));
+                Bitmap currentBase = toNavigation ? avatarBmp : navBmp;
+                Bitmap scaled = scaleBitmap(currentBase, scale);
+                if (scaled != null) {
+                    try { myLocationMarker.setIcon(BitmapDescriptorFactory.fromBitmap(scaled)); } catch (Exception ignored) {}
+                }
+            } else {
+                // Fasa 2: Tukar sifat marker dan kembangkan ikon baharu dengan kesan pop spring (0.05 -> 1.0)
+                if (!switched[0]) {
+                    switched[0] = true;
+                    myLocationMarker.setFlat(toNavigation);
+                    myLocationMarker.setZIndex(toNavigation ? 100f : 10f);
+                }
+
+                float growProgress = (val - 0.38f) / 0.62f;
+                float scale = Math.max(0.05f, growInterp.getInterpolation(growProgress));
+
+                float rot = interpolateRotation(startRot, endRot, growProgress);
+                myLocationMarker.setRotation(rot);
+
+                Bitmap targetBase = toNavigation ? navBmp : avatarBmp;
+                Bitmap scaled = scaleBitmap(targetBase, scale);
+                if (scaled != null) {
+                    try { myLocationMarker.setIcon(BitmapDescriptorFactory.fromBitmap(scaled)); } catch (Exception ignored) {}
+                }
+            }
+        });
+
+        markerTransitionAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(android.animation.Animator animation) {
+                if (myLocationMarker == null) return;
+                myLocationMarker.setFlat(toNavigation);
+                myLocationMarker.setZIndex(toNavigation ? 100f : 10f);
+                myLocationMarker.setRotation(toNavigation ? targetBearing : 0f);
+                Bitmap finalBmp = toNavigation ? navBmp : avatarBmp;
+                if (finalBmp != null) {
+                    try { myLocationMarker.setIcon(BitmapDescriptorFactory.fromBitmap(finalBmp)); } catch (Exception ignored) {}
+                }
+            }
+        });
+
+        markerTransitionAnimator.start();
+    }
+
+    private void smoothRotateMarkerTo(float targetBearing) {
+        if (myLocationMarker == null) return;
+        if (markerTransitionAnimator != null && markerTransitionAnimator.isRunning()) return;
+
+        if (markerRotationAnimator != null && markerRotationAnimator.isRunning()) {
+            markerRotationAnimator.cancel();
+        }
+
+        final float startRot = myLocationMarker.getRotation();
+        markerRotationAnimator = ValueAnimator.ofFloat(0f, 1f);
+        markerRotationAnimator.setDuration(260);
+        markerRotationAnimator.setInterpolator(new DecelerateInterpolator());
+        markerRotationAnimator.addUpdateListener(anim -> {
+            if (myLocationMarker == null) return;
+            float f = (float) anim.getAnimatedValue();
+            myLocationMarker.setRotation(interpolateRotation(startRot, targetBearing, f));
+        });
+        markerRotationAnimator.start();
+    }
+
+    private static float interpolateRotation(float from, float to, float progress) {
+        float diff = (to - from) % 360f;
+        if (diff > 180f) diff -= 360f;
+        if (diff < -180f) diff += 360f;
+        return (from + diff * Math.min(1f, Math.max(0f, progress)) + 360f) % 360f;
+    }
+
+    private static Bitmap scaleBitmap(Bitmap src, float scale) {
+        if (src == null || src.isRecycled()) return null;
+        float s = Math.min(1.3f, Math.max(0.05f, scale));
+        int w = Math.max(1, Math.round(src.getWidth() * s));
+        int h = Math.max(1, Math.round(src.getHeight() * s));
+        try {
+            return Bitmap.createScaledBitmap(src, w, h, true);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
     private Bitmap getNavigationDirectionBitmap() {
         if (navigationDirectionBitmap == null || navigationDirectionBitmap.isRecycled()) {
             navigationDirectionBitmap = buildNavigationDirectionBitmap(this);
@@ -1658,74 +1804,108 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
      * Mengubah ikon profil pengguna kepada anak panah panduan arah 3D (cyan / teal dengan bingkai putih dan bayang asas).
      */
     private static Bitmap buildNavigationDirectionBitmap(Context ctx) {
-        final int sizePx = dp(ctx, 56);
+        final int sizePx = dp(ctx, 62);
         Bitmap bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
 
         float cx = sizePx / 2f;
         float cy = sizePx / 2f;
 
-        // 1. Bayang piring asas (Soft circular ground shadow halo di atas jalan raya)
+        // 1. Bayang Sentuhan Jalan Raya (Ambient Ground Contact Shadow)
         Paint haloPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        haloPaint.setColor(Color.parseColor("#38475569"));
+        haloPaint.setColor(Color.parseColor("#38334155"));
         haloPaint.setStyle(Paint.Style.FILL);
-        canvas.drawCircle(cx, cy, dp(ctx, 22f), haloPaint);
+        canvas.drawCircle(cx, cy + dp(ctx, 1.5f), dp(ctx, 24f), haloPaint);
 
         Paint haloInnerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        haloInnerPaint.setColor(Color.parseColor("#14000000"));
+        haloInnerPaint.setColor(Color.parseColor("#200F172A"));
         haloInnerPaint.setStyle(Paint.Style.FILL);
-        canvas.drawCircle(cx, cy, dp(ctx, 18f), haloInnerPaint);
+        canvas.drawCircle(cx, cy + dp(ctx, 2.5f), dp(ctx, 19f), haloInnerPaint);
 
-        float w = dp(ctx, 30f);
-        float h = dp(ctx, 32f);
-        float notch = dp(ctx, 9.5f);
+        float w = dp(ctx, 32f);
+        float h = dp(ctx, 35f);
+        float notch = dp(ctx, 10.5f);
 
-        // 2. 3D Bevel Bawah (Extrusion / ketebalan bawah memberi ilusi 3D tactile)
-        Path bevelPath = createChevronPath(cx, cy + dp(ctx, 2.2f), w, h, notch);
-        Paint bevelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        bevelPaint.setColor(Color.parseColor("#80DEEA")); // Bayang cyan-mint
-        bevelPaint.setStyle(Paint.Style.FILL);
-        bevelPaint.setPathEffect(new CornerPathEffect(dp(ctx, 5f)));
-        canvas.drawPath(bevelPath, bevelPaint);
+        // 2. Lapisan Penyambung 3D Bawah (Extruded Vertical Side Walls)
+        // Lapisan 2A - Shadowed Base Extrusion (Bawah)
+        Path bevelPathBottom = createChevronPath(cx, cy + dp(ctx, 3.8f), w, h, notch);
+        Paint bevelPaintBottom = new Paint(Paint.ANTI_ALIAS_FLAG);
+        bevelPaintBottom.setColor(Color.parseColor("#00838F")); // Deep teal shadow
+        bevelPaintBottom.setStyle(Paint.Style.FILL);
+        bevelPaintBottom.setPathEffect(new CornerPathEffect(dp(ctx, 5.5f)));
+        canvas.drawPath(bevelPathBottom, bevelPaintBottom);
 
-        // 3. Bingkai Putih Timbul 3D (Thick rounded white frame)
+        // Lapisan 2B - Mid Extrusion Chamfer
+        Path bevelPathMid = createChevronPath(cx, cy + dp(ctx, 2.4f), w, h, notch);
+        Paint bevelPaintMid = new Paint(Paint.ANTI_ALIAS_FLAG);
+        bevelPaintMid.setColor(Color.parseColor("#4DD0E1")); // Cyan-mint wall
+        bevelPaintMid.setStyle(Paint.Style.FILL);
+        bevelPaintMid.setPathEffect(new CornerPathEffect(dp(ctx, 5.2f)));
+        canvas.drawPath(bevelPathMid, bevelPaintMid);
+
+        // Lapisan 2C - Upper Rim Chamfer
+        Path bevelPathTop = createChevronPath(cx, cy + dp(ctx, 1.0f), w, h, notch);
+        Paint bevelPaintTop = new Paint(Paint.ANTI_ALIAS_FLAG);
+        bevelPaintTop.setColor(Color.parseColor("#B2EBF2")); // Light cyan-white rim
+        bevelPaintTop.setStyle(Paint.Style.FILL);
+        bevelPaintTop.setPathEffect(new CornerPathEffect(dp(ctx, 5.0f)));
+        canvas.drawPath(bevelPathTop, bevelPaintTop);
+
+        // 3. Bingkai Putih Timbul 3D (Solid Rounded White Frame with Depth Shadow)
         Path outerPath = createChevronPath(cx, cy, w, h, notch);
         Paint whitePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         whitePaint.setColor(Color.WHITE);
         whitePaint.setStyle(Paint.Style.FILL);
-        whitePaint.setPathEffect(new CornerPathEffect(dp(ctx, 5f)));
+        whitePaint.setPathEffect(new CornerPathEffect(dp(ctx, 5.0f)));
         whitePaint.setShadowLayer(dp(ctx, 2.5f), 0f, dp(ctx, 1.2f), 0x33000000);
         canvas.drawPath(outerPath, whitePaint);
 
-        // 4. Badan Utama Anak Panah (Vibrant Cyan / Turquoise Gradient)
-        float innerW = w - dp(ctx, 6.2f);
-        float innerH = h - dp(ctx, 6.2f);
-        float innerNotch = notch - dp(ctx, 1.8f);
-        Path innerPath = createChevronPath(cx, cy - dp(ctx, 0.4f), innerW, innerH, innerNotch);
-        Paint cyanPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        cyanPaint.setStyle(Paint.Style.FILL);
-        cyanPaint.setPathEffect(new CornerPathEffect(dp(ctx, 3.8f)));
+        // 4. Badan Utama Anak Panah 3D Berprisma (Split Dual-Facet Prism Core)
+        float innerW = w - dp(ctx, 6.4f);
+        float innerH = h - dp(ctx, 6.4f);
+        float innerNotch = notch - dp(ctx, 1.9f);
+        float innerCy = cy - dp(ctx, 0.4f);
 
-        LinearGradient gradient = new LinearGradient(
-                cx, cy - (innerH / 2f),
-                cx, cy + (innerH / 2f),
-                Color.parseColor("#00D8F6"),
-                Color.parseColor("#00ACC1"),
+        // 4A. Sayap Kiri Prisma (Terima Cahaya / Illuminated Cyan)
+        Path leftFacet = createLeftChevronFacet(cx, innerCy, innerW, innerH, innerNotch);
+        Paint leftPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        leftPaint.setStyle(Paint.Style.FILL);
+        leftPaint.setPathEffect(new CornerPathEffect(dp(ctx, 3.8f)));
+        LinearGradient leftGradient = new LinearGradient(
+                cx, innerCy - (innerH / 2f),
+                cx - (innerW / 2f), innerCy + (innerH / 2f),
+                Color.parseColor("#00F5FF"),
+                Color.parseColor("#00C4D4"),
                 Shader.TileMode.CLAMP
         );
-        cyanPaint.setShader(gradient);
-        canvas.drawPath(innerPath, cyanPaint);
+        leftPaint.setShader(leftGradient);
+        canvas.drawPath(leftFacet, leftPaint);
 
-        // 5. Kilauan Refleksi Atas (Glossy highlight)
+        // 4B. Sayap Kanan Prisma (Bayang Sederhana / Shaded Turquoise)
+        Path rightFacet = createRightChevronFacet(cx, innerCy, innerW, innerH, innerNotch);
+        Paint rightPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        rightPaint.setStyle(Paint.Style.FILL);
+        rightPaint.setPathEffect(new CornerPathEffect(dp(ctx, 3.8f)));
+        LinearGradient rightGradient = new LinearGradient(
+                cx, innerCy - (innerH / 2f),
+                cx + (innerW / 2f), innerCy + (innerH / 2f),
+                Color.parseColor("#00BCD4"),
+                Color.parseColor("#00838F"),
+                Shader.TileMode.CLAMP
+        );
+        rightPaint.setShader(rightGradient);
+        canvas.drawPath(rightFacet, rightPaint);
+
+        // 5. Garis Tulang Belakang 3D & Kilauan Refleksi Atas (3D Ridge & Specular Highlight)
         Path highlightPath = new Path();
-        float topY = cy - (innerH / 2f) + dp(ctx, 1.5f);
+        float topY = innerCy - (innerH / 2f) + dp(ctx, 1.5f);
         highlightPath.moveTo(cx, topY);
-        highlightPath.lineTo(cx + (innerW * 0.28f), cy - dp(ctx, 2f));
-        highlightPath.lineTo(cx - (innerW * 0.28f), cy - dp(ctx, 2f));
+        highlightPath.lineTo(cx + (innerW * 0.26f), innerCy - dp(ctx, 2.5f));
+        highlightPath.lineTo(cx - (innerW * 0.26f), innerCy - dp(ctx, 2.5f));
         highlightPath.close();
 
         Paint hlPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        hlPaint.setColor(Color.argb(85, 255, 255, 255));
+        hlPaint.setColor(Color.argb(90, 255, 255, 255));
         hlPaint.setStyle(Paint.Style.FILL);
         hlPaint.setPathEffect(new CornerPathEffect(dp(ctx, 2.5f)));
         canvas.drawPath(highlightPath, hlPaint);
@@ -1745,6 +1925,34 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         path.lineTo(rightX, bottomY);
         path.lineTo(cx, notchY);
         path.lineTo(leftX, bottomY);
+        path.close();
+        return path;
+    }
+
+    private static Path createLeftChevronFacet(float cx, float cy, float width, float height, float notchDepth) {
+        Path path = new Path();
+        float topY = cy - (height / 2f);
+        float bottomY = cy + (height / 2f);
+        float leftX = cx - (width / 2f);
+        float notchY = bottomY - notchDepth;
+
+        path.moveTo(cx, topY);
+        path.lineTo(leftX, bottomY);
+        path.lineTo(cx, notchY);
+        path.close();
+        return path;
+    }
+
+    private static Path createRightChevronFacet(float cx, float cy, float width, float height, float notchDepth) {
+        Path path = new Path();
+        float topY = cy - (height / 2f);
+        float bottomY = cy + (height / 2f);
+        float rightX = cx + (width / 2f);
+        float notchY = bottomY - notchDepth;
+
+        path.moveTo(cx, topY);
+        path.lineTo(rightX, bottomY);
+        path.lineTo(cx, notchY);
         path.close();
         return path;
     }
