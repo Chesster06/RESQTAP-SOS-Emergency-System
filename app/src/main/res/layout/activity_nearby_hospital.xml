@@ -635,7 +635,7 @@
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
         app:behavior_fitToContents="true"
         app:behavior_hideable="true"
-        app:behavior_peekHeight="106dp"
+        app:behavior_peekHeight="132dp"
         app:paddingBottomSystemWindowInsets="false"
         app:paddingTopSystemWindowInsets="false"
         app:gestureInsetBottomIgnored="true">
@@ -653,7 +653,7 @@
                 android:paddingStart="20dp"
                 android:paddingEnd="20dp"
                 android:paddingTop="12dp"
-                android:paddingBottom="20dp">
+                android:paddingBottom="26dp">
 
                 <!-- Handle bar -->
                 <View

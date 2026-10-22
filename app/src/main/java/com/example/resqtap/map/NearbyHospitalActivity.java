@@ -562,7 +562,24 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
 
         setupNavSheetSwipeAndOptions();
 
-        scrollCategoryFilters = findViewById(R.id.scroll_category_filters);
+        if (cardNavigationInfo != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(cardNavigationInfo, (v, insets) -> {
+                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                int targetPeek = dp(NearbyHospitalActivity.this, 132) + systemBars.bottom;
+                if (navSheetBehavior != null) {
+                    navSheetBehavior.setPeekHeight(targetPeek);
+                }
+                if (navSheetHeader != null) {
+                    navSheetHeader.setPadding(
+                            dp(NearbyHospitalActivity.this, 20),
+                            dp(NearbyHospitalActivity.this, 12),
+                            dp(NearbyHospitalActivity.this, 20),
+                            dp(NearbyHospitalActivity.this, 26) + systemBars.bottom
+                    );
+                }
+                return insets;
+            });
+        }
         searchCard = findViewById(R.id.search_card);
         capsuleEstimatedArrival = findViewById(R.id.capsule_estimated_arrival);
         capsuleIconCard = (MaterialCardView) findViewById(R.id.capsule_icon_card);
@@ -1532,7 +1549,7 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
             cardNavigationInfo.setVisibility(View.VISIBLE);
             if (navSheetBehavior != null) {
                 navSheetBehavior.setHideable(false);
-                navSheetBehavior.setPeekHeight(dp(this, 106));
+                navSheetBehavior.setPeekHeight(getNavSheetPeekHeight());
                 navSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
             }
             if (navDestinationName != null) navDestinationName.setText(item.name);
@@ -1859,13 +1876,24 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         }
     }
 
+    private int getNavSheetPeekHeight() {
+        int peek = dp(this, 132);
+        try {
+            if (cardNavigationInfo != null && ViewCompat.getRootWindowInsets(cardNavigationInfo) != null) {
+                Insets insets = ViewCompat.getRootWindowInsets(cardNavigationInfo).getInsets(WindowInsetsCompat.Type.systemBars());
+                peek += insets.bottom;
+            }
+        } catch (Exception ignored) {}
+        return peek;
+    }
+
     private void setupNavSheetSwipeAndOptions() {
         if (cardNavigationInfo != null) {
             navSheetBehavior = BottomSheetBehavior.from(cardNavigationInfo);
             navSheetBehavior.setFitToContents(true);
             navSheetBehavior.setHideable(true);
             navSheetBehavior.setSkipCollapsed(false);
-            navSheetBehavior.setPeekHeight(dp(this, 106));
+            navSheetBehavior.setPeekHeight(getNavSheetPeekHeight());
             navSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
             navSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
