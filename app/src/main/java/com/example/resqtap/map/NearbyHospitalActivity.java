@@ -1319,8 +1319,9 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
 
         // Segera bawa kamera ke pandangan navigasi 3D jarak dekat (Close-up 3D Cockpit View)
         if (map != null) {
-            int padBottom = dp(this, 180);
-            map.setPadding(0, 0, 0, padBottom);
+            int padTop = dp(this, 200);
+            int padBottom = dp(this, 60);
+            map.setPadding(0, padTop, 0, padBottom);
             com.google.android.gms.maps.model.CameraPosition initialNavCam = new com.google.android.gms.maps.model.CameraPosition.Builder()
                     .target(currentLatLng)
                     .zoom(19.8f)
@@ -1424,9 +1425,10 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
             currentNavBearing = bearing;
             smoothRotateMarkerTo(bearing);
 
-            // Pad camera so route ahead is nicely visible above bottom sheet
-            int padBottom = dp(this, 180);
-            map.setPadding(0, 0, 0, padBottom);
+            // Pad camera supaya anak panah berada di bahagian bawah-tengah skrin (mcm Google Maps)
+            int padTop = dp(this, 200);
+            int padBottom = dp(this, 60);
+            map.setPadding(0, padTop, 0, padBottom);
 
             com.google.android.gms.maps.model.CameraPosition cameraPosition = new com.google.android.gms.maps.model.CameraPosition.Builder()
                     .target(userPos)
