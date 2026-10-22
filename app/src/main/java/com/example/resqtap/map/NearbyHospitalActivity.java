@@ -180,9 +180,14 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
     private TextView calloutTitle;
     private ImageView calloutBtnClose;
     private TextView calloutStatus;
+    private TextView calloutStatusLabel;
     private TextView calloutDistance;
+    private TextView calloutDistanceLabel;
     private TextView calloutAddress;
     private MaterialButton calloutBtnDirections;
+    private View calloutUserActions;
+    private MaterialButton calloutBtnCopyCoords;
+    private MaterialButton calloutBtnRecenter;
     private LatLng selectedCalloutLatLng;
     private HospitalItem selectedCalloutHospital;
 
@@ -606,9 +611,14 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         calloutTitle = findViewById(R.id.callout_title);
         calloutBtnClose = findViewById(R.id.callout_btn_close);
         calloutStatus = findViewById(R.id.callout_status);
+        calloutStatusLabel = findViewById(R.id.callout_status_label);
         calloutDistance = findViewById(R.id.callout_distance);
+        calloutDistanceLabel = findViewById(R.id.callout_distance_label);
         calloutAddress = findViewById(R.id.callout_address);
         calloutBtnDirections = findViewById(R.id.callout_btn_directions);
+        calloutUserActions = findViewById(R.id.callout_user_actions);
+        calloutBtnCopyCoords = findViewById(R.id.callout_btn_copy_coords);
+        calloutBtnRecenter = findViewById(R.id.callout_btn_recenter);
 
         if (calloutBtnClose != null) {
             calloutBtnClose.setOnClickListener(v -> hideMarkerCallout());
@@ -619,6 +629,26 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
                     HospitalItem target = selectedCalloutHospital;
                     hideMarkerCallout();
                     openDirections(target);
+                }
+            });
+        }
+        if (calloutBtnCopyCoords != null) {
+            calloutBtnCopyCoords.setOnClickListener(v -> {
+                if (selectedCalloutLatLng != null) {
+                    String coords = String.format(Locale.US, "%.5f, %.5f", selectedCalloutLatLng.latitude, selectedCalloutLatLng.longitude);
+                    android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                    if (clipboard != null) {
+                        android.content.ClipData clip = android.content.ClipData.newPlainText("GPS Coordinates", coords);
+                        clipboard.setPrimaryClip(clip);
+                        Toast.makeText(this, "Koordinat GPS disalin: " + coords, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+        if (calloutBtnRecenter != null) {
+            calloutBtnRecenter.setOnClickListener(v -> {
+                if (selectedCalloutLatLng != null && map != null) {
+                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(selectedCalloutLatLng, 17.5f));
                 }
             });
         }
@@ -702,8 +732,11 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
 
         map.setOnMarkerClickListener(marker -> {
             if (marker == null) return false;
-            // Ignore click on self "You" location marker
-            if (marker.equals(myLocationMarker)) return false;
+            // Paparkan kad maklumat apabila marker lokasi pengguna (avatar) ditekan
+            if (marker.equals(myLocationMarker)) {
+                showUserMarkerCallout(marker.getPosition());
+                return true;
+            }
 
             HospitalItem item = null;
             if (marker.getTag() instanceof HospitalItem) {
@@ -1242,6 +1275,15 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         selectedCalloutHospital = item;
         selectedCalloutLatLng = pos;
 
+        if (calloutBtnDirections != null) calloutBtnDirections.setVisibility(View.VISIBLE);
+        if (calloutUserActions != null) calloutUserActions.setVisibility(View.GONE);
+        if (calloutStatusLabel != null) calloutStatusLabel.setText(R.string.marker_info_status_label);
+        if (calloutDistanceLabel != null) calloutDistanceLabel.setText(R.string.marker_info_distance_label);
+        if (calloutStatus != null) {
+            calloutStatus.setText(R.string.marker_info_status_active);
+            calloutStatus.setTextColor(ContextCompat.getColor(this, R.color.success_green));
+        }
+
         if (calloutTitle != null) {
             calloutTitle.setText(item.name != null ? item.name : "");
         }
@@ -1280,6 +1322,7 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         }
 
         if (calloutLogo != null) {
+            calloutLogo.setScaleType(ImageView.ScaleType.FIT_CENTER);
             calloutLogo.setImageTintList(null);
             calloutLogo.setImageResource(logoRes);
         }
@@ -1297,6 +1340,139 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         if (map != null) {
             map.animateCamera(CameraUpdateFactory.newLatLng(pos));
         }
+    }
+
+    /**
+     * Paparkan kad maklumat apabila marker lokasi pengguna ditekan,
+     * menggantikan tooltip ringkas "You" dengan kad maklumat penuh profil & koordinat pengguna.
+     */
+    private void showUserMarkerCallout(LatLng pos) {
+        if (pos == null || markerCalloutLayout == null) return;
+        selectedCalloutHospital = null;
+        selectedCalloutLatLng = pos;
+
+        if (calloutBtnDirections != null) calloutBtnDirections.setVisibility(View.GONE);
+        if (calloutUserActions != null) calloutUserActions.setVisibility(View.VISIBLE);
+
+        String userName = UserPrefs.getName(this);
+        if (userName == null || userName.trim().isEmpty()) {
+            userName = "Lokasi Anda";
+        }
+        if (calloutTitle != null) {
+            calloutTitle.setText(userName.trim());
+        }
+
+        if (calloutStatusLabel != null) {
+            calloutStatusLabel.setText("Status: ");
+        }
+        if (calloutStatus != null) {
+            calloutStatus.setText("GPS Aktif (Tepat)");
+            calloutStatus.setTextColor(ContextCompat.getColor(this, R.color.success_green));
+        }
+
+        if (calloutDistanceLabel != null) {
+            calloutDistanceLabel.setText("Koordinat: ");
+        }
+        final String coordsStr = String.format(Locale.US, "%.5f, %.5f", pos.latitude, pos.longitude);
+        if (calloutDistance != null) {
+            calloutDistance.setText(coordsStr);
+        }
+
+        if (calloutAddress != null) {
+            calloutAddress.setText("Mencari alamat lokasi...");
+            calloutAddress.setVisibility(View.VISIBLE);
+        }
+
+        // Paparkan gambar profil pengguna pada ring callout
+        if (calloutLogo != null) {
+            calloutLogo.setImageTintList(null);
+            calloutLogo.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            Bitmap b = decodeBase64Avatar(myPhotoB64);
+            if (b != null) {
+                calloutLogo.setImageBitmap(b);
+            } else if (myPhotoUri != null && !myPhotoUri.isEmpty()) {
+                Bitmap uBmp = loadProfileBitmap(this, myPhotoUri);
+                if (uBmp != null) {
+                    calloutLogo.setImageBitmap(uBmp);
+                } else {
+                    calloutLogo.setImageResource(R.drawable.ic_avatar);
+                }
+            } else {
+                calloutLogo.setImageResource(R.drawable.ic_avatar);
+            }
+        }
+        if (calloutLogoRing != null) {
+            calloutLogoRing.setStrokeColor(Color.parseColor("#4CAF50"));
+            calloutLogoRing.setCardBackgroundColor(Color.WHITE);
+        }
+
+        markerCalloutLayout.setVisibility(View.VISIBLE);
+        markerCalloutLayout.setAlpha(0f);
+        markerCalloutLayout.animate().alpha(1f).setDuration(180).start();
+
+        updateCalloutPosition();
+
+        if (map != null) {
+            map.animateCamera(CameraUpdateFactory.newLatLng(pos));
+        }
+
+        // Cari alamat geocoded secara latar belakang (background thread)
+        final LatLng targetPos = pos;
+        executor.execute(() -> {
+            String addr = reverseGeocodeLabel(targetPos.latitude, targetPos.longitude);
+            runOnUiThread(() -> {
+                if (calloutAddress != null && selectedCalloutLatLng != null &&
+                        selectedCalloutLatLng.latitude == targetPos.latitude &&
+                        selectedCalloutLatLng.longitude == targetPos.longitude) {
+                    if (addr != null && !addr.trim().isEmpty()) {
+                        calloutAddress.setText(addr.trim());
+                    } else {
+                        calloutAddress.setText(coordsStr);
+                    }
+                }
+            });
+        });
+    }
+
+    private String reverseGeocodeLabel(double lat, double lng) {
+        try {
+            if (!android.location.Geocoder.isPresent()) return "";
+        } catch (Exception ignored) {
+            return "";
+        }
+        try {
+            android.location.Geocoder g = new android.location.Geocoder(this, java.util.Locale.getDefault());
+            java.util.List<android.location.Address> list = g.getFromLocation(lat, lng, 1);
+            if (list == null || list.isEmpty()) return "";
+            android.location.Address a = list.get(0);
+            String road = safeStr(a.getThoroughfare());
+            String sub = safeStr(a.getSubThoroughfare());
+            String locality = safeStr(a.getLocality());
+            String admin = safeStr(a.getAdminArea());
+            String feature = safeStr(a.getFeatureName());
+
+            StringBuilder sb = new StringBuilder();
+            if (!road.isEmpty()) {
+                sb.append(road);
+                if (!sub.isEmpty()) sb.append(" ").append(sub);
+            } else if (!feature.isEmpty()) {
+                sb.append(feature);
+            }
+            if (!locality.isEmpty()) {
+                if (sb.length() > 0) sb.append(", ");
+                sb.append(locality);
+            } else if (!admin.isEmpty()) {
+                if (sb.length() > 0) sb.append(", ");
+                sb.append(admin);
+            }
+            return sb.toString();
+        } catch (Exception ignored) {
+            return "";
+        }
+    }
+
+    private static String safeStr(String s) {
+        return s == null ? "" : s.trim();
     }
 
     private void hideMarkerCallout() {
@@ -2071,7 +2247,6 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         if (myLocationMarker == null) {
             myLocationMarker = map.addMarker(new MarkerOptions()
                     .position(pos)
-                    .title("You")
                     .icon(BitmapDescriptorFactory.fromBitmap(icon))
                     .anchor(0.5f, 0.5f)
                     .flat(false)

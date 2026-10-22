@@ -436,6 +436,7 @@
                         android:layout_marginBottom="3dp">
 
                         <TextView
+                            android:id="@+id/callout_status_label"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/marker_info_status_label"
@@ -453,7 +454,7 @@
                             android:textStyle="bold" />
                     </LinearLayout>
 
-                    <!-- Distance row -->
+                    <!-- Distance / Subtitle row -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -461,6 +462,7 @@
                         android:layout_marginBottom="3dp">
 
                         <TextView
+                            android:id="@+id/callout_distance_label"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/marker_info_distance_label"
@@ -488,7 +490,7 @@
                         android:textSize="11.5sp"
                         android:layout_marginBottom="10dp" />
 
-                    <!-- Get Directions Action Button -->
+                    <!-- Hospital: Get Directions Action Button -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/callout_btn_directions"
                         style="@style/Widget.ResQTap.FilledButton"
@@ -503,6 +505,51 @@
                         app:cornerRadius="10dp"
                         app:icon="@drawable/ic_directions_24"
                         app:iconSize="16dp" />
+
+                    <!-- User Location: Actions Row (Salin Koordinat & Pusatkan Peta) -->
+                    <LinearLayout
+                        android:id="@+id/callout_user_actions"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:visibility="gone">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/callout_btn_copy_coords"
+                            style="@style/Widget.ResQTap.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="38dp"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="6dp"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp"
+                            android:paddingTop="0dp"
+                            android:paddingBottom="0dp"
+                            android:text="Salin GPS"
+                            android:textColor="@color/brand_primary"
+                            android:textSize="11.5sp"
+                            app:strokeColor="@color/brand_primary"
+                            app:cornerRadius="10dp"
+                            app:icon="@drawable/ic_copy_24"
+                            app:iconTint="@color/brand_primary"
+                            app:iconSize="15dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/callout_btn_recenter"
+                            style="@style/Widget.ResQTap.FilledButton"
+                            android:layout_width="0dp"
+                            android:layout_height="38dp"
+                            android:layout_weight="1"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp"
+                            android:paddingTop="0dp"
+                            android:paddingBottom="0dp"
+                            android:text="Pusatkan"
+                            android:textSize="11.5sp"
+                            app:cornerRadius="10dp"
+                            app:icon="@drawable/ic_my_location"
+                            app:iconSize="15dp" />
+                    </LinearLayout>
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
