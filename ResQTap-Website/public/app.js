@@ -225,7 +225,10 @@ const els = {
   sidebarAvatarMini: document.getElementById("sidebarAvatarMini"),
   sidebarAvatarMiniInitials: document.getElementById("sidebarAvatarMiniInitials"),
   sidebarAvatarMiniImg: document.getElementById("sidebarAvatarMiniImg"),
-  profileSessionEmailText: document.getElementById("profileSessionEmailText")
+  profileSessionEmailText: document.getElementById("profileSessionEmailText"),
+  profileHeroAlertsCount: document.getElementById("profileHeroAlertsCount"),
+  profileHeroRespondersCount: document.getElementById("profileHeroRespondersCount"),
+  profileHeroUsersCount: document.getElementById("profileHeroUsersCount")
 };
 
 const PUBLIC_PAGES = new Set(["home", "features", "flow", "safety"]);
@@ -4426,6 +4429,20 @@ function renderAdminProfile() {
   }
   if (els.sidebarAvatarMiniInitials) {
     els.sidebarAvatarMiniInitials.classList.add("hidden");
+  }
+
+  // Update Hero Live Operational Stats
+  if (els.profileHeroAlertsCount) {
+    const alertCount = Object.keys(state.alerts || {}).length;
+    els.profileHeroAlertsCount.textContent = alertCount.toLocaleString();
+  }
+  if (els.profileHeroRespondersCount) {
+    const respCount = Object.keys(state.responders || {}).length;
+    els.profileHeroRespondersCount.textContent = respCount.toLocaleString();
+  }
+  if (els.profileHeroUsersCount) {
+    const userCount = Object.keys(state.users || {}).length;
+    els.profileHeroUsersCount.textContent = userCount.toLocaleString();
   }
 
   refreshIcons();

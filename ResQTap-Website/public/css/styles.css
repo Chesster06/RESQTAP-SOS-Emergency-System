@@ -9537,6 +9537,14 @@ body.dark-mode .hero-stat-val {
   color: #F1F5F9;
 }
 
+.hero-stat-val.is-red {
+  color: #DC2626;
+}
+
+body.dark-mode .hero-stat-val.is-red {
+  color: #F87171;
+}
+
 .hero-stat-val.is-green {
   color: #059669;
 }
