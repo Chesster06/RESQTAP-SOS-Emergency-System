@@ -552,7 +552,7 @@ function initKatupChatbot() {
     en: [
       { label: "How SOS works?", prompt: "How does ResQTap SOS alert work?" },
       { label: "Live GPS tracking?", prompt: "How does Live Location tracking work in ResQTap?" },
-      { label: "What are Rooms?", prompt: "Tell me about Rooms and emergency coordination." },
+      { label: "What are Channels?", prompt: "Tell me about Channels and emergency coordination." },
       { label: "Download APK", prompt: "How do I download the ResQTap APK?" },
       { label: "Who built ResQTap?", prompt: "Who is the creator and developer of ResQTap?" }
     ]
@@ -743,8 +743,8 @@ function initKatupChatbot() {
       if (q.includes("location") || q.includes("gps") || q.includes("tracking") || q.includes("live") || q.includes("map")) {
         return "**Live Location Tracking** in ResQTap is powered by Firebase Realtime Database. When an emergency is active, your trusted Room members and responders can track your position continuously on the map.";
       }
-      if (q.includes("room") || q.includes("group") || q.includes("member") || q.includes("contact")) {
-        return "**Rooms** connect you with your trusted circle and emergency contacts.\n\nEach Room displays live safety states, battery percentage, and latest GPS coordinates so family and friends can stay aware.";
+      if (q.includes("channel") || q.includes("room") || q.includes("group") || q.includes("member") || q.includes("contact")) {
+        return "**Channels** connect you with your trusted circle and emergency contacts.\n\nEach Channel displays live safety states, battery percentage, and latest GPS coordinates so family and friends can stay aware.";
       }
       if (q.includes("download") || q.includes("apk") || q.includes("install") || q.includes("app")) {
         return "You can download the **ResQTap APK** directly for free. Click the **Download APK** button on the home section, or download the APK file from this website.";
@@ -762,7 +762,7 @@ function initKatupChatbot() {
         return "You are very welcome. Stay safe, and let me know if you need anything else.";
       }
 
-      return "Thank you for asking. I am **Katup**, your ResQTap assistant. You can ask me about **SOS alerts**, **Live Location sharing**, **Emergency Rooms**, or **how to download the APK**.";
+      return "Thank you for asking. I am **Katup**, your ResQTap assistant. You can ask me about **SOS alerts**, **Live Location sharing**, **Emergency Channels**, or **how to download the APK**.";
     }
 
     if (q.includes("sos") || q.includes("kecemasan") || q.includes("alert") || q.includes("bantuan") || q.includes("panik")) {
@@ -771,8 +771,8 @@ function initKatupChatbot() {
     if (q.includes("location") || q.includes("lokasi") || q.includes("gps") || q.includes("live tracking") || q.includes("jejak") || q.includes("peta")) {
       return "**Live Location Tracking** ResQTap menggunakan Firebase Realtime Database untuk menyegerakkan lokasi GPS anda secara langsung. Ahli Room dan responder boleh menjejaki pergerakan anda pada peta secara tepat semasa insiden berlaku.";
     }
-    if (q.includes("room") || q.includes("bilik") || q.includes("group") || q.includes("ahli") || q.includes("contact") || q.includes("kenalan")) {
-      return "**Fungsi Rooms** menghubungkan anda dengan kenalan kecemasan dipercayai (trusted contacts).\n\nSetiap Room memaparkan status keselamatan ahli, tahap bateri telefon, dan lokasi terkini bagi memastikan semua orang sentiasa selamat.";
+    if (q.includes("channel") || q.includes("room") || q.includes("saluran") || q.includes("bilik") || q.includes("group") || q.includes("ahli") || q.includes("contact") || q.includes("kenalan")) {
+      return "**Fungsi Channels** menghubungkan anda dengan kenalan kecemasan dipercayai (trusted contacts).\n\nSetiap Channel memaparkan status keselamatan ahli, tahap bateri telefon, dan lokasi terkini bagi memastikan semua orang sentiasa selamat.";
     }
     if (q.includes("download") || q.includes("muat turun") || q.includes("apk") || q.includes("install") || q.includes("pasang")) {
       return "Anda boleh muat turun **ResQTap APK** secara percuma. Sila klik butang **Download APK** di halaman utama, atau muat turun fail APK terus dari laman ini.";
@@ -790,7 +790,7 @@ function initKatupChatbot() {
       return "Sama-sama. Kekal selamat dan beritahu saya jika ada apa-apa soalan lain.";
     }
 
-    return "Terima kasih kerana bertanya. Saya **Katup**, pembantu pintar ResQTap. Anda boleh bertanya saya tentang **fungsi SOS**, **perkongsian Live Location**, **Rooms**, atau cara **muat turun APK** ResQTap.";
+    return "Terima kasih kerana bertanya. Saya **Katup**, pembantu pintar ResQTap. Anda boleh bertanya saya tentang **fungsi SOS**, **perkongsian Live Location**, **Channels**, atau cara **muat turun APK** ResQTap.";
   }
 
   function handleUserSend(text) {
@@ -3301,7 +3301,7 @@ function renderNav() {
   const titles = {
     dashboard: "Dashboard",
     users: "Users",
-    rooms: "Rooms",
+    rooms: "Channels",
     livemap: "SOS Alert",
     soslivechat: "SOS Livechat",
     reports: "Reports",
@@ -3484,7 +3484,7 @@ function renderRooms() {
         </td>
       </tr>
     `;
-  }).join("") : emptyRow(7, "No rooms match the current search.");
+  }).join("") : emptyRow(7, "No channels match the current search.");
 }
 
 function renderSos() {
@@ -3504,7 +3504,7 @@ function renderSos() {
     const tone = alert.active ? (alert.stale ? "warn" : "alert") : (isResolved ? "good" : "neutral");
     const canCancel = alert.source === "room" && alert.active && !isResolved;
     const roomBadge = alert.roomId === "DIRECT"
-      ? '<span class="pill-badge pill-neutral">Direct (No Room)</span>'
+      ? '<span class="pill-badge pill-neutral">Direct (No Channel)</span>'
       : escapeHtml(alert.roomId || "-");
     return `
       <tr>
@@ -3772,7 +3772,7 @@ function getSosLivechatSessions() {
     combinedMessages.sort((a, b) => a.createdAt - b.createdAt);
 
     primary.allRooms = allRooms;
-    primary.roomDisplay = allRooms.length > 1 ? `${primary.roomId} (+${allRooms.length - 1} rooms)` : primary.roomId;
+    primary.roomDisplay = allRooms.length > 1 ? `${primary.roomId} (+${allRooms.length - 1} channels)` : primary.roomId;
     primary.allAlerts = allAlerts;
     primary.allSessionIds = allSessionIds;
     primary.messages = combinedMessages;
@@ -4663,7 +4663,7 @@ function renderUserDetail(uid) {
       ${contactHtml}
     </section>
     <section class="detail-section">
-      <h3>Rooms</h3>
+      <h3>Channels</h3>
       ${roomsHtml}
     </section>
     <section class="detail-section">
@@ -4702,7 +4702,7 @@ function renderRoomDetail(roomCode) {
         <span class="cell-meta">${escapeHtml(member.uid)} - Battery ${pill(battery, batteryTone)}</span>
       </div>
     `;
-  }).join("") : `<span class="muted">No members in this room.</span>`;
+  }).join("") : `<span class="muted">No members in this channel.</span>`;
 
   const alertHtml = alerts.length ? alerts.slice(0, 8).map((alert) => {
     const isResolved = Boolean(alert.data && (alert.data.resolvedAt || alert.data.status === "resolved" || Number(alert.data.progressStep) >= 4));
@@ -4717,7 +4717,7 @@ function renderRoomDetail(roomCode) {
         <span class="cell-meta">${pill(label, tone)} ${escapeHtml(formatDate(alert.createdAt))}</span>
       </div>
     `;
-  }).join("") : `<span class="muted">No SOS alerts in this room.</span>`;
+  }).join("") : `<span class="muted">No SOS alerts in this channel.</span>`;
 
   const body = `
     <section class="detail-section">
@@ -4737,10 +4737,10 @@ function renderRoomDetail(roomCode) {
       ${alertHtml}
     </section>
     <section class="detail-section">
-      <button class="secondary-button danger icon-button" data-action="delete-room" data-room="${escapeHtml(roomCode)}" type="button">${icon("trash-2")}<span>Delete room</span></button>
+      <button class="secondary-button danger icon-button" data-action="delete-room" data-room="${escapeHtml(roomCode)}" type="button">${icon("trash-2")}<span>Delete channel</span></button>
     </section>
   `;
-  detailShell(room.name || roomCode, `Room ${roomCode}`, body);
+  detailShell(room.name || roomCode, `Channel ${roomCode}`, body);
 }
 
 function renderSosDetail(roomId, alertId) {
@@ -5948,10 +5948,10 @@ async function deleteUser(uid) {
 
 async function deleteRoom(roomId) {
   if (!validPathSegment(roomId)) {
-    showToast("Invalid room code.");
+    showToast("Invalid channel code.");
     return;
   }
-  if (!window.confirm(`Delete room ${roomId} and unlink it from all members?`)) return;
+  if (!window.confirm(`Delete channel ${roomId} and unlink it from all members?`)) return;
   const room = asRecord(state.rooms[roomId]);
   const updates = {};
   updates[`roomTombstones/${roomId}`] = {
@@ -5968,7 +5968,7 @@ async function deleteRoom(roomId) {
   });
   await update(ref(db), updates);
   state.selected = null;
-  showToast("Room deleted.");
+  showToast("Channel deleted.");
 }
 
 async function seedDefaultHighlights() {
