@@ -1151,6 +1151,17 @@ function isAdminValue(value) {
     || (isRecord(value) && (value.active === true || value.active === "true" || value.active === 1));
 }
 
+function isAdminAccount(uid, userRecord = {}) {
+  if (!uid) return false;
+  if (state.admins && isAdminValue(state.admins[uid])) return true;
+  const u = isRecord(userRecord) ? userRecord : asRecord(state.users && state.users[uid]);
+  const role = text(u.role).toLowerCase();
+  if (role === "admin" || role === "superadmin" || role === "super_admin") return true;
+  const email = text(u.email || (state.currentUser && state.currentUser.uid === uid ? state.currentUser.email : "")).toLowerCase();
+  if (email.endsWith("@resqtap.com") || email.endsWith("@resqtap.my") || email.endsWith("@resqtap.org")) return true;
+  return false;
+}
+
 async function isCurrentUserAdmin(uid) {
   try {
     const { data: profile } = await supabase
@@ -1253,25 +1264,8 @@ async function syncFromSupabase() {
         const lat = Number(p.latitude !== undefined && p.latitude !== null ? p.latitude : p.lat) || 0;
         const lng = Number(p.longitude !== undefined && p.longitude !== null ? p.longitude : p.lng) || 0;
         const uTime = p.last_seen ? new Date(p.last_seen).getTime() : (p.updated_at ? new Date(p.updated_at).getTime() : Date.now());
-        uMap[p.id] = {
-          name: p.full_name || "User",
-          email: p.email || "",
-          phone: p.phone || "",
-          photoUrl: pUrl,
-          photo_url: pUrl,
-          role: p.role || "user",
-          lat,
-          lng,
-          latitude: lat,
-          longitude: lng,
-          isOnline: Boolean(p.is_online),
-          batteryPct: Number.isFinite(Number(p.battery_pct)) ? Number(p.battery_pct) : null,
-          source: "supabase",
-          updatedAt: uTime,
-          locationUpdatedAt: uTime,
-          lastSeen: uTime
-        };
-        if (p.role === "admin" || p.role === "ADMIN") {
+        const isAdmin = p.role === "admin" || p.role === "ADMIN" || (p.email && (p.email.endsWith("@resqtap.com") || p.email.endsWith("@resqtap.my") || p.email.endsWith("@resqtap.org")));
+        if (isAdmin) {
           aMap[p.id] = {
             active: true,
             email: p.email || "",
@@ -1279,10 +1273,35 @@ async function syncFromSupabase() {
             role: "admin",
             updatedAt: p.updated_at ? new Date(p.updated_at).getTime() : Date.now()
           };
+        } else {
+          uMap[p.id] = {
+            name: p.full_name || "User",
+            email: p.email || "",
+            phone: p.phone || "",
+            photoUrl: pUrl,
+            photo_url: pUrl,
+            role: p.role || "user",
+            lat,
+            lng,
+            latitude: lat,
+            longitude: lng,
+            isOnline: Boolean(p.is_online),
+            batteryPct: Number.isFinite(Number(p.battery_pct)) ? Number(p.battery_pct) : null,
+            source: "supabase",
+            updatedAt: uTime,
+            locationUpdatedAt: uTime,
+            lastSeen: uTime
+          };
         }
       });
       state.users = { ...uMap, ...state.users };
       state.admins = { ...aMap, ...state.admins };
+      // Purge any admin accounts from state.users
+      Object.keys(state.users).forEach((uId) => {
+        if (isAdminAccount(uId, state.users[uId])) {
+          delete state.users[uId];
+        }
+      });
     }
 
     // 2. Medical Cards
@@ -1422,8 +1441,21 @@ function startDataListeners() {
     const rtdbUsers = asRecord(value);
     const merged = { ...state.users };
     Object.keys(rtdbUsers).forEach((uid) => {
+      if (isAdminAccount(uid, rtdbUsers[uid])) {
+        delete merged[uid];
+        remove(ref(db, `users/${uid}`)).catch(() => {});
+        return;
+      }
       merged[uid] = { ...(merged[uid] || {}), ...rtdbUsers[uid] };
     });
+    // Ensure all registered admins are purged from state.users
+    if (state.admins) {
+      Object.keys(state.admins).forEach((adminUid) => {
+        if (isAdminValue(state.admins[adminUid]) && merged[adminUid]) {
+          delete merged[adminUid];
+        }
+      });
+    }
     state.users = merged;
   });
   subscribe("rooms", (value) => {
@@ -1508,10 +1540,11 @@ function getUserLastSeen(uid, user) {
 function getUsers() {
   const map = new Map();
 
-  // 1. Masukkan semua akaun berdaftar daripada Firebase Authentication terlebih dahulu
+  // 1. Masukkan semua akaun pengguna berdaftar daripada Firebase Authentication (kecuali admin)
   (state.authUsers || []).forEach((authUser) => {
     const uid = authUser.localId || authUser.uid;
     if (!uid) return;
+    if (isAdminAccount(uid, authUser)) return;
     const email = authUser.email || "";
     const name = authUser.displayName || (email ? email.split("@")[0] : "User");
     const lastLogin = Number(authUser.lastLoginAt) || 0;
@@ -1533,8 +1566,9 @@ function getUsers() {
     });
   });
 
-  // 2. Gabungkan data profil lengkap daripada Realtime Database (RTDB)
+  // 2. Gabungkan data profil lengkap daripada Realtime Database (RTDB) (kecuali admin)
   entries(state.users).forEach(([uid, userVal]) => {
+    if (isAdminAccount(uid, userVal)) return;
     const rtdbData = asRecord(userVal);
     const existing = map.get(uid);
     const mergedData = existing ? { ...existing.data, ...rtdbData } : rtdbData;
@@ -4353,13 +4387,18 @@ function renderAdminProfile() {
   if (!state.currentUser) return;
   const uid = state.currentUser.uid;
   const adminData = asRecord(state.admins[uid]);
-  const userData = asRecord(state.users[uid]);
 
-  const name = text(adminData.name || state.currentUser.displayName || userData.name || "Administrator").trim();
-  const email = text(adminData.email || state.currentUser.email || userData.email || "").trim();
-  const phone = text(adminData.phone || userData.phone || "").trim();
-  const role = text(adminData.role || userData.role || "Administrator").trim();
-  const photoUrl = text(adminData.photoUrl || adminData.photo_url || state.currentUser.photoURL || userData.photoUrl || userData.photo_url || "").trim();
+  // Pastikan profil akaun admin ini dibersihkan daripada senarai pengguna biasa (users)
+  if (state.users && state.users[uid]) {
+    delete state.users[uid];
+    remove(ref(db, `users/${uid}`)).catch(() => {});
+  }
+
+  const name = text(adminData.name || state.currentUser.displayName || "Administrator").trim();
+  const email = text(adminData.email || state.currentUser.email || "").trim();
+  const phone = text(adminData.phone || "").trim();
+  const role = text(adminData.role || "Administrator").trim();
+  const photoUrl = text(adminData.photoUrl || adminData.photo_url || state.currentUser.photoURL || "").trim();
 
   const defaultAvatar = "/assets/default_avatar.svg";
   const effectiveAvatar = photoUrl || defaultAvatar;
@@ -7094,11 +7133,8 @@ function bindEvents() {
         await update(ref(db, `admins/${uid}`), adminUpdate);
 
         try {
-          await update(ref(db, `users/${uid}`), {
-            name: newName,
-            phone: newPhone,
-            updatedAt: serverTimestamp()
-          });
+          await remove(ref(db, `users/${uid}`));
+          if (state.users) delete state.users[uid];
         } catch (_) {}
 
         try {
@@ -7114,12 +7150,9 @@ function bindEvents() {
         }
         state.admins[uid].name = newName;
         state.admins[uid].phone = newPhone;
-
-        if (typeof state.users[uid] !== "object" || !state.users[uid]) {
-          state.users[uid] = {};
+        if (state.users && state.users[uid]) {
+          delete state.users[uid];
         }
-        state.users[uid].name = newName;
-        state.users[uid].phone = newPhone;
 
         showToast("Profile details updated successfully!");
         render();
@@ -7261,10 +7294,8 @@ function bindEvents() {
         });
 
         try {
-          await update(ref(db, `users/${uid}`), {
-            photoUrl: finalPhotoUrl,
-            updatedAt: serverTimestamp()
-          });
+          await remove(ref(db, `users/${uid}`));
+          if (state.users) delete state.users[uid];
         } catch (_) {}
 
         try {
@@ -7275,7 +7306,7 @@ function bindEvents() {
         } catch (_) {}
 
         if (state.admins[uid]) state.admins[uid].photoUrl = finalPhotoUrl;
-        if (state.users[uid]) state.users[uid].photoUrl = finalPhotoUrl;
+        if (state.users && state.users[uid]) delete state.users[uid];
 
         showToast("Profile picture updated successfully!");
         render();
@@ -7302,10 +7333,8 @@ function bindEvents() {
           updatedAt: serverTimestamp()
         });
         try {
-          await update(ref(db, `users/${uid}`), {
-            photoUrl: "",
-            updatedAt: serverTimestamp()
-          });
+          await remove(ref(db, `users/${uid}`));
+          if (state.users) delete state.users[uid];
         } catch (_) {}
         try {
           await supabase.from("profiles").update({
@@ -8195,6 +8224,7 @@ elsVc.sendMessageBtn.addEventListener("click", (e) => {
       // Also map users from state.users with coordinates
       if (state.users) {
         entries(state.users).forEach(([uid, uVal]) => {
+          if (isAdminAccount(uid, uVal)) return;
           const u = asRecord(uVal);
           const lat = Number(u.lat !== undefined ? u.lat : u.latitude);
           const lng = Number(u.lng !== undefined ? u.lng : u.longitude);
@@ -8371,6 +8401,7 @@ elsVc.sendMessageBtn.addEventListener("click", (e) => {
     rooms.forEach((r)=>{ r.members.forEach((m)=>{ if(seen.has(m.uid)) return; seen.add(m.uid); if(Date.now()-millis(m.updatedAt)<=ONLINE_MS) oc++; }); });
     if (state.users) {
       entries(state.users).forEach(([uid, uVal]) => {
+        if (isAdminAccount(uid, uVal)) return;
         if (seen.has(uid)) return;
         const u = asRecord(uVal);
         const uTime = millis(u.updatedAt || u.locationUpdatedAt);
