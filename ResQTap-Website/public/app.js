@@ -8385,19 +8385,6 @@ elsVc.sendMessageBtn.addEventListener("click", (e) => {
       });
     }
 
-    if (f === "all" || f === "reports") {
-      getIncidentReports().forEach((rep) => {
-        const lat=Number(rep.latitude), lng=Number(rep.longitude);
-        if(!lat&&!lng) return;
-        const key=`rpt:${rep.id}`; keep.add(key);
-        const popup=`<strong>${escapeHtml(rep.categoryLabel||rep.category)}</strong><br>Reporter: ${escapeHtml(rep.senderName)}<br>Status: ${escapeHtml(rep.status)}<br>${rep.address?`Address: ${escapeHtml(rep.address)}<br>`:""}${escapeHtml(formatDate(rep.createdAt))}`;
-        upsert(key,lat,lng,{ type: "report" },popup,()=>{
-          state.selected = { type: "report", id: rep.id };
-          renderDetail();
-          [50, 150, 300].forEach((t) => setTimeout(() => { if (ms.leaflet) ms.leaflet.invalidateSize(); }, t));
-        });
-      });
-    }
     prune(keep);
   }
 
