@@ -3306,7 +3306,7 @@ function renderNav() {
     soslivechat: "SOS Livechat",
     reports: "Reports",
     notices: "Notifications",
-    livechat: "Livechat",
+    livechat: "Ticket",
     highlights: "Highlights (Mobile Carousel)",
     logs: "Logs",
     admins: "Admins",
