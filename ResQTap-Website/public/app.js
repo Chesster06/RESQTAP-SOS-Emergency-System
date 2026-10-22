@@ -1332,7 +1332,7 @@ async function syncFromSupabase() {
     }
 
     state.lastSyncAt = Date.now();
-    setSyncStatus(`Live Sync: ${new Date(state.lastSyncAt).toLocaleTimeString()} (Firebase ⚡ + Supabase 🐘)`);
+    setSyncStatus(`Live Sync: ${new Date(state.lastSyncAt).toLocaleTimeString()}`);
     render();
   } catch (err) {
     console.warn("[SUPABASE_SYNC_ERROR]", err);
