@@ -569,9 +569,9 @@
 
     <string name="support_title">Bantuan &amp; Sokongan</string>
     <string name="support_desc">Jika anda perlukan bantuan, hubungi kami di sini.</string>
-    <string name="support_livechat_title">Livechat</string>
-    <string name="support_livechat_desc">Chat terus dengan pasukan admin ResQTap.</string>
-    <string name="support_livechat_entry_desc">Mulakan sesi sokongan dengan topik dan mesej.</string>
+    <string name="support_livechat_title">Submit a Ticket</string>
+    <string name="support_livechat_desc">Hantar tiket terus kepada pasukan admin ResQTap.</string>
+    <string name="support_livechat_entry_desc">Hantar tiket sokongan dengan topik dan mesej.</string>
     <string name="support_livechat_new_session">Buka Ticket Sokongan</string>
     <string name="support_livechat_topic_hint">Subjek ticket</string>
     <string name="support_livechat_initial_message_hint">Terangkan isu, langkah yang telah dibuat, atau maklumat tambahan</string>

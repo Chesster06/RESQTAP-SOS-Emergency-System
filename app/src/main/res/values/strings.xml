@@ -767,9 +767,9 @@ Terms Version: 1.0</string>
 
     <string name="support_title">Help &amp; Support</string>
     <string name="support_desc">If you need help, contact us here.</string>
-    <string name="support_livechat_title">Livechat</string>
-    <string name="support_livechat_desc">Chat directly with the ResQTap admin team.</string>
-    <string name="support_livechat_entry_desc">Start a support session with topic and message.</string>
+    <string name="support_livechat_title">Submit a Ticket</string>
+    <string name="support_livechat_desc">Submit a ticket directly to the ResQTap admin team.</string>
+    <string name="support_livechat_entry_desc">Submit a support ticket with topic and message.</string>
     <string name="support_livechat_new_session">Open Support Ticket</string>
     <string name="support_livechat_topic_hint">Ticket subject</string>
     <string name="support_livechat_initial_message_hint">Describe the issue, steps taken, or extra details</string>

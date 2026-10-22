@@ -298,7 +298,7 @@
     <string name="report_continue">சமர்ப்பி</string>
     <string name="support_title">உதவி &amp; ஆதரவு</string>
     <string name="support_desc">உதவி தேவைப்பட்டால் இங்கே எங்களை தொடர்பு கொள்ளவும்.</string>
-    <string name="support_livechat_title">நேரடி அரட்டை</string>
+    <string name="support_livechat_title">Submit a Ticket</string>
     <string name="support_livechat_desc">ResQTap நிர்வாக குழுவுடன் நேரடியாக அரட்டையடிக்கவும்.</string>
     <string name="support_livechat_new_session">புதிய நேரடி அரட்டை அமர்வு</string>
     <string name="support_livechat_topic_hint">தலைப்பு</string>

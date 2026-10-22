@@ -298,7 +298,7 @@
     <string name="report_continue">提交</string>
     <string name="support_title">帮助与支持</string>
     <string name="support_desc">如果需要帮助，请在这里联系我们。</string>
-    <string name="support_livechat_title">在线客服</string>
+    <string name="support_livechat_title">提交工单 (Submit a Ticket)</string>
     <string name="support_livechat_desc">直接与 ResQTap 管理团队聊天。</string>
     <string name="support_livechat_new_session">新的在线客服会话</string>
     <string name="support_livechat_topic_hint">主题</string>
