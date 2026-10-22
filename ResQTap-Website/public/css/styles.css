@@ -9873,10 +9873,10 @@ body.dark-mode .sidebar:hover .sidebar-username {
 .sidebar:hover .sidebar-userrole {
   display: block !important;
   font-size: 0.68rem !important;
-  font-weight: 700 !important;
-  color: #E60067 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.02em !important;
+  font-weight: 500 !important;
+  color: #64748B !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
@@ -9885,7 +9885,7 @@ body.dark-mode .sidebar:hover .sidebar-username {
 }
 
 body.dark-mode .sidebar:hover .sidebar-userrole {
-  color: #FF5A96 !important;
+  color: #94A3B8 !important;
 }
 
 /* Account Session & Sign Out Card on Profile Page */
