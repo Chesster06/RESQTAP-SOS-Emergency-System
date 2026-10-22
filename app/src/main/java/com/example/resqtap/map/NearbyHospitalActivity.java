@@ -580,6 +580,7 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
                 return insets;
             });
         }
+        scrollCategoryFilters = findViewById(R.id.scroll_category_filters);
         searchCard = findViewById(R.id.search_card);
         capsuleEstimatedArrival = findViewById(R.id.capsule_estimated_arrival);
         capsuleIconCard = (MaterialCardView) findViewById(R.id.capsule_icon_card);
@@ -1582,6 +1583,9 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         }
         if (scrollCategoryFilters != null) {
             scrollCategoryFilters.setVisibility(View.GONE);
+        } else {
+            View scf = findViewById(R.id.scroll_category_filters);
+            if (scf != null) scf.setVisibility(View.GONE);
         }
         if (capsuleEstimatedArrival != null) {
             capsuleEstimatedArrival.setVisibility(View.VISIBLE);
@@ -2114,6 +2118,9 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         }
         if (scrollCategoryFilters != null) {
             scrollCategoryFilters.setVisibility(View.VISIBLE);
+        } else {
+            View scf = findViewById(R.id.scroll_category_filters);
+            if (scf != null) scf.setVisibility(View.VISIBLE);
         }
         if (bottomSheetView != null) {
             bottomSheetView.setVisibility(View.VISIBLE);
