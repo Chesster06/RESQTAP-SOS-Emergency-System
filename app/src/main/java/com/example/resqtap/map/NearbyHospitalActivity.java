@@ -27,9 +27,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
 import java.util.List;
+import android.transition.AutoTransition;
+import android.transition.TransitionManager;
+import android.view.GestureDetector;
 import android.view.HapticFeedbackConstants;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import android.view.ViewGroup;
 import android.widget.HorizontalScrollView;
 import android.widget.TextView;
@@ -139,6 +144,19 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
     private boolean isNavigating3D = true;
     private final ArrayList<LatLng> currentRoutePoints = new ArrayList<>();
     private float currentNavBearing = 0f;
+
+    private View navSheetHeader;
+    private View navSheetHandle;
+    private View navSheetExpandedContent;
+    private MaterialCardView navCardAuto;
+    private MaterialCardView navCardStreet;
+    private MaterialCardView navCardSatellite;
+    private ImageView navCheckAuto;
+    private ImageView navCheckStreet;
+    private ImageView navCheckSatellite;
+    private View navCardTraffic;
+    private SwitchMaterial navSwitchTraffic;
+    private boolean isNavSheetExpanded = false;
 
     private HorizontalScrollView scrollCategoryFilters;
     private MaterialCardView searchCard;
@@ -526,6 +544,20 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         btnCloseNavigation = findViewById(R.id.btn_close_navigation);
         btnToggle3d = findViewById(R.id.btn_toggle_3d);
 
+        navSheetHeader = findViewById(R.id.nav_sheet_header);
+        navSheetHandle = findViewById(R.id.nav_sheet_handle);
+        navSheetExpandedContent = findViewById(R.id.nav_sheet_expanded_content);
+        navCardAuto = (MaterialCardView) findViewById(R.id.nav_card_auto);
+        navCardStreet = (MaterialCardView) findViewById(R.id.nav_card_street);
+        navCardSatellite = (MaterialCardView) findViewById(R.id.nav_card_satellite);
+        navCheckAuto = findViewById(R.id.nav_check_auto);
+        navCheckStreet = findViewById(R.id.nav_check_street);
+        navCheckSatellite = findViewById(R.id.nav_check_satellite);
+        navCardTraffic = findViewById(R.id.nav_card_traffic);
+        navSwitchTraffic = findViewById(R.id.nav_switch_traffic);
+
+        setupNavSheetSwipeAndOptions();
+
         scrollCategoryFilters = findViewById(R.id.scroll_category_filters);
         searchCard = findViewById(R.id.search_card);
         capsuleEstimatedArrival = findViewById(R.id.capsule_estimated_arrival);
@@ -554,6 +586,10 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
+                if (isNavSheetExpanded) {
+                    expandNavigationOptions(false);
+                    return;
+                }
                 if (isNavigating()) {
                     stopNavigation();
                 } else {
@@ -1325,6 +1361,11 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
 
         // 2. Paparkan kad maklumat navigasi di bawah skrin
         if (cardNavigationInfo != null) {
+            isNavSheetExpanded = false;
+            if (navSheetExpandedContent != null) {
+                navSheetExpandedContent.setVisibility(View.GONE);
+            }
+            updateNavMapTypeSelectionUi();
             cardNavigationInfo.setVisibility(View.VISIBLE);
             if (navDestinationName != null) navDestinationName.setText(item.name);
             if (navAddress != null) navAddress.setText(item.address == null ? "" : item.address);
@@ -1650,6 +1691,166 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         }
     }
 
+    private void setupNavSheetSwipeAndOptions() {
+        GestureDetector gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
+            private static final int SWIPE_THRESHOLD = 30;
+            private static final int SWIPE_VELOCITY_THRESHOLD = 30;
+
+            @Override
+            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                if (e1 == null || e2 == null) return false;
+                float diffY = e2.getY() - e1.getY();
+                if (Math.abs(diffY) > SWIPE_THRESHOLD && Math.abs(velocityY) > SWIPE_VELOCITY_THRESHOLD) {
+                    if (diffY < 0) {
+                        expandNavigationOptions(true);
+                        return true;
+                    } else {
+                        expandNavigationOptions(false);
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+
+        View.OnTouchListener swipeListener = new View.OnTouchListener() {
+            private float downY = 0f;
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                gestureDetector.onTouchEvent(event);
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        downY = event.getRawY();
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        float deltaY = event.getRawY() - downY;
+                        if (deltaY < -40) {
+                            expandNavigationOptions(true);
+                            return true;
+                        } else if (deltaY > 40) {
+                            expandNavigationOptions(false);
+                            return true;
+                        }
+                        break;
+                }
+                return false;
+            }
+        };
+
+        if (cardNavigationInfo != null) {
+            cardNavigationInfo.setOnTouchListener(swipeListener);
+        }
+        if (navSheetHeader != null) {
+            navSheetHeader.setOnTouchListener(swipeListener);
+        }
+        if (navSheetHandle != null) {
+            navSheetHandle.setOnClickListener(v -> toggleNavigationOptions());
+        }
+
+        if (navCardAuto != null) {
+            navCardAuto.setOnClickListener(v -> {
+                animateButtonClick(v);
+                if (map != null) {
+                    map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+                }
+                UserPrefs.setMapTypeSatellite(this, false);
+                setNavCardSelected(navCardAuto, navCheckAuto, true);
+                setNavCardSelected(navCardStreet, navCheckStreet, false);
+                setNavCardSelected(navCardSatellite, navCheckSatellite, false);
+            });
+        }
+        if (navCardStreet != null) {
+            navCardStreet.setOnClickListener(v -> {
+                animateButtonClick(v);
+                if (map != null) {
+                    map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+                }
+                UserPrefs.setMapTypeSatellite(this, false);
+                setNavCardSelected(navCardAuto, navCheckAuto, false);
+                setNavCardSelected(navCardStreet, navCheckStreet, true);
+                setNavCardSelected(navCardSatellite, navCheckSatellite, false);
+            });
+        }
+        if (navCardSatellite != null) {
+            navCardSatellite.setOnClickListener(v -> {
+                animateButtonClick(v);
+                if (map != null) {
+                    map.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+                }
+                UserPrefs.setMapTypeSatellite(this, true);
+                setNavCardSelected(navCardAuto, navCheckAuto, false);
+                setNavCardSelected(navCardStreet, navCheckStreet, false);
+                setNavCardSelected(navCardSatellite, navCheckSatellite, true);
+            });
+        }
+
+        if (navSwitchTraffic != null) {
+            navSwitchTraffic.setChecked(UserPrefs.isMapTrafficEnabled(this));
+            navSwitchTraffic.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                UserPrefs.setMapTrafficEnabled(this, isChecked);
+                if (map != null) {
+                    try {
+                        map.setTrafficEnabled(isChecked);
+                    } catch (Exception ignored) {}
+                }
+            });
+        }
+        if (navCardTraffic != null) {
+            navCardTraffic.setOnClickListener(v -> {
+                animateButtonClick(v);
+                if (navSwitchTraffic != null) {
+                    navSwitchTraffic.setChecked(!navSwitchTraffic.isChecked());
+                }
+            });
+        }
+    }
+
+    private void expandNavigationOptions(boolean expand) {
+        if (navSheetExpandedContent == null || cardNavigationInfo == null) return;
+        if (isNavSheetExpanded == expand) return;
+        isNavSheetExpanded = expand;
+        try {
+            cardNavigationInfo.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+        } catch (Exception ignored) {}
+
+        TransitionManager.beginDelayedTransition(cardNavigationInfo, new AutoTransition().setDuration(260));
+        navSheetExpandedContent.setVisibility(expand ? View.VISIBLE : View.GONE);
+        if (expand) {
+            updateNavMapTypeSelectionUi();
+        }
+    }
+
+    private void toggleNavigationOptions() {
+        expandNavigationOptions(!isNavSheetExpanded);
+    }
+
+    private void updateNavMapTypeSelectionUi() {
+        if (map == null) return;
+        int type = map.getMapType();
+        boolean isSat = (type == GoogleMap.MAP_TYPE_SATELLITE || type == GoogleMap.MAP_TYPE_HYBRID);
+
+        setNavCardSelected(navCardAuto, navCheckAuto, false);
+        setNavCardSelected(navCardStreet, navCheckStreet, !isSat);
+        setNavCardSelected(navCardSatellite, navCheckSatellite, isSat);
+
+        if (navSwitchTraffic != null) {
+            navSwitchTraffic.setChecked(UserPrefs.isMapTrafficEnabled(this));
+        }
+    }
+
+    private void setNavCardSelected(MaterialCardView card, ImageView check, boolean selected) {
+        if (card != null) {
+            int stroke = selected ? R.color.brand_primary : R.color.divider;
+            try {
+                card.setStrokeColor(ContextCompat.getColor(this, stroke));
+            } catch (Exception ignored) {}
+        }
+        if (check != null) {
+            check.setVisibility(selected ? View.VISIBLE : View.GONE);
+        }
+    }
+
     private float calculateBearing(LatLng start, LatLng end) {
         double lat1 = Math.toRadians(start.latitude);
         double lng1 = Math.toRadians(start.longitude);
@@ -1674,6 +1875,10 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         currentNavBearing = 0f;
         animateMarkerSwitch(false, 0f);
         if (cardNavigationInfo != null) {
+            isNavSheetExpanded = false;
+            if (navSheetExpandedContent != null) {
+                navSheetExpandedContent.setVisibility(View.GONE);
+            }
             cardNavigationInfo.setVisibility(View.GONE);
         }
         if (searchCard != null) {
