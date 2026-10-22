@@ -4409,15 +4409,16 @@ function renderAdminProfile() {
     els.profileRoleBadge.textContent = displayRole;
   }
 
-  // Update sidebar profile card (Avatar, Username & Description)
+  // Update sidebar profile card (Avatar & Username only)
   if (els.sidebarProfileName) {
     els.sidebarProfileName.textContent = name;
   }
   if (els.sidebarProfileRole) {
-    els.sidebarProfileRole.textContent = "Profile Information";
+    els.sidebarProfileRole.textContent = "";
+    els.sidebarProfileRole.style.display = "none";
   }
   if (els.sidebarProfileNavBtn) {
-    els.sidebarProfileNavBtn.setAttribute("data-label", `${name} • Profile Information`);
+    els.sidebarProfileNavBtn.setAttribute("data-label", name);
   }
   if (els.sidebarAvatarMiniImg) {
     els.sidebarAvatarMiniImg.src = effectiveAvatar;
