@@ -40,8 +40,14 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
+import android.graphics.CornerPathEffect;
+import android.graphics.LinearGradient;
+import android.graphics.Shader;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -121,6 +127,9 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
     private MaterialButton btnToggle3d;
     private boolean isNavigating3D = true;
     private final ArrayList<LatLng> currentRoutePoints = new ArrayList<>();
+    private float currentNavBearing = 0f;
+    private LocationCallback navLocationCallback;
+    private Bitmap navigationDirectionBitmap;
 
     private String myPhotoUri = "";
     private String myPhotoB64 = "";
@@ -551,6 +560,7 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
     @Override
     protected void onPause() {
         super.onPause();
+        stopNavigationLocationUpdates();
         if (cancellationTokenSource != null) {
             cancellationTokenSource.cancel();
             cancellationTokenSource = null;
@@ -562,6 +572,11 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        stopNavigationLocationUpdates();
+        if (navigationDirectionBitmap != null && !navigationDirectionBitmap.isRecycled()) {
+            try { navigationDirectionBitmap.recycle(); } catch (Exception ignored) {}
+            navigationDirectionBitmap = null;
+        }
         executor.shutdownNow();
     }
 
@@ -655,6 +670,10 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
     private static int dp(Context ctx, int dp) {
         float density = ctx.getResources().getDisplayMetrics().density;
         return Math.round(dp * density);
+    }
+
+    private static float dp(Context ctx, float dp) {
+        return dp * ctx.getResources().getDisplayMetrics().density;
     }
 
     private void toggleMapType() {
@@ -1267,7 +1286,12 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
             return;
         }
 
-        // 4. Lukis laluan navigasi polyline secara in-app
+        // 4. Tukar serta-merta ikon profil pengguna kepada Direction Icon dan mulakan tracking
+        currentNavBearing = calculateBearing(currentLatLng, target);
+        upsertMyLocationMarker(currentLatLng);
+        startNavigationLocationUpdates();
+
+        // 5. Lukis laluan navigasi polyline secara in-app
         fetchAndDrawInAppRoute(currentLatLng, target, item);
     }
 
@@ -1358,6 +1382,8 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
             if (nextPt != null) {
                 bearing = calculateBearing(startPt, nextPt);
             }
+            currentNavBearing = bearing;
+            upsertMyLocationMarker(userPos);
 
             // Pad camera so route ahead is nicely visible above bottom sheet
             int padBottom = dp(this, 140);
@@ -1446,10 +1472,15 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
     }
 
     private void stopNavigation() {
+        stopNavigationLocationUpdates();
         clearNavigationRoute();
         currentRoutePoints.clear();
         activeNavHospital = null;
         isNavigating3D = false;
+        currentNavBearing = 0f;
+        if (currentLatLng != null) {
+            upsertMyLocationMarker(currentLatLng);
+        }
         if (cardNavigationInfo != null) {
             cardNavigationInfo.setVisibility(View.GONE);
         }
@@ -1586,20 +1617,213 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         hospitalMarkers.clear();
     }
 
+    private boolean isNavigating() {
+        return activeNavHospital != null;
+    }
+
     private void upsertMyLocationMarker(LatLng pos) {
         if (map == null || pos == null) return;
-        Bitmap icon = buildSelfMarkerBitmap();
+        boolean navigating = isNavigating();
+        Bitmap icon = navigating ? getNavigationDirectionBitmap() : buildSelfMarkerBitmap();
+        float rot = navigating ? currentNavBearing : 0f;
+
         if (myLocationMarker == null) {
             myLocationMarker = map.addMarker(new MarkerOptions()
                     .position(pos)
                     .title("You")
                     .icon(BitmapDescriptorFactory.fromBitmap(icon))
-                    .anchor(0.5f, 0.5f));
+                    .anchor(0.5f, 0.5f)
+                    .flat(navigating)
+                    .rotation(rot)
+                    .zIndex(navigating ? 100f : 10f));
         } else {
             myLocationMarker.setPosition(pos);
             myLocationMarker.setIcon(BitmapDescriptorFactory.fromBitmap(icon));
             myLocationMarker.setAnchor(0.5f, 0.5f);
+            myLocationMarker.setFlat(navigating);
+            myLocationMarker.setRotation(rot);
+            myLocationMarker.setZIndex(navigating ? 100f : 10f);
         }
+    }
+
+    private Bitmap getNavigationDirectionBitmap() {
+        if (navigationDirectionBitmap == null || navigationDirectionBitmap.isRecycled()) {
+            navigationDirectionBitmap = buildNavigationDirectionBitmap(this);
+        }
+        return navigationDirectionBitmap;
+    }
+
+    /**
+     * 3D Navigation Direction Arrow / Chevron Icon matching modern navigation GPS style.
+     * Mengubah ikon profil pengguna kepada anak panah panduan arah 3D (cyan / teal dengan bingkai putih dan bayang asas).
+     */
+    private static Bitmap buildNavigationDirectionBitmap(Context ctx) {
+        final int sizePx = dp(ctx, 56);
+        Bitmap bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+
+        float cx = sizePx / 2f;
+        float cy = sizePx / 2f;
+
+        // 1. Bayang piring asas (Soft circular ground shadow halo di atas jalan raya)
+        Paint haloPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        haloPaint.setColor(Color.parseColor("#38475569"));
+        haloPaint.setStyle(Paint.Style.FILL);
+        canvas.drawCircle(cx, cy, dp(ctx, 22f), haloPaint);
+
+        Paint haloInnerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        haloInnerPaint.setColor(Color.parseColor("#14000000"));
+        haloInnerPaint.setStyle(Paint.Style.FILL);
+        canvas.drawCircle(cx, cy, dp(ctx, 18f), haloInnerPaint);
+
+        float w = dp(ctx, 30f);
+        float h = dp(ctx, 32f);
+        float notch = dp(ctx, 9.5f);
+
+        // 2. 3D Bevel Bawah (Extrusion / ketebalan bawah memberi ilusi 3D tactile)
+        Path bevelPath = createChevronPath(cx, cy + dp(ctx, 2.2f), w, h, notch);
+        Paint bevelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        bevelPaint.setColor(Color.parseColor("#80DEEA")); // Bayang cyan-mint
+        bevelPaint.setStyle(Paint.Style.FILL);
+        bevelPaint.setPathEffect(new CornerPathEffect(dp(ctx, 5f)));
+        canvas.drawPath(bevelPath, bevelPaint);
+
+        // 3. Bingkai Putih Timbul 3D (Thick rounded white frame)
+        Path outerPath = createChevronPath(cx, cy, w, h, notch);
+        Paint whitePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        whitePaint.setColor(Color.WHITE);
+        whitePaint.setStyle(Paint.Style.FILL);
+        whitePaint.setPathEffect(new CornerPathEffect(dp(ctx, 5f)));
+        whitePaint.setShadowLayer(dp(ctx, 2.5f), 0f, dp(ctx, 1.2f), 0x33000000);
+        canvas.drawPath(outerPath, whitePaint);
+
+        // 4. Badan Utama Anak Panah (Vibrant Cyan / Turquoise Gradient)
+        float innerW = w - dp(ctx, 6.2f);
+        float innerH = h - dp(ctx, 6.2f);
+        float innerNotch = notch - dp(ctx, 1.8f);
+        Path innerPath = createChevronPath(cx, cy - dp(ctx, 0.4f), innerW, innerH, innerNotch);
+        Paint cyanPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        cyanPaint.setStyle(Paint.Style.FILL);
+        cyanPaint.setPathEffect(new CornerPathEffect(dp(ctx, 3.8f)));
+
+        LinearGradient gradient = new LinearGradient(
+                cx, cy - (innerH / 2f),
+                cx, cy + (innerH / 2f),
+                Color.parseColor("#00D8F6"),
+                Color.parseColor("#00ACC1"),
+                Shader.TileMode.CLAMP
+        );
+        cyanPaint.setShader(gradient);
+        canvas.drawPath(innerPath, cyanPaint);
+
+        // 5. Kilauan Refleksi Atas (Glossy highlight)
+        Path highlightPath = new Path();
+        float topY = cy - (innerH / 2f) + dp(ctx, 1.5f);
+        highlightPath.moveTo(cx, topY);
+        highlightPath.lineTo(cx + (innerW * 0.28f), cy - dp(ctx, 2f));
+        highlightPath.lineTo(cx - (innerW * 0.28f), cy - dp(ctx, 2f));
+        highlightPath.close();
+
+        Paint hlPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        hlPaint.setColor(Color.argb(85, 255, 255, 255));
+        hlPaint.setStyle(Paint.Style.FILL);
+        hlPaint.setPathEffect(new CornerPathEffect(dp(ctx, 2.5f)));
+        canvas.drawPath(highlightPath, hlPaint);
+
+        return bitmap;
+    }
+
+    private static Path createChevronPath(float cx, float cy, float width, float height, float notchDepth) {
+        Path path = new Path();
+        float topY = cy - (height / 2f);
+        float bottomY = cy + (height / 2f);
+        float leftX = cx - (width / 2f);
+        float rightX = cx + (width / 2f);
+        float notchY = bottomY - notchDepth;
+
+        path.moveTo(cx, topY);
+        path.lineTo(rightX, bottomY);
+        path.lineTo(cx, notchY);
+        path.lineTo(leftX, bottomY);
+        path.close();
+        return path;
+    }
+
+    private void startNavigationLocationUpdates() {
+        if (!PermissionUtils.hasAnyLocation(this)) return;
+        if (navLocationCallback != null) return;
+
+        navLocationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(@NonNull LocationResult locationResult) {
+                if (locationResult == null || !isNavigating() || map == null) return;
+                Location loc = locationResult.getLastLocation();
+                if (loc == null) return;
+
+                currentLatLng = new LatLng(loc.getLatitude(), loc.getLongitude());
+                float bearing = (loc.hasBearing() && loc.getSpeed() > 0.5f) ? loc.getBearing() : currentNavBearing;
+
+                if (!currentRoutePoints.isEmpty()) {
+                    bearing = computeBearingAlongRoute(currentLatLng, currentRoutePoints, bearing);
+                }
+                currentNavBearing = bearing;
+                upsertMyLocationMarker(currentLatLng);
+
+                if (isNavigating3D) {
+                    com.google.android.gms.maps.model.CameraPosition cameraPosition = new com.google.android.gms.maps.model.CameraPosition.Builder()
+                            .target(currentLatLng)
+                            .zoom(18.5f)
+                            .bearing(currentNavBearing)
+                            .tilt(60f)
+                            .build();
+                    map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 900, null);
+                }
+            }
+        };
+
+        try {
+            LocationRequest req = new LocationRequest.Builder(
+                    Priority.PRIORITY_HIGH_ACCURACY, 2000L
+            ).setMinUpdateIntervalMillis(1000L).build();
+
+            fusedLocationClient.requestLocationUpdates(req, navLocationCallback, android.os.Looper.getMainLooper());
+        } catch (SecurityException ignored) {
+        }
+    }
+
+    private void stopNavigationLocationUpdates() {
+        if (navLocationCallback != null && fusedLocationClient != null) {
+            try {
+                fusedLocationClient.removeLocationUpdates(navLocationCallback);
+            } catch (Exception ignored) {}
+            navLocationCallback = null;
+        }
+    }
+
+    private float computeBearingAlongRoute(LatLng currentPos, List<LatLng> points, float fallbackBearing) {
+        if (points == null || points.isEmpty() || currentPos == null) return fallbackBearing;
+
+        int closestIdx = 0;
+        double minDistance = Double.MAX_VALUE;
+        for (int i = 0; i < points.size(); i++) {
+            double d = distanceMeters(currentPos, points.get(i).latitude, points.get(i).longitude);
+            if (d < minDistance) {
+                minDistance = d;
+                closestIdx = i;
+            }
+        }
+
+        int targetIdx = Math.min(closestIdx + 1, points.size() - 1);
+        if (targetIdx == closestIdx && targetIdx > 0) {
+            return calculateBearing(points.get(targetIdx - 1), points.get(targetIdx));
+        }
+
+        LatLng targetPt = points.get(targetIdx);
+        double dToTarget = distanceMeters(currentPos, targetPt.latitude, targetPt.longitude);
+        if (dToTarget > 2.0) {
+            return calculateBearing(currentPos, targetPt);
+        }
+        return fallbackBearing;
     }
 
     private void maybePromptEnableGps() {
