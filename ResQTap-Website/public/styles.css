@@ -9382,15 +9382,15 @@ body.dark-mode .admin-profile-hero {
   justify-content: center;
   font-size: 36px;
   font-weight: 800;
-  box-shadow: 0 8px 20px rgba(225, 29, 72, 0.25);
-  border: 3px solid #FFFFFF;
+  box-shadow: none !important;
+  border: 3.5px solid #EC4899 !important;
   overflow: hidden;
   user-select: none;
 }
 
 body.dark-mode .admin-avatar-circle {
-  border-color: #1E293B;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  border-color: #EC4899 !important;
+  box-shadow: none !important;
 }
 
 .admin-avatar-circle img {
