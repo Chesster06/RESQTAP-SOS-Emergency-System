@@ -1847,14 +1847,14 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         haloInnerPaint.setStyle(Paint.Style.FILL);
         canvas.drawCircle(cx, cy + dp(ctx, 2.8f), dp(ctx, 17f), haloInnerPaint);
 
-        // 2. Dimensi & Bucu Bulat Seimbang (Rounded seimbang, bukan bulat leper)
+        // 2. Dimensi & Bucu Bulat Seimbang (Rounded lebih lembut & licin)
         // W = 28dp, H = 33dp, notch = 11dp (Nisbah kemas di dalam bulatan 25dp)
         float W = dp(ctx, 28f);
         float H = dp(ctx, 33f);
         float notch = dp(ctx, 11f);
-        float rApex = dp(ctx, 3.2f); // Kubah muncung hadapan bulat licin (6.4dp) tanpa mata jarum
-        float rWing = dp(ctx, 2.4f); // Hujung sayap melengkung lembut
-        float rNotch = dp(ctx, 2.8f); // Lekuk tengah melengkung licin
+        float rApex = dp(ctx, 4.8f); // Kubah muncung hadapan bulat licin lebih besar (9.6dp)
+        float rWing = dp(ctx, 3.6f); // Hujung sayap melengkung lembut lebih bulat
+        float rNotch = dp(ctx, 3.8f); // Lekuk tengah melengkung bulat luas
 
         // 3. Lapisan Ketebalan Sisi 3D Vertikal (Multi-Layer Extrusion Walls)
         // 3A. Dasar Gelap Bawah
@@ -1890,9 +1890,9 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         float innerW = W - dp(ctx, 5.0f);
         float innerH = H - dp(ctx, 5.0f);
         float innerNotch = notch - dp(ctx, 1.8f);
-        float innerRApex = dp(ctx, 2.2f);
-        float innerRWing = dp(ctx, 1.6f);
-        float innerRNotch = dp(ctx, 2.0f);
+        float innerRApex = dp(ctx, 3.2f);
+        float innerRWing = dp(ctx, 2.4f);
+        float innerRNotch = dp(ctx, 2.6f);
         float innerCy = cy - dp(ctx, 0.4f);
 
         Path innerPath = createBalancedRoundedChevronPath(cx, innerCy, innerW, innerH, innerNotch, innerRApex, innerRWing, innerRNotch);
@@ -1945,18 +1945,18 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
 
         // 6. Kilauan Pantulan Aerodinamik Muncung Bulat (Glossy Rounded Sheen)
         Path sheenPath = new Path();
-        float sheenTopY = innerCy - (innerH / 2f) + (innerRApex * 0.4f);
+        float sheenTopY = innerCy - (innerH / 2f) + (innerRApex * 0.5f);
         sheenPath.moveTo(cx, sheenTopY);
         sheenPath.cubicTo(
-                cx - (innerRApex * 0.5f), sheenTopY,
-                cx - (innerW * 0.22f), innerCy - dp(ctx, 1.2f),
-                cx - (innerW * 0.18f), innerCy + dp(ctx, 0.8f)
+                cx - (innerRApex * 0.6f), sheenTopY,
+                cx - (innerW * 0.25f), innerCy - dp(ctx, 1.0f),
+                cx - (innerW * 0.20f), innerCy + dp(ctx, 1.2f)
         );
-        sheenPath.lineTo(cx, innerCy - dp(ctx, 1.0f));
+        sheenPath.lineTo(cx, innerCy - dp(ctx, 0.8f));
         sheenPath.close();
 
         Paint sheenPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        sheenPaint.setColor(Color.argb(125, 255, 255, 255));
+        sheenPaint.setColor(Color.argb(135, 255, 255, 255));
         sheenPaint.setStyle(Paint.Style.FILL);
         canvas.drawPath(sheenPath, sheenPaint);
 
@@ -1978,35 +1978,35 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
 
         // 1. Mula di cerun kiri sebelum kubah Apex, dan bentukkan kubah bulat melengkung di puncak
         // Tangen di (cx, topY) adalah mendatar (dy/dx = 0), menjamin 100% bulat sempurna tanpa sebarang bucu tajam
-        path.moveTo(cx - rApex, topY + (rApex * 0.85f));
+        path.moveTo(cx - rApex, topY + rApex);
         path.cubicTo(
                 cx - (rApex * 0.55f), topY,
                 cx + (rApex * 0.55f), topY,
-                cx + rApex, topY + (rApex * 0.85f)
+                cx + rApex, topY + rApex
         );
 
         // 2. Cerun lurus ke Sayap Kanan & bundarkan bucu luar Sayap Kanan
-        path.lineTo(rightX - rWing, bottomY - (rWing * 0.8f));
+        path.lineTo(rightX - (rWing * 0.5f), bottomY - (rWing * 0.9f));
         path.cubicTo(
-                rightX, bottomY - (rWing * 0.3f),
-                rightX, bottomY,
-                rightX - (rWing * 1.2f), bottomY
+                rightX, bottomY - (rWing * 0.2f),
+                rightX - (rWing * 0.1f), bottomY,
+                rightX - (rWing * 1.3f), bottomY
         );
 
         // 3. Garis ke Lekuk Tengah (Notch) & bundarkan lekuk dengan lengkungan lembut
-        path.lineTo(cx + (rNotch * 0.85f), notchY + (rNotch * 0.5f));
+        path.lineTo(cx + (rNotch * 0.9f), notchY + (rNotch * 0.6f));
         path.cubicTo(
-                cx + (rNotch * 0.45f), notchY,
-                cx - (rNotch * 0.45f), notchY,
-                cx - (rNotch * 0.85f), notchY + (rNotch * 0.5f)
+                cx + (rNotch * 0.5f), notchY,
+                cx - (rNotch * 0.5f), notchY,
+                cx - (rNotch * 0.9f), notchY + (rNotch * 0.6f)
         );
 
         // 4. Garis ke Sayap Kiri & bundarkan bucu luar Sayap Kiri
-        path.lineTo(leftX + (rWing * 1.2f), bottomY);
+        path.lineTo(leftX + (rWing * 1.3f), bottomY);
         path.cubicTo(
-                leftX, bottomY,
-                leftX, bottomY - (rWing * 0.3f),
-                leftX + rWing, bottomY - (rWing * 0.8f)
+                leftX + (rWing * 0.1f), bottomY,
+                leftX, bottomY - (rWing * 0.2f),
+                leftX + (rWing * 0.5f), bottomY - (rWing * 0.9f)
         );
 
         path.close();
