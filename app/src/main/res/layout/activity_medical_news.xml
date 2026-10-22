@@ -16,12 +16,12 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/header_bar"
             android:layout_width="match_parent"
-            android:layout_height="124dp"
+            android:layout_height="142dp"
             android:background="@drawable/bg_wave_header_pink"
             android:paddingStart="18dp"
-            android:paddingTop="12dp"
+            android:paddingTop="36dp"
             android:paddingEnd="18dp"
-            android:paddingBottom="20dp">
+            android:paddingBottom="18dp">
 
             <ImageButton
                 android:id="@+id/btn_back"
@@ -34,6 +34,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.72"
                 app:tint="@color/white" />
 
             <TextView
@@ -45,12 +46,12 @@
                 android:maxLines="1"
                 android:text="@string/medical_news_title"
                 android:textColor="@color/white"
-                android:textSize="18sp"
+                android:textSize="20sp"
                 android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintBottom_toBottomOf="@id/btn_back"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/btn_back"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="@id/btn_back" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

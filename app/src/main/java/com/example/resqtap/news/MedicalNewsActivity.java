@@ -5,12 +5,17 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.resqtap.R;
 import com.example.resqtap.app.BaseActivity;
+import com.example.resqtap.utils.ThemeUtils;
 
 import java.util.List;
 
@@ -23,8 +28,33 @@ public class MedicalNewsActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ThemeUtils.applySavedNightMode(this);
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_medical_news);
+
+        View root = findViewById(R.id.main);
+        View headerBar = findViewById(R.id.header_bar);
+        if (root != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
+                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                if (headerBar != null && systemBars.top > 0) {
+                    headerBar.setPadding(
+                            headerBar.getPaddingLeft(),
+                            systemBars.top + (int) (12 * getResources().getDisplayMetrics().density),
+                            headerBar.getPaddingRight(),
+                            headerBar.getPaddingBottom()
+                    );
+                    android.view.ViewGroup.LayoutParams lp = headerBar.getLayoutParams();
+                    if (lp != null) {
+                        lp.height = systemBars.top + (int) (96 * getResources().getDisplayMetrics().density);
+                        headerBar.setLayoutParams(lp);
+                    }
+                }
+                v.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom);
+                return insets;
+            });
+        }
 
         View btnBack = findViewById(R.id.btn_back);
         if (btnBack != null) {
