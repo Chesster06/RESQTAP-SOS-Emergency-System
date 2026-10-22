@@ -51,6 +51,8 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
@@ -526,6 +528,24 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         }
     }
 
+    private BitmapDescriptor incidentMarkerDesc;
+
+    /** Muat atau jana BitmapDescriptor pin kecemasan tema pink ResQTap. */
+    private BitmapDescriptor getIncidentMarkerDescriptor() {
+        if (incidentMarkerDesc == null) {
+            try {
+                Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.ic_marker_resqtap_pink);
+                if (bmp != null) {
+                    incidentMarkerDesc = BitmapDescriptorFactory.fromBitmap(bmp);
+                }
+            } catch (Exception ignored) {}
+            if (incidentMarkerDesc == null) {
+                incidentMarkerDesc = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE);
+            }
+        }
+        return incidentMarkerDesc;
+    }
+
     /** Memilih atau memindahkan lokasi insiden mengikut posisi pin baharu. */
     private void applySelectedLatLng(LatLng latLng) {
         if (latLng == null) return;
@@ -538,9 +558,13 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
                 marker = map.addMarker(new MarkerOptions()
                         .position(incidentLatLng)
                         .draggable(true)
+                        .icon(getIncidentMarkerDescriptor())
+                        .anchor(0.5f, 0.922f)
                         .title(getString(R.string.report_location_title)));
             } else {
                 marker.setPosition(incidentLatLng);
+                marker.setIcon(getIncidentMarkerDescriptor());
+                marker.setAnchor(0.5f, 0.922f);
                 marker.setDraggable(true);
             }
         }
@@ -606,9 +630,13 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
                 marker = map.addMarker(new MarkerOptions()
                         .position(incidentLatLng)
                         .draggable(true)
+                        .icon(getIncidentMarkerDescriptor())
+                        .anchor(0.5f, 0.922f)
                         .title(getString(R.string.report_location_title)));
             } else {
                 marker.setPosition(incidentLatLng);
+                marker.setIcon(getIncidentMarkerDescriptor());
+                marker.setAnchor(0.5f, 0.922f);
                 marker.setDraggable(true);
             }
             map.animateCamera(CameraUpdateFactory.newLatLngZoom(incidentLatLng, 16f));
