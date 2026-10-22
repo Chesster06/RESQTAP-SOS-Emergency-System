@@ -4401,15 +4401,23 @@ function renderAdminProfile() {
     els.profileSessionEmailText.textContent = email || "admin@resqtap.com";
   }
 
+  let displayRole = role || "Administrator";
+  if (/^super/i.test(role)) displayRole = "Super Admin";
+  else if (/^admin/i.test(role)) displayRole = "Administrator";
+
+  if (els.profileRoleBadge) {
+    els.profileRoleBadge.textContent = displayRole;
+  }
+
   // Update sidebar profile card (Avatar, Username & Role)
   if (els.sidebarProfileName) {
     els.sidebarProfileName.textContent = name;
   }
   if (els.sidebarProfileRole) {
-    els.sidebarProfileRole.textContent = role;
+    els.sidebarProfileRole.textContent = displayRole;
   }
   if (els.sidebarProfileNavBtn) {
-    els.sidebarProfileNavBtn.setAttribute("data-label", `${name} (${role})`);
+    els.sidebarProfileNavBtn.setAttribute("data-label", `${name} (${displayRole})`);
   }
   if (els.sidebarAvatarMiniImg) {
     els.sidebarAvatarMiniImg.src = effectiveAvatar;
