@@ -887,6 +887,7 @@ const state = {
   roomTombstones: {},
   userRooms: {},
   admins: {},
+  responders: {},
   legacyAlerts: {},
   incidentReports: {},
   adminAuditLogs: {},
@@ -1087,9 +1088,10 @@ function avatarHtml(item, uid) {
 }
 
 function userName(uid) {
-  const admin = asRecord(state.admins[uid]);
-  const user = asRecord(state.users[uid]);
-  const responder = asRecord(state.responders[uid]);
+  if (!uid) return "";
+  const admin = asRecord(state.admins?.[uid]);
+  const user = asRecord(state.users?.[uid]);
+  const responder = asRecord(state.responders?.[uid]);
   return text(admin.name || user.name || responder.name || user.email || admin.email || uid).trim() || uid;
 }
 
@@ -1470,6 +1472,9 @@ function startDataListeners() {
   subscribe("admins", (value) => {
     state.admins = asRecord(value);
   });
+  subscribe("responders", (value) => {
+    state.responders = asRecord(value);
+  });
   subscribe("sos_alerts", (value) => {
     state.legacyAlerts = asRecord(value);
   });
@@ -1509,7 +1514,7 @@ function startDataListeners() {
 }
 
 function userRoomsFor(uid) {
-  const all = asRecord(state.userRooms[uid]);
+  const all = asRecord(state.userRooms?.[uid]);
   const valid = {};
   entries(all).forEach(([code, meta]) => {
     if (state.roomTombstones && state.roomTombstones[code]) return;
@@ -1723,7 +1728,7 @@ function getIncidentReports() {
     const report = asRecord(value);
     const reportId = text(report.reportId).trim() || id;
     const senderUid = text(report.senderUid).trim();
-    const user = asRecord(state.users[senderUid]);
+    const user = asRecord(state.users?.[senderUid]);
     return {
       id: reportId,
       key: id,
@@ -2244,7 +2249,7 @@ function getSupportThreads() {
   }).map(([uid, value]) => {
     const thread = asRecord(value);
     const meta = asRecord(thread.meta);
-    const user = asRecord(state.users[uid]);
+    const user = asRecord(state.users?.[uid]);
     const messages = getSupportChatMessages(thread);
     const last = messages[messages.length - 1] || {};
     const name = text(meta.userName || user.name || user.email || meta.userEmail || uid).trim() || uid;
@@ -2316,7 +2321,7 @@ function getAiThreads() {
     const { uid, value, store } = record;
     const thread = asRecord(value);
     const meta = asRecord(thread.meta);
-    const user = asRecord(state.users[uid]);
+    const user = asRecord(state.users?.[uid]);
     const messages = getAiChatMessages(thread);
     const last = messages[messages.length - 1] || {};
     const lastUser = [...messages].reverse().find((message) => message.role === "user") || {};
@@ -3823,7 +3828,7 @@ function renderSosLivechat() {
     els.soslivechatThreadList.innerHTML = searchedSessions.length ? searchedSessions.map((session) => {
       const isSelected = session.sessionId === state.selectedSosSessionId
         || (session.allSessionIds && session.allSessionIds.includes(state.selectedSosSessionId));
-      const userRec = asRecord(state.users[session.senderUid]);
+      const userRec = asRecord(state.users?.[session.senderUid]);
       const avatar = avatarHtml({
         name: session.senderName,
         email: userRec.email,
@@ -4386,7 +4391,7 @@ function renderHighlights() {
 function renderAdminProfile() {
   if (!state.currentUser) return;
   const uid = state.currentUser.uid;
-  const adminData = asRecord(state.admins[uid]);
+  const adminData = asRecord(state.admins?.[uid]);
 
   // Pastikan profil akaun admin ini dibersihkan daripada senarai pengguna biasa (users)
   if (state.users && state.users[uid]) {
@@ -4568,7 +4573,7 @@ function renderDetail() {
 }
 
 function renderUserDetail(uid) {
-  const rawUser = asRecord(state.users[uid]);
+  const rawUser = asRecord(state.users?.[uid]);
   const user = Object.keys(rawUser).length ? rawUser : { uid, name: uid, email: "" };
   const myRooms = userRoomsFor(uid);
   const roomEntries = entries(myRooms);
@@ -4670,7 +4675,7 @@ function renderUserDetail(uid) {
 }
 
 function renderRoomDetail(roomCode) {
-  const room = asRecord(state.rooms[roomCode]);
+  const room = asRecord(state.rooms?.[roomCode]);
   if (!Object.keys(room).length) {
     state.selected = null;
     renderDetail();
@@ -4747,7 +4752,7 @@ function renderSosDetail(roomId, alertId) {
     return;
   }
 
-  const senderUser = asRecord(state.users[alert.senderUid]);
+  const senderUser = asRecord(state.users?.[alert.senderUid]);
   const senderPhone = senderUser.phoneNumber || senderUser.phone || "";
   const isCancelledState = isCancelled(alert.data) || !alert.active;
   const isCurrentlyServed = !isCancelledState && Boolean(alert.data && (alert.data.served || alert.data.servedBy));
@@ -5265,7 +5270,7 @@ async function resolveSelectedChat() {
 
 async function claimLivechatThread(uid) {
   if (!validPathSegment(uid)) return;
-  const thread = asRecord(state.supportChats[uid]);
+  const thread = asRecord(state.supportChats?.[uid]);
   const meta = asRecord(thread.meta);
   if (millis(meta.claimedAt)) return;
 
@@ -7492,7 +7497,7 @@ async function startAdminCall(uid, name, callType = "video", existingCallLogId =
     }).catch(() => {});
   }
 
-  const userPhoto = state.users[uid]?.photoUrl;
+  const userPhoto = state.users?.[uid]?.photoUrl;
   if (userPhoto) {
     elsVc.floatingAvatar.style.backgroundImage = `url(${userPhoto})`;
     elsVc.floatingAvatar.textContent = "";
@@ -8054,7 +8059,7 @@ elsVc.sendMessageBtn.addEventListener("click", (e) => {
   window.__resqDefaultAvatarSvg = DEFAULT_AVATAR_SVG;
 
   function getUserPhoto(uid, memData) {
-    const u = asRecord(state.users[uid]);
+    const u = asRecord(state.users?.[uid]);
     const m = asRecord(memData);
     const uPhoto = text(m.photoUrl || u.photoUrl || m.photoUri || u.photoUri).trim();
     if (uPhoto && (uPhoto.startsWith("http://") || uPhoto.startsWith("https://") || uPhoto.startsWith("data:image/"))) {
