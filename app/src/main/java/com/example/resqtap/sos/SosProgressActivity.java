@@ -3,6 +3,8 @@ package com.example.resqtap.sos;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -101,6 +103,10 @@ public class SosProgressActivity extends BaseActivity {
     private ValueEventListener userCallListener;
     private DatabaseReference adminCallIncomingRef;
     private ValueEventListener adminCallIncomingListener;
+    private boolean autoClearScheduled = false;
+    private boolean hadExistingSnapshot = false;
+    private final Handler timeoutHandler = new Handler(Looper.getMainLooper());
+    private Runnable staleAlertTimeoutRunnable;
 
     public static void launch(Context context, String roomCode, String alertId) {
         if (context == null) return;
@@ -150,7 +156,12 @@ public class SosProgressActivity extends BaseActivity {
     private void bindViews() {
         btnBack = findViewById(R.id.btn_back_sos_progress);
         if (btnBack != null) {
-            btnBack.setOnClickListener(v -> finish());
+            btnBack.setOnClickListener(v -> {
+                if (isResolved) {
+                    cleanUpResolvedAlertNode();
+                }
+                finish();
+            });
             btnBack.setVisibility(View.GONE);
         }
 
@@ -214,6 +225,7 @@ public class SosProgressActivity extends BaseActivity {
             @Override
             public void handleOnBackPressed() {
                 if (isResolved) {
+                    cleanUpResolvedAlertNode();
                     finish();
                 } else {
                     Toast.makeText(SosProgressActivity.this, R.string.sos_progress_cannot_exit, Toast.LENGTH_SHORT).show();
@@ -250,11 +262,34 @@ public class SosProgressActivity extends BaseActivity {
                 .child("sosAlerts")
                 .child(alertId);
 
+        if (staleAlertTimeoutRunnable != null) {
+            timeoutHandler.removeCallbacks(staleAlertTimeoutRunnable);
+        }
+        staleAlertTimeoutRunnable = () -> {
+            if (!hadExistingSnapshot) {
+                UserPrefs.clearActiveSosProgress(SosProgressActivity.this);
+                finish();
+            }
+        };
+        timeoutHandler.postDelayed(staleAlertTimeoutRunnable, 2500);
+
         alertListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot == null || !snapshot.exists()) {
+                    if (hadExistingSnapshot) {
+                        UserPrefs.clearActiveSosProgress(SosProgressActivity.this);
+                        Intent intent = new Intent(SosProgressActivity.this, MainActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                        startActivity(intent);
+                        finish();
+                    }
                     return;
+                }
+
+                hadExistingSnapshot = true;
+                if (staleAlertTimeoutRunnable != null) {
+                    timeoutHandler.removeCallbacks(staleAlertTimeoutRunnable);
                 }
 
                 String status = String.valueOf(snapshot.child("status").getValue() == null ? "active" : snapshot.child("status").getValue());
@@ -281,6 +316,7 @@ public class SosProgressActivity extends BaseActivity {
                     UserPrefs.clearActiveSosProgress(SosProgressActivity.this);
                     isResolved = true;
                     step = 4;
+                    scheduleAutoClearOnResolved();
                 } else {
                     isResolved = false;
                     UserPrefs.setActiveSosProgress(SosProgressActivity.this, roomCode, alertId);
@@ -304,6 +340,10 @@ public class SosProgressActivity extends BaseActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
+                if (error != null && (error.getCode() == DatabaseError.PERMISSION_DENIED || !hadExistingSnapshot)) {
+                    UserPrefs.clearActiveSosProgress(SosProgressActivity.this);
+                    finish();
+                }
             }
         };
 
@@ -609,8 +649,31 @@ public class SosProgressActivity extends BaseActivity {
         }
     }
 
+    private void scheduleAutoClearOnResolved() {
+        if (autoClearScheduled) return;
+        autoClearScheduled = true;
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            cleanUpResolvedAlertNode();
+        }, 15000);
+    }
+
+    private void cleanUpResolvedAlertNode() {
+        String code = (roomCode != null && !roomCode.isEmpty()) ? roomCode : UserPrefs.getActiveSosProgressRoom(this);
+        String id = (alertId != null && !alertId.isEmpty()) ? alertId : UserPrefs.getActiveSosProgressAlert(this);
+        if (code != null && id != null && !code.isEmpty() && !id.isEmpty()) {
+            FirebaseRoomClient.deleteSosAlert(code, id);
+        }
+    }
+
     @Override
     protected void onDestroy() {
+        if (staleAlertTimeoutRunnable != null) {
+            timeoutHandler.removeCallbacks(staleAlertTimeoutRunnable);
+            staleAlertTimeoutRunnable = null;
+        }
+        if (isResolved) {
+            cleanUpResolvedAlertNode();
+        }
         super.onDestroy();
         stopCallListening();
         if (callWaitDialog != null && callWaitDialog.isShowing()) {

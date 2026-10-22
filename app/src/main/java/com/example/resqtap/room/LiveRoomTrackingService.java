@@ -114,12 +114,38 @@ public class LiveRoomTrackingService extends Service {
         }
     }
 
+    private void startForegroundSafely(Notification n) {
+        if (n == null) n = buildNotification(roomCode);
+        try {
+            if (Build.VERSION.SDK_INT >= 34) {
+                if (PermissionUtils.hasAnyLocation(this)) {
+                    startForeground(NOTIF_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
+                } else {
+                    startForeground(NOTIF_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+                }
+            } else if (Build.VERSION.SDK_INT >= 29) {
+                startForeground(NOTIF_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
+            } else {
+                startForeground(NOTIF_ID, n);
+            }
+        } catch (Exception e) {
+            try {
+                if (Build.VERSION.SDK_INT >= 34) {
+                    startForeground(NOTIF_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+                } else {
+                    startForeground(NOTIF_ID, n);
+                }
+            } catch (Exception ignored) {}
+        }
+    }
+
     // SEKSYEN: ONCREATE
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     public void onCreate() {
         super.onCreate();
         ensureChannel();
+        startForegroundSafely(buildNotification(""));
         fused = LocationServices.getFusedLocationProviderClient(this);
         batteryReceiver = new android.content.BroadcastReceiver() {
     @Override
@@ -150,6 +176,7 @@ public class LiveRoomTrackingService extends Service {
         ensureChannel();
         String action = intent == null ? "" : String.valueOf(intent.getAction());
         if (ACTION_STOP.equals(action)) {
+            startForegroundSafely(null);
             stopTracking();
             stopForegroundNotificationWatchdog();
             stopForeground(true);
@@ -167,27 +194,7 @@ public class LiveRoomTrackingService extends Service {
         deviceId = UserPrefs.getOrCreateDeviceId(this);
 
         Notification n = buildNotification(roomCode);
-        try {
-            if (Build.VERSION.SDK_INT >= 34) {
-                if (PermissionUtils.hasAnyLocation(this)) {
-                    startForeground(NOTIF_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
-                } else {
-                    startForeground(NOTIF_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
-                }
-            } else if (Build.VERSION.SDK_INT >= 29) {
-                startForeground(NOTIF_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
-            } else {
-                startForeground(NOTIF_ID, n);
-            }
-        } catch (Exception e) {
-            try {
-                if (Build.VERSION.SDK_INT >= 34) {
-                    startForeground(NOTIF_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
-                } else {
-                    startForeground(NOTIF_ID, n);
-                }
-            } catch (Exception ignored) {}
-        }
+        startForegroundSafely(n);
         startForegroundNotificationWatchdog();
         try {
             android.util.Log.d("SOS_DEBUG", "LiveRoomTrackingService started");

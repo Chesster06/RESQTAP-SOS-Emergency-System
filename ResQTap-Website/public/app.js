@@ -1430,6 +1430,10 @@ function startDataListeners() {
   state.aiChatCleanupTimer = window.setInterval(() => {
     cleanupExpiredAiChats().catch((error) => console.warn(error));
   }, 30000);
+  state.sosCleanupTimer = window.setInterval(() => {
+    cleanupExpiredSosAlerts().catch((error) => console.warn(error));
+  }, 30000);
+  cleanupExpiredSosAlerts().catch((error) => console.warn(error));
 }
 
 function userRoomsFor(uid) {
@@ -5156,6 +5160,46 @@ async function cleanupExpiredAiChats() {
   }
 }
 
+async function cleanupExpiredSosAlerts() {
+  if (!state.currentUser || state.sosCleanupRunning) return;
+  state.sosCleanupRunning = true;
+  try {
+    const now = Date.now();
+    const GRACE_PERIOD_MS = 20 * 1000;
+    const updates = {};
+
+    entries(state.rooms).forEach(([roomId, room]) => {
+      if (!room || !room.sosAlerts) return;
+      entries(room.sosAlerts).forEach(([alertId, alert]) => {
+        if (!alert || typeof alert !== "object") return;
+        const isResolved = alert.status === "resolved" || (alert.progressStep && Number(alert.progressStep) >= 4) || alert.resolvedAt;
+        const isCancelled = alert.status === "cancelled" || alert.cancelledAt || (alert.active === false && !isResolved);
+
+        if (isResolved) {
+          const resolvedTime = millis(alert.resolvedAt || alert.updatedAt || alert.createdAt);
+          if (resolvedTime > 0 && (now - resolvedTime) >= GRACE_PERIOD_MS) {
+            updates[`rooms/${roomId}/sosAlerts/${alertId}`] = null;
+          }
+        } else if (isCancelled) {
+          const cancelledTime = millis(alert.cancelledAt || alert.updatedAt || alert.createdAt);
+          if (cancelledTime > 0 && (now - cancelledTime) >= GRACE_PERIOD_MS) {
+            updates[`rooms/${roomId}/sosAlerts/${alertId}`] = null;
+          }
+        }
+      });
+    });
+
+    if (Object.keys(updates).length > 0) {
+      console.log(`[RTDB AUTO-CLEAR] Membersihkan ${Object.keys(updates).length} kes SOS selesai/batal dari RTDB...`);
+      await update(ref(db), updates);
+    }
+  } catch (err) {
+    console.warn("[RTDB AUTO-CLEAR] Ralat pembersihan SOS:", err);
+  } finally {
+    state.sosCleanupRunning = false;
+  }
+}
+
 function getAdminDisplayName() {
   if (!state.currentUser) return "Admin Responder";
   const uid = state.currentUser.uid;
@@ -5492,6 +5536,29 @@ async function saveCaseProgress(options = {}) {
         window.__resqRefreshMarkers();
       }
       closeCaseModal();
+
+      // AUTO-CLEAR DARI RTDB:
+      // Beri ruang masa 15 saat untuk peranti mangsa menerima status "Case Resolved",
+      // kemudian padam nod alert daripada RTDB secara automatik
+      const currentRoomId = roomId;
+      const currentAlertId = alertId;
+      const currentCrossUpdates = { ...crossRoomUpdates };
+      setTimeout(async () => {
+        try {
+          const deleteUpdates = {};
+          deleteUpdates[`rooms/${currentRoomId}/sosAlerts/${currentAlertId}`] = null;
+          Object.keys(currentCrossUpdates).forEach((k) => {
+            const parts = k.split("/");
+            if (parts.length >= 4) {
+              deleteUpdates[`${parts[0]}/${parts[1]}/${parts[2]}/${parts[3]}`] = null;
+            }
+          });
+          await update(ref(db), deleteUpdates);
+          console.log(`[RTDB AUTO-CLEAR] Alert ${currentAlertId} berjaya dipadam dari RTDB selepas kes selesai.`);
+        } catch (e) {
+          console.warn("[RTDB AUTO-CLEAR] Ralat memadam alert selesai:", e);
+        }
+      }, 15000);
     } else if (shouldClose) {
       closeCaseModal();
     }

@@ -867,8 +867,22 @@ public final class FirebaseRoomClient {
                             android.util.Log.e("ResQTap", "cancelRoomSosQueued failed for room " + code + " id " + id + ": " + (e == null ? "" : e.getMessage()));
                         } catch (Exception ignored) {}
                     });
+
+            // Auto-clear daripada RTDB selepas 5 saat supaya nod tidak terkumpul
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                deleteSosAlert(code, id);
+            }, 5000);
         } catch (Exception ignored) {
         }
+    }
+
+    public static void deleteSosAlert(String roomCode, String sosId) {
+        try {
+            String code = normalizeCode(roomCode);
+            String id = String.valueOf(sosId == null ? "" : sosId).trim();
+            if (code.length() < 4 || id.isEmpty()) return;
+            db().child("rooms").child(code).child("sosAlerts").child(id).removeValue();
+        } catch (Exception ignored) {}
     }
 
     /** Batalkan semua amaran SOS aktif untuk pengguna ini merentasi semua bilik. */
@@ -897,6 +911,8 @@ public final class FirebaseRoomClient {
                             boolean alreadyCancelled = "cancelled".equalsIgnoreCase(status) || "resolved".equalsIgnoreCase(status) || alertChild.child("cancelledAt").exists() || alertChild.child("resolvedAt").exists();
                             if (!alreadyCancelled) {
                                 cancelRoomSosQueued("DIRECT", alertChild.getKey(), dev);
+                            } else {
+                                deleteSosAlert("DIRECT", alertChild.getKey());
                             }
                         }
                     });
@@ -922,6 +938,8 @@ public final class FirebaseRoomClient {
                                     boolean alreadyCancelled = "cancelled".equalsIgnoreCase(status) || "resolved".equalsIgnoreCase(status) || alertChild.child("cancelledAt").exists() || alertChild.child("resolvedAt").exists();
                                     if (!alreadyCancelled) {
                                         cancelRoomSosQueued(roomCode, alertChild.getKey(), dev);
+                                    } else {
+                                        deleteSosAlert(roomCode, alertChild.getKey());
                                     }
                                 }
                             });

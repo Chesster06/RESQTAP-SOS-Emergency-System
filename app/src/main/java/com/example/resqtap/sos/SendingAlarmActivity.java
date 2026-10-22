@@ -465,7 +465,9 @@ public class SendingAlarmActivity extends AppCompatActivity {
                         || snapshot.child("cancelledClientAt").exists()
                         || (snapshot.child("active").exists() && Boolean.FALSE.equals(snapshot.child("active").getValue(Boolean.class)));
 
-                if (isCancelled) {
+                boolean resolved = "resolved".equalsIgnoreCase(status) || snapshot.child("resolvedAt").exists();
+                if (isCancelled || resolved) {
+                    cleanUpActiveAlertNodes();
                     handleSosCancelledByRemote();
                     return;
                 }
@@ -563,11 +565,20 @@ public class SendingAlarmActivity extends AppCompatActivity {
         }
     }
 
+    private void cleanUpActiveAlertNodes() {
+        for (Map.Entry<String, String> entry : new HashMap<>(activeSosIds).entrySet()) {
+            if (!entry.getKey().isEmpty() && !entry.getValue().isEmpty()) {
+                FirebaseRoomClient.deleteSosAlert(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
     private void handleSosCancelledByRemote() {
         if (isSosCancelled) return;
         isSosCancelled = true;
         isSendingAlarm = false;
 
+        cleanUpActiveAlertNodes();
         stopWatchingReservations();
         silenceLocalDevice();
         activeSosIds.clear();
