@@ -1092,5 +1092,6 @@
     <string name="marker_info_status_active">Beroperasi (24 Jam)</string>
     <string name="marker_info_distance_label">Jarak:</string>
     <string name="marker_info_directions">Dapatkan Arah</string>
+    <string name="capsule_estimated_arrival">Anggaran Tiba</string>
 </resources>
 

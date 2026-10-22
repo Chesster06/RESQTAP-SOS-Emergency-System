@@ -598,5 +598,6 @@
     <string name="marker_info_status_active">正常开放（24小时）</string>
     <string name="marker_info_distance_label">距离：</string>
     <string name="marker_info_directions">获取路线</string>
+    <string name="capsule_estimated_arrival">预计到达时间</string>
 </resources>
 

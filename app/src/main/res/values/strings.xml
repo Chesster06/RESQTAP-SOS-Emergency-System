@@ -1248,4 +1248,5 @@ Terms Version: 1.0</string>
     <string name="marker_info_status_active">Available (24h)</string>
     <string name="marker_info_distance_label">Distance:</string>
     <string name="marker_info_directions">Get Directions</string>
+    <string name="capsule_estimated_arrival">Estimated Arrival</string>
 </resources>

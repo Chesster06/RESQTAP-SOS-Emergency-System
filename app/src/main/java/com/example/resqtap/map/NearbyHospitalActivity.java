@@ -30,9 +30,11 @@ import java.util.List;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.HorizontalScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -89,7 +91,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Locale;
@@ -134,6 +138,13 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
     private boolean isNavigating3D = true;
     private final ArrayList<LatLng> currentRoutePoints = new ArrayList<>();
     private float currentNavBearing = 0f;
+
+    private HorizontalScrollView scrollCategoryFilters;
+    private MaterialCardView capsuleEstimatedArrival;
+    private MaterialCardView capsuleIconCard;
+    private ImageView capsuleIcon;
+    private TextView capsuleEtaLabel;
+    private TextView capsuleEtaValue;
     private LocationCallback navLocationCallback;
     private Bitmap navigationDirectionBitmap;
     private ValueAnimator markerTransitionAnimator;
@@ -431,7 +442,13 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         });
         if (btnMyLocation != null) btnMyLocation.setOnClickListener(v -> requestLocationIfNeeded(true));
         if (btnMapType != null) btnMapType.setOnClickListener(v -> toggleMapType());
-        if (btnBack != null) btnBack.setOnClickListener(v -> finish());
+        if (btnBack != null) btnBack.setOnClickListener(v -> {
+            if (isNavigating()) {
+                stopNavigation();
+            } else {
+                finish();
+            }
+        });
 
         MaterialButton btnSearch = findViewById(R.id.btn_search_hospital);
         if (btnSearch != null) {
@@ -507,12 +524,35 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         btnCloseNavigation = findViewById(R.id.btn_close_navigation);
         btnToggle3d = findViewById(R.id.btn_toggle_3d);
 
+        scrollCategoryFilters = findViewById(R.id.scroll_category_filters);
+        capsuleEstimatedArrival = findViewById(R.id.capsule_estimated_arrival);
+        capsuleIconCard = (MaterialCardView) findViewById(R.id.capsule_icon_card);
+        capsuleIcon = findViewById(R.id.capsule_icon);
+        capsuleEtaLabel = findViewById(R.id.capsule_eta_label);
+        capsuleEtaValue = findViewById(R.id.capsule_eta_value);
+
+        if (capsuleEstimatedArrival != null) {
+            capsuleEstimatedArrival.setOnClickListener(v -> toggle3DNavigationMode());
+        }
+
         if (btnCloseNavigation != null) {
             btnCloseNavigation.setOnClickListener(v -> stopNavigation());
         }
         if (btnToggle3d != null) {
             btnToggle3d.setOnClickListener(v -> toggle3DNavigationMode());
         }
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (isNavigating()) {
+                    stopNavigation();
+                } else {
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                }
+            }
+        });
 
         // Setup Marker Callout Views
         markerCalloutLayout = findViewById(R.id.marker_callout_layout);
@@ -1301,6 +1341,35 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
             }
         }
 
+        // Gantikan bar filter dengan Capsule Estimated Arrival semasa navigasi
+        if (scrollCategoryFilters != null) {
+            scrollCategoryFilters.setVisibility(View.GONE);
+        }
+        if (capsuleEstimatedArrival != null) {
+            capsuleEstimatedArrival.setVisibility(View.VISIBLE);
+            if (capsuleEtaValue != null) {
+                capsuleEtaValue.setText(R.string.nav_calculating_route);
+            }
+            int iconRes = R.drawable.logo_kkm;
+            int bgTint = Color.parseColor("#FFF0F2");
+
+            if ("police".equalsIgnoreCase(item.category)) {
+                iconRes = R.drawable.logo_pdrm;
+                bgTint = Color.parseColor("#F0F4F9");
+            } else if ("fire".equalsIgnoreCase(item.category)) {
+                iconRes = R.drawable.logo_bomba;
+                bgTint = Color.parseColor("#FFF7ED");
+            }
+
+            if (capsuleIcon != null) {
+                capsuleIcon.setImageTintList(null);
+                capsuleIcon.setImageResource(iconRes);
+            }
+            if (capsuleIconCard != null) {
+                capsuleIconCard.setCardBackgroundColor(bgTint);
+            }
+        }
+
         // 3. Pastikan koordinat pengguna tersedia
         LatLng target = new LatLng(item.lat, item.lng);
         if (currentLatLng == null) {
@@ -1353,21 +1422,39 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
 
                 if (result != null && result.points != null && result.points.size() >= 2) {
                     pts.addAll(result.points);
+                    int min = (int) Math.round(result.durationSeconds / 60.0);
+                    if (min < 1) min = 1;
+                    double km = result.distanceMeters / 1000.0;
+                    String distStr = km < 1.0 ? String.format(Locale.US, "%d m", Math.round(result.distanceMeters)) : String.format(Locale.US, "%.1f km", km);
+
+                    Calendar cal = Calendar.getInstance();
+                    cal.add(Calendar.MINUTE, min);
+                    SimpleDateFormat timeFormat = new SimpleDateFormat("h:mm a", Locale.getDefault());
+                    String arrivalClockTime = timeFormat.format(cal.getTime());
+
                     if (navEtaDistance != null) {
-                        int min = (int) Math.round(result.durationSeconds / 60.0);
-                        if (min < 1) min = 1;
-                        double km = result.distanceMeters / 1000.0;
-                        String distStr = km < 1.0 ? String.format(Locale.US, "%d m", Math.round(result.distanceMeters)) : String.format(Locale.US, "%.1f km", km);
                         navEtaDistance.setText(min + " min • " + distStr);
+                    }
+                    if (capsuleEtaValue != null) {
+                        capsuleEtaValue.setText(arrivalClockTime + " • " + min + " min (" + distStr + ")");
                     }
                 } else {
                     pts.add(origin);
                     pts.add(dest);
+                    double dist = distanceMeters(origin, dest.latitude, dest.longitude);
+                    int min = (int) Math.max(1, Math.round((dist / 1000.0) / 40.0 * 60.0));
+                    String distStr = dist < 1000 ? String.format(Locale.US, "%d m", Math.round(dist)) : String.format(Locale.US, "%.1f km", dist / 1000.0);
+
+                    Calendar cal = Calendar.getInstance();
+                    cal.add(Calendar.MINUTE, min);
+                    SimpleDateFormat timeFormat = new SimpleDateFormat("h:mm a", Locale.getDefault());
+                    String arrivalClockTime = timeFormat.format(cal.getTime());
+
                     if (navEtaDistance != null) {
-                        double dist = distanceMeters(origin, dest.latitude, dest.longitude);
-                        int min = (int) Math.max(1, Math.round((dist / 1000.0) / 40.0 * 60.0));
-                        String distStr = dist < 1000 ? String.format(Locale.US, "%d m", Math.round(dist)) : String.format(Locale.US, "%.1f km", dist / 1000.0);
                         navEtaDistance.setText(min + " min • " + distStr);
+                    }
+                    if (capsuleEtaValue != null) {
+                        capsuleEtaValue.setText(arrivalClockTime + " • " + min + " min (" + distStr + ")");
                     }
                 }
 
@@ -1522,6 +1609,12 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         animateMarkerSwitch(false, 0f);
         if (cardNavigationInfo != null) {
             cardNavigationInfo.setVisibility(View.GONE);
+        }
+        if (capsuleEstimatedArrival != null) {
+            capsuleEstimatedArrival.setVisibility(View.GONE);
+        }
+        if (scrollCategoryFilters != null) {
+            scrollCategoryFilters.setVisibility(View.VISIBLE);
         }
         if (bottomSheetView != null) {
             bottomSheetView.setVisibility(View.VISIBLE);
