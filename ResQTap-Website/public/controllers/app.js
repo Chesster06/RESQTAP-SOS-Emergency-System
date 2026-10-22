@@ -216,7 +216,16 @@ const els = {
   adminPhotoFileInput: document.getElementById("adminPhotoFileInput"),
   adminRemovePhotoBtn: document.getElementById("adminRemovePhotoBtn"),
   adminUploadBtnLabel: document.getElementById("adminUploadBtnLabel"),
-  profileAvatarImg: document.getElementById("profileAvatarImg")
+  profileAvatarImg: document.getElementById("profileAvatarImg"),
+  adminProfileSignOutBtn: document.getElementById("adminProfileSignOutBtn"),
+  adminPageSignOutBtn: document.getElementById("adminPageSignOutBtn"),
+  sidebarProfileNavBtn: document.getElementById("sidebarProfileNavBtn"),
+  sidebarProfileName: document.getElementById("sidebarProfileName"),
+  sidebarProfileRole: document.getElementById("sidebarProfileRole"),
+  sidebarAvatarMini: document.getElementById("sidebarAvatarMini"),
+  sidebarAvatarMiniInitials: document.getElementById("sidebarAvatarMiniInitials"),
+  sidebarAvatarMiniImg: document.getElementById("sidebarAvatarMiniImg"),
+  profileSessionEmailText: document.getElementById("profileSessionEmailText")
 };
 
 const PUBLIC_PAGES = new Set(["home", "features", "flow", "safety"]);
@@ -4388,6 +4397,37 @@ function renderAdminProfile() {
     els.adminProfileUid.value = uid;
   }
 
+  // Update session email text in profile view
+  if (els.profileSessionEmailText) {
+    els.profileSessionEmailText.textContent = email || "admin@resqtap.com";
+  }
+
+  // Update sidebar profile card (Avatar, Username & Role)
+  if (els.sidebarProfileName) {
+    els.sidebarProfileName.textContent = name;
+  }
+  if (els.sidebarProfileRole) {
+    els.sidebarProfileRole.textContent = role;
+  }
+  if (els.sidebarProfileNavBtn) {
+    els.sidebarProfileNavBtn.setAttribute("data-label", `${name} (${role})`);
+  }
+  if (els.sidebarAvatarMiniInitials) {
+    const miniLetters = (name || "AD").trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "AD";
+    els.sidebarAvatarMiniInitials.textContent = miniLetters;
+  }
+  if (els.sidebarAvatarMiniImg && els.sidebarAvatarMiniInitials) {
+    if (photoUrl) {
+      els.sidebarAvatarMiniImg.src = photoUrl;
+      els.sidebarAvatarMiniImg.classList.remove("hidden");
+      els.sidebarAvatarMiniInitials.classList.add("hidden");
+    } else {
+      els.sidebarAvatarMiniImg.src = "";
+      els.sidebarAvatarMiniImg.classList.add("hidden");
+      els.sidebarAvatarMiniInitials.classList.remove("hidden");
+    }
+  }
+
   refreshIcons();
 }
 
@@ -6625,6 +6665,12 @@ function bindEvents() {
   }
   if (els.deniedSignOut) {
     els.deniedSignOut.addEventListener("click", handleSignOut);
+  }
+  if (els.adminProfileSignOutBtn) {
+    els.adminProfileSignOutBtn.addEventListener("click", handleSignOut);
+  }
+  if (els.adminPageSignOutBtn) {
+    els.adminPageSignOutBtn.addEventListener("click", handleSignOut);
   }
 
   // Dark Mode Toggle Logic

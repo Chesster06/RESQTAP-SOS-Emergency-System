@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=admin-profile-v3">
+  <link rel="stylesheet" href="/styles.css?v=admin-profile-v4">
   <!-- Leaflet.js: open-source map library for Live Map view -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css"/>
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
@@ -515,14 +515,16 @@
           <span>Admins</span>
         </button>
 
-        <span class="nav-group-label">Session</span>
-        <button class="nav-button" data-view="profile" data-label="Profile" type="button">
-          <i data-lucide="user-cog" aria-hidden="true"></i>
-          <span>Profile</span>
-        </button>
-        <button id="sidebarSignOutBtn" class="nav-button nav-button-danger" data-label="Sign out" type="button">
-          <i data-lucide="log-out" aria-hidden="true"></i>
-          <span>Sign out</span>
+        <span class="nav-group-label">Account</span>
+        <button class="nav-button sidebar-profile-btn" data-view="profile" data-label="Profile" type="button" id="sidebarProfileNavBtn">
+          <div class="sidebar-avatar-mini" id="sidebarAvatarMini">
+            <span id="sidebarAvatarMiniInitials">C</span>
+            <img id="sidebarAvatarMiniImg" src="" alt="Avatar" class="hidden">
+          </div>
+          <div class="sidebar-user-info">
+            <span id="sidebarProfileName" class="sidebar-username">Administrator</span>
+            <span id="sidebarProfileRole" class="sidebar-userrole">Super Admin</span>
+          </div>
         </button>
       </nav>
     </aside>
@@ -1076,6 +1078,10 @@
                       <i data-lucide="trash-2" aria-hidden="true"></i>
                       <span>Remove</span>
                     </button>
+                    <button id="adminProfileSignOutBtn" class="secondary-button slim icon-button danger-tint" type="button" title="Sign out of your admin session">
+                      <i data-lucide="log-out" aria-hidden="true"></i>
+                      <span>Sign out</span>
+                    </button>
                     <span class="admin-photo-specs-hint">Supports PNG, JPG, or WebP. Max 5MB.</span>
                   </div>
                 </div>
@@ -1212,6 +1218,25 @@
               </form>
             </div>
 
+          </div>
+
+          <!-- Account Session Management Panel -->
+          <div class="panel admin-session-card">
+            <div class="admin-session-inner">
+              <div class="session-desc">
+                <div class="session-icon-wrap">
+                  <i data-lucide="shield-alert" aria-hidden="true"></i>
+                </div>
+                <div>
+                  <h4 class="session-title">Active Admin Session</h4>
+                  <p class="session-subtitle">Logged in as <strong id="profileSessionEmailText">admin@resqtap.com</strong>. All administrative operations are monitored and recorded.</p>
+                </div>
+              </div>
+              <button id="adminPageSignOutBtn" class="secondary-button icon-button danger-tint" type="button">
+                <i data-lucide="log-out" aria-hidden="true"></i>
+                <span>Sign out</span>
+              </button>
+            </div>
           </div>
 
         </div>
@@ -1543,7 +1568,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=admin-profile-v3"></script>
+  <script type="module" src="/app.js?v=admin-profile-v4"></script>
 </body>
 </html>
 
