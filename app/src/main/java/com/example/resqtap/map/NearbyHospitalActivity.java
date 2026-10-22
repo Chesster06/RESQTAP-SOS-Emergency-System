@@ -1580,11 +1580,12 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
 
     private void updateToggle3DIcon() {
         if (btnToggle3d == null) return;
+        btnToggle3d.setIconResource(R.drawable.ic_navigation_3d);
         if (isNavigating3D) {
-            btnToggle3d.setIconResource(R.drawable.ic_route_overview);
+            btnToggle3d.setIconTint(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.brand_primary)));
             btnToggle3d.setContentDescription(getString(R.string.nav_view_2d));
         } else {
-            btnToggle3d.setIconResource(R.drawable.ic_navigation_3d);
+            btnToggle3d.setIconTint(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.text_secondary)));
             btnToggle3d.setContentDescription(getString(R.string.nav_view_3d));
         }
     }
