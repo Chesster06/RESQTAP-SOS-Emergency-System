@@ -1025,7 +1025,7 @@
     <string name="sos_topic_emergency">Kecemasan</string>
     <string name="sos_topic_format">🚨 Kes SOS (%1$s)</string>
     <string name="sos_attachment_file_format">[Fail Lampiran: %1$s]</string>
-    <string name="sos_responder_admin_label">Responder Admin</string>
+    <string name="sos_responder_admin_label">Administrator</string>
 
     <!-- Aligned Missing Keys (Bahasa Melayu) -->
     <string name="auth_login_headline">Log masuk ke akaun\ndan mulakan persediaan</string>

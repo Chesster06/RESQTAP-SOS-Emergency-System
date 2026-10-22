@@ -535,7 +535,7 @@ public class SendingAlarmActivity extends AppCompatActivity {
             adminUpdates.put("active", true);
             adminUpdates.put("served", true);
             adminUpdates.put("servedBy", "admin_hq");
-            adminUpdates.put("servedByName", "Pusat Kawalan ResQTap");
+            adminUpdates.put("servedByName", "Administrator");
             adminUpdates.put("servedAt", com.google.firebase.database.ServerValue.TIMESTAMP);
             adminUpdates.put("progressStep", 1);
             adminUpdates.put("progressStatus", "Admin Dispatched");

@@ -1176,7 +1176,7 @@ Terms Version: 1.0</string>
     <string name="sos_topic_emergency">Emergency</string>
     <string name="sos_topic_format">🚨 SOS Case (%1$s)</string>
     <string name="sos_attachment_file_format">[Attached File: %1$s]</string>
-    <string name="sos_responder_admin_label">Admin Responder</string>
+    <string name="sos_responder_admin_label">Administrator</string>
 
     <!-- Introvert / Silent Emergency Response Features -->
     <string name="call_decline_with_chat">Can\'t talk? Chat instead</string>

@@ -92,7 +92,7 @@ public class SosProgressActivity extends BaseActivity {
     private View btnBack;
     private boolean isResolved = false;
 
-    private String currentResponderName = "Admin Responder";
+    private String currentResponderName = "Administrator";
     private String currentResponderUid = "";
 
     private DatabaseReference alertRef;
@@ -364,23 +364,7 @@ public class SosProgressActivity extends BaseActivity {
     }
 
     private String formatResponderName(String raw) {
-        if (raw == null || raw.trim().isEmpty()) return getString(R.string.sos_responder_admin_label);
-        String name = raw.trim();
-        if (name.contains("@")) {
-            String namePart = name.split("@")[0].replaceAll("[._-]", " ").trim();
-            if (!namePart.isEmpty()) {
-                String[] words = namePart.split("\\s+");
-                StringBuilder sb = new StringBuilder();
-                for (String w : words) {
-                    if (w.isEmpty()) continue;
-                    if (sb.length() > 0) sb.append(" ");
-                    sb.append(Character.toUpperCase(w.charAt(0)));
-                    if (w.length() > 1) sb.append(w.substring(1));
-                }
-                return sb.toString();
-            }
-        }
-        return name;
+        return "Administrator";
     }
 
     private void renderStepper(int step) {

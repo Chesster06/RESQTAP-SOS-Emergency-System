@@ -65,7 +65,7 @@ public class SosLivechatActivity extends BaseActivity {
 
     private String roomCode = "";
     private String alertId = "";
-    private String responderName = "Admin Responder";
+    private String responderName = "Administrator";
     private String responderUid = "";
     private String myUid = "";
     private String myName = "User";
@@ -388,7 +388,7 @@ public class SosLivechatActivity extends BaseActivity {
 
             // Sender Label
             TextView tvSender = new TextView(this);
-            tvSender.setText(senderName != null && !senderName.isEmpty() ? senderName : getString(R.string.sos_responder_admin_label));
+            tvSender.setText("Administrator");
             tvSender.setTextSize(11f);
             tvSender.setTextColor(Color.parseColor("#B80053"));
             tvSender.setTypeface(null, Typeface.BOLD);

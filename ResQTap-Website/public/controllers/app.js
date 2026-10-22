@@ -5248,7 +5248,7 @@ async function reserveSosCase(roomId, alertId, senderUid, senderName) {
     active: true,
     served: true,
     servedBy: adminUid,
-    servedByName: adminName,
+    servedByName: "Administrator",
     servedAt: serverTimestamp(),
     progressStep: 1,
     progressStatus: "Admin Dispatched",
@@ -5265,7 +5265,7 @@ async function reserveSosCase(roomId, alertId, senderUid, senderName) {
           crossRoomUpdates[`rooms/${a.roomId}/sosAlerts/${a.key}/active`] = true;
           crossRoomUpdates[`rooms/${a.roomId}/sosAlerts/${a.key}/served`] = true;
           crossRoomUpdates[`rooms/${a.roomId}/sosAlerts/${a.key}/servedBy`] = adminUid;
-          crossRoomUpdates[`rooms/${a.roomId}/sosAlerts/${a.key}/servedByName`] = adminName;
+          crossRoomUpdates[`rooms/${a.roomId}/sosAlerts/${a.key}/servedByName`] = "Administrator";
           crossRoomUpdates[`rooms/${a.roomId}/sosAlerts/${a.key}/servedAt`] = serverTimestamp();
           crossRoomUpdates[`rooms/${a.roomId}/sosAlerts/${a.key}/progressStep`] = 1;
           crossRoomUpdates[`rooms/${a.roomId}/sosAlerts/${a.key}/progressStatus`] = "Admin Dispatched";
