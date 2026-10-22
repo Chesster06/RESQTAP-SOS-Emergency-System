@@ -9492,12 +9492,9 @@ body.dark-mode .danger-tint {
   background: rgba(220, 38, 38, 0.15) !important;
 }
 
-/* Hero Right Stat Cards */
+/* Hero Right Stat Cards - Removed completely */
 .admin-hero-stats {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
+  display: none !important;
 }
 
 .hero-stat-card {
