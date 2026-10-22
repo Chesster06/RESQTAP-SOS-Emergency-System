@@ -94,7 +94,7 @@
       <div class="hero-copy reveal is-visible">
         <span class="surface-label">Emergency companion for Android</span>
         <h1>ResQTap</h1>
-        <p>A focused emergency app for SOS alerts, live location sharing, emergency contacts, room tracking, incident reports, and support chat.</p>
+        <p>A focused emergency app for SOS alerts, live location sharing, emergency contacts, channel tracking, incident reports, and support chat.</p>
         <div class="hero-actions">
           <a class="download-button" href="assets/ResQTap.apk" download>
             <i data-lucide="download" aria-hidden="true"></i>
@@ -108,7 +108,7 @@
         <div class="release-strip" aria-label="Release details">
           <span>Android APK</span>
           <span>Firebase realtime sync</span>
-          <span>SOS & live room tracking</span>
+          <span>SOS & live channel tracking</span>
         </div>
       </div>
 
@@ -129,12 +129,12 @@
         <div class="feature-card reveal is-visible">
           <i data-lucide="siren" aria-hidden="true"></i>
           <strong>SOS alerts</strong>
-          <span>Trigger urgent alerts with room, sender, timestamp, cancellation status, and recent activity context.</span>
+          <span>Trigger urgent alerts with channel, sender, timestamp, cancellation status, and recent activity context.</span>
         </div>
         <div class="feature-card reveal is-visible">
           <i data-lucide="map-pin" aria-hidden="true"></i>
           <strong>Live location</strong>
-          <span>Share current position to room members so trusted people can track changes while the event is active.</span>
+          <span>Share current position to channel members so trusted people can track changes while the event is active.</span>
         </div>
         <div class="feature-card reveal is-visible">
           <i data-lucide="users-round" aria-hidden="true"></i>
@@ -158,21 +158,21 @@
       <div class="section-copy reveal is-visible">
         <span class="surface-label">From tap to response</span>
         <h2>Built around the first five minutes of an emergency.</h2>
-        <p>ResQTap keeps the critical path short: send an alert, expose the latest room state, and keep every update visible to trusted members and operators.</p>
+        <p>ResQTap keeps the critical path short: send an alert, expose the latest channel state, and keep every update visible to trusted members and operators.</p>
       </div>
       <div class="flow-steps">
         <article class="flow-step reveal is-visible">
           <span>01</span>
           <div>
             <strong>Tap SOS</strong>
-            <p>The app prepares alert context with sender, room, timestamp, and emergency state.</p>
+            <p>The app prepares alert context with sender, channel, timestamp, and emergency state.</p>
           </div>
         </article>
         <article class="flow-step reveal is-visible">
           <span>02</span>
           <div>
             <strong>Share location</strong>
-            <p>Room members see live coordinates and recent movement while the alert remains active.</p>
+            <p>Channel members see live coordinates and recent movement while the alert remains active.</p>
           </div>
         </article>
         <article class="flow-step reveal is-visible">
@@ -204,12 +204,12 @@
             <span style="height: 56%"></span>
             <span style="height: 72%"></span>
           </div>
-          <p>Admin panel tracks users, rooms, SOS alerts, reports, livechat, AI chat, notifications, and logs.</p>
+          <p>Admin panel tracks users, channels, SOS alerts, reports, livechat, AI chat, notifications, and logs.</p>
         </article>
         <article class="ops-card reveal is-visible">
           <i data-lucide="battery-warning" aria-hidden="true"></i>
           <strong>Low battery awareness</strong>
-          <p>Room monitoring can expose device state before a responder loses contact.</p>
+          <p>Channel monitoring can expose device state before a responder loses contact.</p>
         </article>
         <article class="ops-card reveal is-visible">
           <i data-lucide="file-check-2" aria-hidden="true"></i>
@@ -1206,7 +1206,7 @@
 
       <!-- ============================================================
            LIVE MAP VIEW
-           Real-time satellite map monitoring all room member locations,
+           Real-time satellite map monitoring all channel member locations,
            active SOS alerts, and incident reports.
       ============================================================ -->
       <section id="livemapView" class="view-section hidden">
@@ -1530,7 +1530,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=admin-channels-v19"></script>
+  <script type="module" src="/app.js?v=admin-channels-v20"></script>
 </body>
 </html>
 

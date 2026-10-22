@@ -5857,7 +5857,7 @@ async function deleteUser(uid) {
   const self = uid === state.currentUser.uid;
   const message = self
     ? "Delete your own user record? You may lose admin panel access after refresh."
-    : `Delete user ${name}? This will remove their profile and unlink them from rooms.`;
+    : `Delete user ${name}? This will remove their profile and unlink them from channels.`;
   if (!window.confirm(message)) return;
 
   const userObj = state.users && state.users[uid];
