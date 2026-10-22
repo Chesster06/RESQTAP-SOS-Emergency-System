@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=admin-profile-v4">
+  <link rel="stylesheet" href="/styles.css?v=admin-profile-v5">
   <!-- Leaflet.js: open-source map library for Live Map view -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css"/>
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
@@ -521,8 +521,7 @@
         <span class="nav-group-label">Account</span>
         <button class="nav-button sidebar-profile-btn" data-view="profile" data-label="Profile" type="button" id="sidebarProfileNavBtn">
           <div class="sidebar-avatar-mini" id="sidebarAvatarMini">
-            <span id="sidebarAvatarMiniInitials">C</span>
-            <img id="sidebarAvatarMiniImg" src="" alt="Avatar" class="hidden">
+            <img id="sidebarAvatarMiniImg" src="/assets/default_avatar.svg" alt="Avatar" onerror="this.src='/assets/default_avatar.svg'">
           </div>
           <div class="sidebar-user-info">
             <span id="sidebarProfileName" class="sidebar-username">Administrator</span>
@@ -1035,8 +1034,7 @@
                 <!-- Avatar Circle & Upload Badge -->
                 <div class="admin-avatar-box">
                   <div class="admin-avatar-circle" id="profileAvatarDisplay">
-                    <span id="profileAvatarInitials">C</span>
-                    <img id="profileAvatarImg" src="" alt="Profile Photo" class="hidden">
+                    <img id="profileAvatarImg" src="/assets/default_avatar.svg" alt="Profile Photo" onerror="this.src='/assets/default_avatar.svg'">
                   </div>
                   <label for="adminPhotoFileInput" class="admin-avatar-upload-badge" title="Upload new photo">
                     <i data-lucide="camera" aria-hidden="true"></i>
@@ -1554,7 +1552,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=admin-profile-v4"></script>
+  <script type="module" src="/app.js?v=admin-profile-v5"></script>
 </body>
 </html>
 

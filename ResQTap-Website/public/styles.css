@@ -778,14 +778,24 @@ code {
   width: 68px;
   height: 100%;
   padding: 16px 8px;
-  overflow-x: visible;
-  overflow-y: hidden;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
   background: #FFFFFF;
   border-right: 1px solid #EEF0F4;
   z-index: 50;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
   transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1), padding 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar::-webkit-scrollbar,
+.sidebar *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* Centered logo in mini mode */
@@ -9762,30 +9772,34 @@ body.dark-mode .security-info-box {
 
 /* Sidebar User Profile Button & Badge */
 .sidebar .sidebar-profile-btn {
+  width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
   padding: 0 !important;
+  margin: 0 auto 4px !important;
   justify-content: center !important;
-  min-height: 44px;
+  align-items: center !important;
+  overflow: hidden !important;
+  max-width: 44px !important;
+  box-sizing: border-box !important;
 }
 
 .sidebar .sidebar-avatar-mini {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%);
-  color: #FFFFFF;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
-  font-weight: 800;
   overflow: hidden;
   flex-shrink: 0;
   border: 2px solid #FFFFFF;
-  box-shadow: 0 2px 6px rgba(124, 58, 237, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
 body.dark-mode .sidebar .sidebar-avatar-mini {
-  border-color: #1E293B;
+  border-color: #334155;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
@@ -9793,6 +9807,8 @@ body.dark-mode .sidebar .sidebar-avatar-mini {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 50%;
+  display: block;
 }
 
 .sidebar .sidebar-user-info {

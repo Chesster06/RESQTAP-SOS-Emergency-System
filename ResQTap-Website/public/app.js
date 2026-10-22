@@ -4355,30 +4355,29 @@ function renderAdminProfile() {
   const role = text(adminData.role || userData.role || "Administrator").trim();
   const photoUrl = text(adminData.photoUrl || adminData.photo_url || state.currentUser.photoURL || userData.photoUrl || userData.photo_url || "").trim();
 
+  const defaultAvatar = "/assets/default_avatar.svg";
+  const effectiveAvatar = photoUrl || defaultAvatar;
+
   if (els.profileDisplayHeaderName) {
     els.profileDisplayHeaderName.textContent = name;
   }
   if (els.profileDisplayHeaderEmail) {
     els.profileDisplayHeaderEmail.textContent = email || "No email";
   }
-  if (els.profileAvatarInitials) {
-    const letters = (name || "AD").trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
-    els.profileAvatarInitials.textContent = letters || "AD";
+
+  if (els.profileAvatarImg) {
+    els.profileAvatarImg.src = effectiveAvatar;
+    els.profileAvatarImg.classList.remove("hidden");
   }
-  if (els.profileAvatarImg && els.profileAvatarInitials) {
-    if (photoUrl) {
-      els.profileAvatarImg.src = photoUrl;
-      els.profileAvatarImg.classList.remove("hidden");
-      els.profileAvatarInitials.classList.add("hidden");
-      if (els.adminRemovePhotoBtn) els.adminRemovePhotoBtn.classList.remove("hidden");
-      if (els.adminUploadBtnLabel) els.adminUploadBtnLabel.textContent = "Change Picture";
-    } else {
-      els.profileAvatarImg.src = "";
-      els.profileAvatarImg.classList.add("hidden");
-      els.profileAvatarInitials.classList.remove("hidden");
-      if (els.adminRemovePhotoBtn) els.adminRemovePhotoBtn.classList.add("hidden");
-      if (els.adminUploadBtnLabel) els.adminUploadBtnLabel.textContent = "Upload Picture";
-    }
+  if (els.profileAvatarInitials) {
+    els.profileAvatarInitials.classList.add("hidden");
+  }
+
+  if (els.adminRemovePhotoBtn) {
+    els.adminRemovePhotoBtn.classList.toggle("hidden", !photoUrl);
+  }
+  if (els.adminUploadBtnLabel) {
+    els.adminUploadBtnLabel.textContent = photoUrl ? "Change Picture" : "Upload Picture";
   }
 
   if (els.adminProfileName && document.activeElement !== els.adminProfileName) {
@@ -4412,20 +4411,12 @@ function renderAdminProfile() {
   if (els.sidebarProfileNavBtn) {
     els.sidebarProfileNavBtn.setAttribute("data-label", `${name} (${role})`);
   }
-  if (els.sidebarAvatarMiniInitials) {
-    const miniLetters = (name || "AD").trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "AD";
-    els.sidebarAvatarMiniInitials.textContent = miniLetters;
+  if (els.sidebarAvatarMiniImg) {
+    els.sidebarAvatarMiniImg.src = effectiveAvatar;
+    els.sidebarAvatarMiniImg.classList.remove("hidden");
   }
-  if (els.sidebarAvatarMiniImg && els.sidebarAvatarMiniInitials) {
-    if (photoUrl) {
-      els.sidebarAvatarMiniImg.src = photoUrl;
-      els.sidebarAvatarMiniImg.classList.remove("hidden");
-      els.sidebarAvatarMiniInitials.classList.add("hidden");
-    } else {
-      els.sidebarAvatarMiniImg.src = "";
-      els.sidebarAvatarMiniImg.classList.add("hidden");
-      els.sidebarAvatarMiniInitials.classList.remove("hidden");
-    }
+  if (els.sidebarAvatarMiniInitials) {
+    els.sidebarAvatarMiniInitials.classList.add("hidden");
   }
 
   refreshIcons();
