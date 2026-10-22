@@ -1087,8 +1087,10 @@ function avatarHtml(item, uid) {
 }
 
 function userName(uid) {
+  const admin = asRecord(state.admins[uid]);
   const user = asRecord(state.users[uid]);
-  return text(user.name || user.email || uid).trim() || uid;
+  const responder = asRecord(state.responders[uid]);
+  return text(admin.name || user.name || responder.name || user.email || admin.email || uid).trim() || uid;
 }
 
 function validPathSegment(value) {
@@ -4251,6 +4253,7 @@ function renderAdmins() {
     .map(([uid, value]) => ({
       uid,
       value,
+      name: isRecord(value) ? text(value.name).trim() : "",
       active: isAdminValue(value),
       grantedAt: isRecord(value) ? millis(value.grantedAt) : 0,
       grantedBy: isRecord(value) ? text(value.grantedBy) : ""
@@ -4261,7 +4264,7 @@ function renderAdmins() {
   els.adminsList.innerHTML = admins.length ? admins.map((admin) => `
     <article class="list-item">
       <div>
-        <strong>${escapeHtml(userName(admin.uid))}</strong>
+        <strong>${escapeHtml(admin.name || userName(admin.uid))}</strong>
         <span>${escapeHtml(admin.uid)}</span>
         <span>${admin.grantedAt ? `Granted ${escapeHtml(formatDate(admin.grantedAt))}` : "Manual record"}</span>
       </div>
@@ -7106,14 +7109,17 @@ function bindEvents() {
           }).eq("id", uid);
         } catch (_) {}
 
-        if (state.admins[uid]) {
-          state.admins[uid].name = newName;
-          state.admins[uid].phone = newPhone;
+        if (typeof state.admins[uid] !== "object" || !state.admins[uid]) {
+          state.admins[uid] = { active: true };
         }
-        if (state.users[uid]) {
-          state.users[uid].name = newName;
-          state.users[uid].phone = newPhone;
+        state.admins[uid].name = newName;
+        state.admins[uid].phone = newPhone;
+
+        if (typeof state.users[uid] !== "object" || !state.users[uid]) {
+          state.users[uid] = {};
         }
+        state.users[uid].name = newName;
+        state.users[uid].phone = newPhone;
 
         showToast("Profile details updated successfully!");
         render();
