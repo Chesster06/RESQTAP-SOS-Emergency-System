@@ -1720,21 +1720,81 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
             });
         }
 
-        View.OnClickListener toggleClick = v -> {
-            if (navSheetBehavior != null) {
-                if (navSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
-                    navSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                } else {
-                    navSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-                }
+        GestureDetector gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
+            private static final int SWIPE_THRESHOLD = 20;
+            private static final int SWIPE_VELOCITY_THRESHOLD = 40;
+
+            @Override
+            public boolean onDown(MotionEvent e) {
+                return true;
             }
+
+            @Override
+            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                if (e1 == null || e2 == null) return false;
+                float diffY = e2.getY() - e1.getY();
+                float diffX = e2.getX() - e1.getX();
+                if (Math.abs(diffY) > Math.abs(diffX)) {
+                    if (diffY < -SWIPE_THRESHOLD || velocityY < -SWIPE_VELOCITY_THRESHOLD) {
+                        // Swipe UP -> Buka option
+                        if (navSheetBehavior != null && navSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
+                            navSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                            try {
+                                cardNavigationInfo.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                            } catch (Exception ignored) {}
+                        }
+                        return true;
+                    } else if (diffY > SWIPE_THRESHOLD || velocityY > SWIPE_VELOCITY_THRESHOLD) {
+                        // Swipe DOWN -> Tutup option
+                        if (navSheetBehavior != null && navSheetBehavior.getState() != BottomSheetBehavior.STATE_COLLAPSED) {
+                            navSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                            try {
+                                cardNavigationInfo.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                            } catch (Exception ignored) {}
+                        }
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            @Override
+            public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+                if (Math.abs(distanceY) > Math.abs(distanceX)) {
+                    if (distanceY > 18) {
+                        // Finger dragging UP
+                        if (navSheetBehavior != null && navSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
+                            navSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                            try {
+                                cardNavigationInfo.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                            } catch (Exception ignored) {}
+                        }
+                        return true;
+                    } else if (distanceY < -18) {
+                        // Finger dragging DOWN
+                        if (navSheetBehavior != null && navSheetBehavior.getState() != BottomSheetBehavior.STATE_COLLAPSED) {
+                            navSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                            try {
+                                cardNavigationInfo.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                            } catch (Exception ignored) {}
+                        }
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+
+        View.OnTouchListener swipeOnlyTouchListener = (v, event) -> {
+            gestureDetector.onTouchEvent(event);
+            return true;
         };
 
         if (navSheetHeader != null) {
-            navSheetHeader.setOnClickListener(toggleClick);
+            navSheetHeader.setOnTouchListener(swipeOnlyTouchListener);
         }
         if (navSheetHandle != null) {
-            navSheetHandle.setOnClickListener(toggleClick);
+            navSheetHandle.setOnTouchListener(swipeOnlyTouchListener);
         }
 
         if (navCardAuto != null) {
