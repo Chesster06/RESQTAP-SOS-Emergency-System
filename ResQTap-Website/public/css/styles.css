@@ -9475,25 +9475,9 @@ body.dark-mode .admin-name-title {
   margin: 0;
 }
 
-/* Photo action bar */
+/* Photo action bar - hidden as camera badge is on avatar */
 .admin-photo-btn-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 6px;
-  flex-wrap: wrap;
-}
-
-.admin-photo-upload-trigger {
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.admin-photo-specs-hint {
-  font-size: 12px;
-  color: var(--text-muted, #94A3B8);
+  display: none !important;
 }
 
 .danger-tint {
