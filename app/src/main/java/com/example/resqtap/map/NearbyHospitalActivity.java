@@ -27,6 +27,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
 import java.util.List;
+import android.view.HapticFeedbackConstants;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -534,11 +535,17 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         capsuleEtaValue = findViewById(R.id.capsule_eta_value);
 
         if (capsuleEstimatedArrival != null) {
-            capsuleEstimatedArrival.setOnClickListener(v -> toggle3DNavigationMode());
+            capsuleEstimatedArrival.setOnClickListener(v -> {
+                animateCapsuleClick(v);
+                toggle3DNavigationMode();
+            });
         }
 
         if (btnCloseNavigation != null) {
-            btnCloseNavigation.setOnClickListener(v -> stopNavigation());
+            btnCloseNavigation.setOnClickListener(v -> {
+                animateButtonClick(v);
+                stopNavigation();
+            });
         }
         if (btnToggle3d != null) {
             btnToggle3d.setOnClickListener(v -> toggle3DNavigationMode());
@@ -1567,6 +1574,7 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
     private void toggle3DNavigationMode() {
         if (map == null) return;
         isNavigating3D = !isNavigating3D;
+        animateNavigationButton(btnToggle3d);
         updateToggle3DIcon();
         if (isNavigating3D) {
             LatLng origin = currentLatLng != null ? currentLatLng : (!currentRoutePoints.isEmpty() ? currentRoutePoints.get(0) : null);
@@ -1576,6 +1584,58 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         } else {
             zoomToFullRoute();
         }
+    }
+
+    private void animateNavigationButton(View view) {
+        if (view == null) return;
+        try {
+            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+        } catch (Exception ignored) {}
+
+        view.animate().cancel();
+        view.setScaleX(0.76f);
+        view.setScaleY(0.76f);
+        view.animate()
+                .scaleX(1.0f)
+                .scaleY(1.0f)
+                .rotationBy(360f)
+                .setDuration(450)
+                .setInterpolator(new OvershootInterpolator(2.2f))
+                .start();
+    }
+
+    private void animateButtonClick(View view) {
+        if (view == null) return;
+        try {
+            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+        } catch (Exception ignored) {}
+
+        view.animate().cancel();
+        view.setScaleX(0.82f);
+        view.setScaleY(0.82f);
+        view.animate()
+                .scaleX(1.0f)
+                .scaleY(1.0f)
+                .setDuration(280)
+                .setInterpolator(new OvershootInterpolator(2.0f))
+                .start();
+    }
+
+    private void animateCapsuleClick(View view) {
+        if (view == null) return;
+        try {
+            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+        } catch (Exception ignored) {}
+
+        view.animate().cancel();
+        view.setScaleX(0.94f);
+        view.setScaleY(0.94f);
+        view.animate()
+                .scaleX(1.0f)
+                .scaleY(1.0f)
+                .setDuration(280)
+                .setInterpolator(new OvershootInterpolator(1.8f))
+                .start();
     }
 
     private void updateToggle3DIcon() {
