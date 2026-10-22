@@ -140,6 +140,7 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
     private float currentNavBearing = 0f;
 
     private HorizontalScrollView scrollCategoryFilters;
+    private MaterialCardView searchCard;
     private MaterialCardView capsuleEstimatedArrival;
     private MaterialCardView capsuleIconCard;
     private ImageView capsuleIcon;
@@ -525,6 +526,7 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         btnToggle3d = findViewById(R.id.btn_toggle_3d);
 
         scrollCategoryFilters = findViewById(R.id.scroll_category_filters);
+        searchCard = findViewById(R.id.search_card);
         capsuleEstimatedArrival = findViewById(R.id.capsule_estimated_arrival);
         capsuleIconCard = (MaterialCardView) findViewById(R.id.capsule_icon_card);
         capsuleIcon = findViewById(R.id.capsule_icon);
@@ -1341,7 +1343,10 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
             }
         }
 
-        // Gantikan bar filter dengan Capsule Estimated Arrival semasa navigasi
+        // Gantikan kad atas dan bar filter dengan Capsule Estimated Arrival semasa navigasi
+        if (searchCard != null) {
+            searchCard.setVisibility(View.GONE);
+        }
         if (scrollCategoryFilters != null) {
             scrollCategoryFilters.setVisibility(View.GONE);
         }
@@ -1609,6 +1614,9 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         animateMarkerSwitch(false, 0f);
         if (cardNavigationInfo != null) {
             cardNavigationInfo.setVisibility(View.GONE);
+        }
+        if (searchCard != null) {
+            searchCard.setVisibility(View.VISIBLE);
         }
         if (capsuleEstimatedArrival != null) {
             capsuleEstimatedArrival.setVisibility(View.GONE);
