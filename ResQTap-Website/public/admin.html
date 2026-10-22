@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=admin-profile-v2">
+  <link rel="stylesheet" href="/styles.css?v=admin-profile-v3">
   <!-- Leaflet.js: open-source map library for Live Map view -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css"/>
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
@@ -1039,49 +1039,67 @@
           <!-- Top Hero Banner: Profile & Photo Management -->
           <div class="panel admin-profile-hero">
             <div class="admin-profile-hero-inner">
-              <!-- Avatar Circle & Upload Badge -->
-              <div class="admin-avatar-box">
-                <div class="admin-avatar-circle" id="profileAvatarDisplay">
-                  <span id="profileAvatarInitials">C</span>
-                  <img id="profileAvatarImg" src="" alt="Profile Photo" class="hidden">
+              <div class="admin-hero-left">
+                <!-- Avatar Circle & Upload Badge -->
+                <div class="admin-avatar-box">
+                  <div class="admin-avatar-circle" id="profileAvatarDisplay">
+                    <span id="profileAvatarInitials">C</span>
+                    <img id="profileAvatarImg" src="" alt="Profile Photo" class="hidden">
+                  </div>
+                  <label for="adminPhotoFileInput" class="admin-avatar-upload-badge" title="Upload new photo">
+                    <i data-lucide="camera" aria-hidden="true"></i>
+                    <input type="file" id="adminPhotoFileInput" accept="image/jpeg,image/png,image/webp" style="display:none;">
+                  </label>
                 </div>
-                <label for="adminPhotoFileInput" class="admin-avatar-upload-badge" title="Upload new photo">
-                  <i data-lucide="camera" aria-hidden="true"></i>
-                  <input type="file" id="adminPhotoFileInput" accept="image/jpeg,image/png,image/webp" style="display:none;">
-                </label>
+
+                <!-- Admin Identity Info -->
+                <div class="admin-identity-info">
+                  <div class="admin-name-badge-row">
+                    <h2 id="profileDisplayHeaderName" class="admin-name-title">Administrator</h2>
+                    <span class="admin-role-tag">
+                      <i data-lucide="shield-check" aria-hidden="true"></i>
+                      <span>Administrator</span>
+                    </span>
+                    <span class="admin-status-active">
+                      <span class="status-pulse-dot"></span>
+                      <span>Active</span>
+                    </span>
+                  </div>
+                  <p id="profileDisplayHeaderEmail" class="admin-email-text">admin@resqtap.com</p>
+                  
+                  <div class="admin-photo-btn-bar">
+                    <label for="adminPhotoFileInput" class="secondary-button slim icon-button admin-photo-upload-trigger">
+                      <i data-lucide="upload" aria-hidden="true"></i>
+                      <span id="adminUploadBtnLabel">Upload Picture</span>
+                    </label>
+                    <button id="adminRemovePhotoBtn" class="secondary-button slim icon-button danger-tint hidden" type="button">
+                      <i data-lucide="trash-2" aria-hidden="true"></i>
+                      <span>Remove</span>
+                    </button>
+                    <span class="admin-photo-specs-hint">Supports PNG, JPG, or WebP. Max 5MB.</span>
+                  </div>
+                </div>
               </div>
 
-              <!-- Admin Identity Info -->
-              <div class="admin-identity-info">
-                <div class="admin-name-badge-row">
-                  <h2 id="profileDisplayHeaderName" class="admin-name-title">Administrator</h2>
-                  <span class="admin-role-tag">
-                    <i data-lucide="shield-check" aria-hidden="true"></i>
-                    <span>Administrator</span>
-                  </span>
-                  <span class="admin-status-active">
-                    <span class="status-pulse-dot"></span>
-                    <span>Active</span>
-                  </span>
+              <!-- Hero Right Stat Cards -->
+              <div class="admin-hero-stats">
+                <div class="hero-stat-card">
+                  <span class="hero-stat-label">Access Level</span>
+                  <span class="hero-stat-val">Super Admin</span>
                 </div>
-                <p id="profileDisplayHeaderEmail" class="admin-email-text">admin@resqtap.com</p>
-                
-                <div class="admin-photo-btn-bar">
-                  <label for="adminPhotoFileInput" class="secondary-button slim icon-button admin-photo-upload-trigger">
-                    <i data-lucide="upload" aria-hidden="true"></i>
-                    <span id="adminUploadBtnLabel">Upload Picture</span>
-                  </label>
-                  <button id="adminRemovePhotoBtn" class="secondary-button slim icon-button danger-tint hidden" type="button">
-                    <i data-lucide="trash-2" aria-hidden="true"></i>
-                    <span>Remove</span>
-                  </button>
-                  <span class="admin-photo-specs-hint">Supports PNG, JPG, or WebP. Max 5MB.</span>
+                <div class="hero-stat-card">
+                  <span class="hero-stat-label">Operations Console</span>
+                  <span class="hero-stat-val is-green"><i data-lucide="activity" aria-hidden="true"></i> Active</span>
+                </div>
+                <div class="hero-stat-card">
+                  <span class="hero-stat-label">Database Sync</span>
+                  <span class="hero-stat-val is-blue"><i data-lucide="cloud-check" aria-hidden="true"></i> Realtime</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- 2-Column Responsive Form Layout -->
+          <!-- 2-Column Responsive Form Layout (Balanced & Equal Height) -->
           <div class="admin-profile-forms-grid">
 
             <!-- Column 1: Personal Profile Details -->
@@ -1097,7 +1115,7 @@
               </div>
 
               <form id="adminProfileForm" class="admin-form-padding">
-                <div class="form-fields-stack">
+                <div class="form-fields-grid-2col">
                   <label class="field">
                     <span>Display Name / Full Name</span>
                     <input id="adminProfileName" type="text" placeholder="e.g. Chesster" required maxlength="50">
@@ -1118,7 +1136,7 @@
                     <input id="adminProfileRole" type="text" value="Administrator" readonly class="is-readonly">
                   </label>
 
-                  <label class="field">
+                  <label class="field col-span-full">
                     <span>Firebase User ID (UID)</span>
                     <div class="input-with-action">
                       <input id="adminProfileUid" type="text" readonly class="is-readonly font-mono">
@@ -1525,7 +1543,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=admin-profile-v2"></script>
+  <script type="module" src="/app.js?v=admin-profile-v3"></script>
 </body>
 </html>
 

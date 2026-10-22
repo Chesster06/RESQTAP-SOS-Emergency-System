@@ -9313,19 +9313,19 @@ body.dark-mode.admin-site-active .sos-livechat-panel .livechat-thread.is-active 
 }
 
 /* ============================================================
-   ADMIN PROFILE VIEW STYLING (PRO)
+   ADMIN PROFILE VIEW STYLING (PRO - FULL-WIDTH BALANCED)
 ============================================================ */
 .admin-profile-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  max-width: 1200px;
+  gap: 20px;
   width: 100%;
+  max-width: 100%;
 }
 
 /* Top Hero Panel */
 .admin-profile-hero {
-  padding: 24px !important;
+  padding: 24px 28px !important;
   background: var(--surface, #FFFFFF);
   border: 1px solid var(--border-color, #E2E8F0);
   border-radius: 14px;
@@ -9339,28 +9339,38 @@ body.dark-mode .admin-profile-hero {
 .admin-profile-hero-inner {
   display: flex;
   align-items: center;
-  gap: 28px;
+  justify-content: space-between;
+  gap: 24px;
   flex-wrap: wrap;
+}
+
+.admin-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 320px;
 }
 
 /* Avatar Circle & Photo Upload */
 .admin-avatar-box {
   position: relative;
-  width: 100px;
-  height: 100px;
+  width: 96px;
+  height: 96px;
   flex-shrink: 0;
 }
 
 .admin-avatar-circle {
-  width: 100px;
-  height: 100px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
   background: linear-gradient(135deg, #E11D48 0%, #BE123C 100%);
   color: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 38px;
+  font-size: 36px;
   font-weight: 800;
   box-shadow: 0 8px 20px rgba(225, 29, 72, 0.25);
   border: 3px solid #FFFFFF;
@@ -9422,7 +9432,7 @@ body.dark-mode .admin-avatar-upload-badge:hover {
   flex-direction: column;
   gap: 8px;
   flex: 1;
-  min-width: 260px;
+  min-width: 240px;
 }
 
 .admin-name-badge-row {
@@ -9528,15 +9538,77 @@ body.dark-mode .danger-tint {
   background: rgba(220, 38, 38, 0.15) !important;
 }
 
-/* 2-Column Grid */
-.admin-profile-forms-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  align-items: start;
+/* Hero Right Stat Cards */
+.admin-hero-stats {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
 }
 
-@media (max-width: 900px) {
+.hero-stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 16px;
+  background: var(--surface-muted, #F8FAFC);
+  border: 1px solid var(--border-color, #E2E8F0);
+  border-radius: 10px;
+  min-width: 130px;
+}
+
+body.dark-mode .hero-stat-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.hero-stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  color: var(--text-muted, #94A3B8);
+}
+
+.hero-stat-val {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-heading, #0F172A);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+body.dark-mode .hero-stat-val {
+  color: #F1F5F9;
+}
+
+.hero-stat-val.is-green {
+  color: #059669;
+}
+
+body.dark-mode .hero-stat-val.is-green {
+  color: #34D399;
+}
+
+.hero-stat-val.is-blue {
+  color: #2563EB;
+}
+
+body.dark-mode .hero-stat-val.is-blue {
+  color: #60A5FA;
+}
+
+/* 2-Column Grid (balanced) */
+.admin-profile-forms-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 20px;
+  align-items: stretch;
+  width: 100%;
+}
+
+@media (max-width: 1100px) {
   .admin-profile-forms-grid {
     grid-template-columns: 1fr;
   }
@@ -9548,10 +9620,22 @@ body.dark-mode .danger-tint {
   background: var(--surface, #FFFFFF);
   border: 1px solid var(--border-color, #E2E8F0);
   border-radius: 14px;
+  display: flex;
+  flex-direction: column;
 }
 
 body.dark-mode .profile-form-card {
   background: #111827;
+  border-color: #1F2937;
+}
+
+.profile-form-card .panel-header {
+  padding: 18px 24px 14px 24px;
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--border-color, #E2E8F0);
+}
+
+body.dark-mode .profile-form-card .panel-header {
   border-color: #1F2937;
 }
 
@@ -9575,7 +9659,25 @@ body.dark-mode .profile-form-card {
   padding: 24px;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   gap: 20px;
+  flex: 1;
+}
+
+.form-fields-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .form-fields-grid-2col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.col-span-full {
+  grid-column: 1 / -1;
 }
 
 .form-fields-stack {
@@ -9614,6 +9716,7 @@ body.dark-mode .is-readonly {
   justify-content: flex-end;
   padding-top: 14px;
   border-top: 1px solid var(--border-color, #E2E8F0);
+  margin-top: auto;
 }
 
 body.dark-mode .form-save-row {
