@@ -212,7 +212,11 @@ const els = {
   adminConfirmPassword: document.getElementById("adminConfirmPassword"),
   toggleNewPasswordBtn: document.getElementById("toggleNewPasswordBtn"),
   toggleConfirmPasswordBtn: document.getElementById("toggleConfirmPasswordBtn"),
-  saveAdminPasswordBtn: document.getElementById("saveAdminPasswordBtn")
+  saveAdminPasswordBtn: document.getElementById("saveAdminPasswordBtn"),
+  adminPhotoFileInput: document.getElementById("adminPhotoFileInput"),
+  adminRemovePhotoBtn: document.getElementById("adminRemovePhotoBtn"),
+  adminUploadBtnLabel: document.getElementById("adminUploadBtnLabel"),
+  profileAvatarImg: document.getElementById("profileAvatarImg")
 };
 
 const PUBLIC_PAGES = new Set(["home", "features", "flow", "safety"]);
@@ -4340,6 +4344,7 @@ function renderAdminProfile() {
   const email = text(adminData.email || state.currentUser.email || userData.email || "").trim();
   const phone = text(adminData.phone || userData.phone || "").trim();
   const role = text(adminData.role || userData.role || "Administrator").trim();
+  const photoUrl = text(adminData.photoUrl || adminData.photo_url || state.currentUser.photoURL || userData.photoUrl || userData.photo_url || "").trim();
 
   if (els.profileDisplayHeaderName) {
     els.profileDisplayHeaderName.textContent = name;
@@ -4351,8 +4356,20 @@ function renderAdminProfile() {
     const letters = (name || "AD").trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
     els.profileAvatarInitials.textContent = letters || "AD";
   }
-  if (els.profileUidShort) {
-    els.profileUidShort.textContent = uid ? `${uid.slice(0, 6)}...${uid.slice(-4)}` : "-";
+  if (els.profileAvatarImg && els.profileAvatarInitials) {
+    if (photoUrl) {
+      els.profileAvatarImg.src = photoUrl;
+      els.profileAvatarImg.classList.remove("hidden");
+      els.profileAvatarInitials.classList.add("hidden");
+      if (els.adminRemovePhotoBtn) els.adminRemovePhotoBtn.classList.remove("hidden");
+      if (els.adminUploadBtnLabel) els.adminUploadBtnLabel.textContent = "Change Picture";
+    } else {
+      els.profileAvatarImg.src = "";
+      els.profileAvatarImg.classList.add("hidden");
+      els.profileAvatarInitials.classList.remove("hidden");
+      if (els.adminRemovePhotoBtn) els.adminRemovePhotoBtn.classList.add("hidden");
+      if (els.adminUploadBtnLabel) els.adminUploadBtnLabel.textContent = "Upload Picture";
+    }
   }
 
   if (els.adminProfileName && document.activeElement !== els.adminProfileName) {
@@ -4370,6 +4387,8 @@ function renderAdminProfile() {
   if (els.adminProfileUid) {
     els.adminProfileUid.value = uid;
   }
+
+  refreshIcons();
 }
 
 
@@ -7127,6 +7146,113 @@ function bindEvents() {
           pwdBtn.innerHTML = `${icon("key-round")}<span>Update Password</span>`;
           refreshIcons();
         }
+      }
+    });
+  }
+
+  if (els.adminPhotoFileInput) {
+    els.adminPhotoFileInput.addEventListener("change", async (event) => {
+      const file = event.target.files && event.target.files[0];
+      if (!file || !state.currentUser) return;
+
+      if (!file.type.startsWith("image/")) {
+        showToast("Please choose an image file (PNG, JPG, WebP).");
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        showToast("Photo must be smaller than 5MB.");
+        return;
+      }
+
+      const uid = state.currentUser.uid;
+      const uploadLabel = els.adminUploadBtnLabel;
+      if (uploadLabel) uploadLabel.textContent = "Uploading...";
+
+      try {
+        const inlineUrl = await imageFileToInlineDataUrl(file);
+        let finalPhotoUrl = inlineUrl;
+
+        try {
+          const sRef = storageRef(getStorage(app), `admin_avatars/${uid}_${Date.now()}.jpg`);
+          const res = await fetch(inlineUrl);
+          const blob = await res.blob();
+          const snapshot = await uploadBytes(sRef, blob, { contentType: "image/jpeg" });
+          finalPhotoUrl = await getDownloadURL(snapshot.ref);
+        } catch (stgErr) {
+          console.warn("[STORAGE_FALLBACK] Using inline photo:", stgErr);
+        }
+
+        if (auth.currentUser) {
+          await updateProfile(auth.currentUser, { photoURL: finalPhotoUrl });
+        }
+
+        await update(ref(db, `admins/${uid}`), {
+          photoUrl: finalPhotoUrl,
+          updatedAt: serverTimestamp()
+        });
+
+        try {
+          await update(ref(db, `users/${uid}`), {
+            photoUrl: finalPhotoUrl,
+            updatedAt: serverTimestamp()
+          });
+        } catch (_) {}
+
+        try {
+          await supabase.from("profiles").update({
+            photo_url: finalPhotoUrl,
+            updated_at: new Date().toISOString()
+          }).eq("id", uid);
+        } catch (_) {}
+
+        if (state.admins[uid]) state.admins[uid].photoUrl = finalPhotoUrl;
+        if (state.users[uid]) state.users[uid].photoUrl = finalPhotoUrl;
+
+        showToast("Profile picture updated successfully!");
+        render();
+      } catch (err) {
+        console.error("Photo upload error:", err);
+        showToast("Failed to upload: " + (err.message || "Error"));
+      } finally {
+        if (uploadLabel) uploadLabel.textContent = "Change Picture";
+        els.adminPhotoFileInput.value = "";
+      }
+    });
+  }
+
+  if (els.adminRemovePhotoBtn) {
+    els.adminRemovePhotoBtn.addEventListener("click", async () => {
+      if (!state.currentUser) return;
+      const uid = state.currentUser.uid;
+      try {
+        if (auth.currentUser) {
+          await updateProfile(auth.currentUser, { photoURL: "" });
+        }
+        await update(ref(db, `admins/${uid}`), {
+          photoUrl: "",
+          updatedAt: serverTimestamp()
+        });
+        try {
+          await update(ref(db, `users/${uid}`), {
+            photoUrl: "",
+            updatedAt: serverTimestamp()
+          });
+        } catch (_) {}
+        try {
+          await supabase.from("profiles").update({
+            photo_url: "",
+            updated_at: new Date().toISOString()
+          }).eq("id", uid);
+        } catch (_) {}
+
+        if (state.admins[uid]) state.admins[uid].photoUrl = "";
+        if (state.users[uid]) state.users[uid].photoUrl = "";
+
+        showToast("Profile picture removed.");
+        render();
+      } catch (err) {
+        console.error("Photo remove error:", err);
+        showToast("Failed to remove photo: " + (err.message || "Error"));
       }
     });
   }

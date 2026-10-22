@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=admin-call-buttons-112">
+  <link rel="stylesheet" href="/styles.css?v=admin-profile-v2">
   <!-- Leaflet.js: open-source map library for Live Map view -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css"/>
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
@@ -1024,73 +1024,91 @@
            Allows the logged-in administrator to view and edit profile details
       ============================================================ -->
       <section id="profileView" class="view-section hidden">
-        <div class="profile-layout-grid">
-          <!-- Left: Profile Summary Card -->
-          <div class="panel profile-card-panel">
-            <div class="profile-header-banner">
-              <div class="profile-avatar-circle" id="profileAvatarDisplay">
-                <span id="profileAvatarInitials">AD</span>
+        <div class="admin-profile-wrapper">
+          
+          <!-- Top Hero Banner: Profile & Photo Management -->
+          <div class="panel admin-profile-hero">
+            <div class="admin-profile-hero-inner">
+              <!-- Avatar Circle & Upload Badge -->
+              <div class="admin-avatar-box">
+                <div class="admin-avatar-circle" id="profileAvatarDisplay">
+                  <span id="profileAvatarInitials">C</span>
+                  <img id="profileAvatarImg" src="" alt="Profile Photo" class="hidden">
+                </div>
+                <label for="adminPhotoFileInput" class="admin-avatar-upload-badge" title="Upload new photo">
+                  <i data-lucide="camera" aria-hidden="true"></i>
+                  <input type="file" id="adminPhotoFileInput" accept="image/jpeg,image/png,image/webp" style="display:none;">
+                </label>
               </div>
-              <div class="profile-header-meta">
-                <h3 id="profileDisplayHeaderName">Administrator</h3>
-                <span class="profile-badge-pill" id="profileRoleBadge">
-                  <i data-lucide="shield-check" aria-hidden="true"></i>
-                  <span>Administrator</span>
-                </span>
-                <p id="profileDisplayHeaderEmail" class="muted">admin@resqtap.com</p>
-              </div>
-            </div>
 
-            <div class="profile-quick-stats">
-              <div class="quick-stat-item">
-                <span class="quick-stat-label">Status</span>
-                <span class="quick-stat-value text-success"><i data-lucide="check-circle-2" aria-hidden="true"></i> Active</span>
+              <!-- Admin Identity Info -->
+              <div class="admin-identity-info">
+                <div class="admin-name-badge-row">
+                  <h2 id="profileDisplayHeaderName" class="admin-name-title">Administrator</h2>
+                  <span class="admin-role-tag">
+                    <i data-lucide="shield-check" aria-hidden="true"></i>
+                    <span>Administrator</span>
+                  </span>
+                  <span class="admin-status-active">
+                    <span class="status-pulse-dot"></span>
+                    <span>Active</span>
+                  </span>
+                </div>
+                <p id="profileDisplayHeaderEmail" class="admin-email-text">admin@resqtap.com</p>
+                
+                <div class="admin-photo-btn-bar">
+                  <label for="adminPhotoFileInput" class="secondary-button slim icon-button admin-photo-upload-trigger">
+                    <i data-lucide="upload" aria-hidden="true"></i>
+                    <span id="adminUploadBtnLabel">Upload Picture</span>
+                  </label>
+                  <button id="adminRemovePhotoBtn" class="secondary-button slim icon-button danger-tint hidden" type="button">
+                    <i data-lucide="trash-2" aria-hidden="true"></i>
+                    <span>Remove</span>
+                  </button>
+                  <span class="admin-photo-specs-hint">Supports PNG, JPG, or WebP. Max 5MB.</span>
+                </div>
               </div>
-              <div class="quick-stat-item">
-                <span class="quick-stat-label">Access Level</span>
-                <span class="quick-stat-value">Super Admin</span>
-              </div>
-              <div class="quick-stat-item">
-                <span class="quick-stat-label">Admin UID</span>
-                <span class="quick-stat-value font-mono" id="profileUidShort">-</span>
-              </div>
-            </div>
-
-            <div class="profile-info-notes">
-              <i data-lucide="info" aria-hidden="true"></i>
-              <span>Profile updates sync immediately with Firebase Authentication and Emergency Operations.</span>
             </div>
           </div>
 
-          <!-- Right: Edit Forms Column -->
-          <div class="profile-forms-column">
-            <!-- Account Information -->
-            <div class="panel">
+          <!-- 2-Column Responsive Form Layout -->
+          <div class="admin-profile-forms-grid">
+
+            <!-- Column 1: Personal Profile Details -->
+            <div class="panel profile-form-card">
               <div class="panel-header">
-                <div>
-                  <h3>Admin Information</h3>
-                  <span class="muted">Update your display name and contact details</span>
+                <div class="card-title-group">
+                  <i data-lucide="user" class="card-title-icon" aria-hidden="true"></i>
+                  <div>
+                    <h3>Admin Information</h3>
+                    <span class="muted">Update display name and emergency contact details</span>
+                  </div>
                 </div>
               </div>
-              <form id="adminProfileForm" class="profile-edit-form">
-                <div class="profile-form-grid">
+
+              <form id="adminProfileForm" class="admin-form-padding">
+                <div class="form-fields-stack">
                   <label class="field">
-                    <span>Full Name / Display Name</span>
+                    <span>Display Name / Full Name</span>
                     <input id="adminProfileName" type="text" placeholder="e.g. Chesster" required maxlength="50">
                   </label>
+
                   <label class="field">
                     <span>Email Address</span>
-                    <input id="adminProfileEmail" type="email" placeholder="admin@resqtap.com" readonly class="is-readonly" title="Email is managed via authentication credentials">
+                    <input id="adminProfileEmail" type="email" placeholder="admin@resqtap.com" readonly class="is-readonly" title="Email is tied to Firebase Authentication login">
                   </label>
+
                   <label class="field">
                     <span>Phone Number</span>
                     <input id="adminProfilePhone" type="tel" placeholder="e.g. +60123456789" maxlength="20">
                   </label>
+
                   <label class="field">
-                    <span>Role</span>
+                    <span>Access Role</span>
                     <input id="adminProfileRole" type="text" value="Administrator" readonly class="is-readonly">
                   </label>
-                  <label class="field profile-field-full">
+
+                  <label class="field">
                     <span>Firebase User ID (UID)</span>
                     <div class="input-with-action">
                       <input id="adminProfileUid" type="text" readonly class="is-readonly font-mono">
@@ -1101,7 +1119,8 @@
                     </div>
                   </label>
                 </div>
-                <div class="profile-form-actions">
+
+                <div class="form-save-row">
                   <button id="saveAdminProfileBtn" class="primary-button icon-button" type="submit">
                     <i data-lucide="save" aria-hidden="true"></i>
                     <span>Save Changes</span>
@@ -1110,36 +1129,53 @@
               </form>
             </div>
 
-            <!-- Security & Password -->
-            <div class="panel">
+            <!-- Column 2: Security & Password -->
+            <div class="panel profile-form-card">
               <div class="panel-header">
-                <div>
-                  <h3>Security & Password</h3>
-                  <span class="muted">Update your login password</span>
+                <div class="card-title-group">
+                  <i data-lucide="lock" class="card-title-icon security" aria-hidden="true"></i>
+                  <div>
+                    <h3>Security & Password</h3>
+                    <span class="muted">Update your portal authentication password</span>
+                  </div>
                 </div>
               </div>
-              <form id="adminPasswordForm" class="profile-edit-form">
-                <div class="profile-form-grid">
+
+              <form id="adminPasswordForm" class="admin-form-padding">
+                <div class="form-fields-stack">
                   <label class="field">
                     <span>New Password</span>
                     <div class="input-with-action">
-                      <input id="adminNewPassword" type="password" placeholder="At least 6 characters" minlength="6" autocomplete="new-password">
+                      <input id="adminNewPassword" type="password" placeholder="Minimum 6 characters" minlength="6" autocomplete="new-password">
                       <button id="toggleNewPasswordBtn" class="secondary-button slim icon-button" type="button" aria-label="Toggle password visibility">
                         <i data-lucide="eye" aria-hidden="true"></i>
                       </button>
                     </div>
                   </label>
+
                   <label class="field">
-                    <span>Confirm Password</span>
+                    <span>Confirm New Password</span>
                     <div class="input-with-action">
-                      <input id="adminConfirmPassword" type="password" placeholder="Re-enter new password" minlength="6" autocomplete="new-password">
+                      <input id="adminConfirmPassword" type="password" placeholder="Re-enter password" minlength="6" autocomplete="new-password">
                       <button id="toggleConfirmPasswordBtn" class="secondary-button slim icon-button" type="button" aria-label="Toggle password visibility">
                         <i data-lucide="eye" aria-hidden="true"></i>
                       </button>
                     </div>
                   </label>
+
+                  <div class="security-info-box">
+                    <div class="sec-item">
+                      <i data-lucide="shield" aria-hidden="true"></i>
+                      <span>Password must be at least 6 characters.</span>
+                    </div>
+                    <div class="sec-item">
+                      <i data-lucide="key" aria-hidden="true"></i>
+                      <span>Used across ResQTap web admin & operations console.</span>
+                    </div>
+                  </div>
                 </div>
-                <div class="profile-form-actions">
+
+                <div class="form-save-row">
                   <button id="saveAdminPasswordBtn" class="secondary-button icon-button" type="submit">
                     <i data-lucide="key-round" aria-hidden="true"></i>
                     <span>Update Password</span>
@@ -1147,7 +1183,9 @@
                 </div>
               </form>
             </div>
+
           </div>
+
         </div>
       </section>
 
@@ -1473,7 +1511,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=admin-profile-1"></script>
+  <script type="module" src="/app.js?v=admin-profile-v2"></script>
 </body>
 </html>
 
