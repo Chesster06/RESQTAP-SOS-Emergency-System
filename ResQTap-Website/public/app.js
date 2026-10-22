@@ -738,10 +738,10 @@ function initKatupChatbot() {
     if (detectedLang === "en") {
 
       if (q.includes("sos") || q.includes("alert") || q.includes("emergency") || q.includes("help") || q.includes("panic")) {
-        return "**ResQTap SOS feature** lets users broadcast instant emergency alerts with a single tap.\n\nIt activates an emergency alarm, broadcasts real-time GPS coordinates directly to your **Room members**, and immediately notifies administrators.";
+        return "**ResQTap SOS feature** lets users broadcast instant emergency alerts with a single tap.\n\nIt activates an emergency alarm, broadcasts real-time GPS coordinates directly to your **Channel members**, and immediately notifies administrators.";
       }
       if (q.includes("location") || q.includes("gps") || q.includes("tracking") || q.includes("live") || q.includes("map")) {
-        return "**Live Location Tracking** in ResQTap is powered by Firebase Realtime Database. When an emergency is active, your trusted Room members and responders can track your position continuously on the map.";
+        return "**Live Location Tracking** in ResQTap is powered by Firebase Realtime Database. When an emergency is active, your trusted Channel members and responders can track your position continuously on the map.";
       }
       if (q.includes("channel") || q.includes("room") || q.includes("group") || q.includes("member") || q.includes("contact")) {
         return "**Channels** connect you with your trusted circle and emergency contacts.\n\nEach Channel displays live safety states, battery percentage, and latest GPS coordinates so family and friends can stay aware.";
@@ -756,7 +756,7 @@ function initKatupChatbot() {
         return "ResQTap includes a built-in **Nearby Hospital** feature that automatically discovers nearby healthcare centers and emergency clinics with quick navigation.";
       }
       if (q.includes("hi") || q.includes("hello") || q.includes("hey") || q.includes("how are you")) {
-        return "Hello, I am **Katup**, your assistant for ResQTap. How can I assist you with SOS alerts, live tracking, or emergency rooms today?";
+        return "Hello, I am **Katup**, your assistant for ResQTap. How can I assist you with SOS alerts, live tracking, or emergency channels today?";
       }
       if (q.includes("thank") || q.includes("thanks")) {
         return "You are very welcome. Stay safe, and let me know if you need anything else.";
@@ -766,10 +766,10 @@ function initKatupChatbot() {
     }
 
     if (q.includes("sos") || q.includes("kecemasan") || q.includes("alert") || q.includes("bantuan") || q.includes("panik")) {
-      return "Fungsi **SOS ResQTap** membolehkan anda menghantar amaran kecemasan pantas dalam 1 sentuhan.\n\nIa akan membunyikan amaran kecemasan, menghantar koordinat GPS secara langsung ke semua ahli **Room** anda, dan memberi amaran kepada admin dengan serta-merta.";
+      return "Fungsi **SOS ResQTap** membolehkan anda menghantar amaran kecemasan pantas dalam 1 sentuhan.\n\nIa akan membunyikan amaran kecemasan, menghantar koordinat GPS secara langsung ke semua ahli **Channel** anda, dan memberi amaran kepada admin dengan serta-merta.";
     }
     if (q.includes("location") || q.includes("lokasi") || q.includes("gps") || q.includes("live tracking") || q.includes("jejak") || q.includes("peta")) {
-      return "**Live Location Tracking** ResQTap menggunakan Firebase Realtime Database untuk menyegerakkan lokasi GPS anda secara langsung. Ahli Room dan responder boleh menjejaki pergerakan anda pada peta secara tepat semasa insiden berlaku.";
+      return "**Live Location Tracking** ResQTap menggunakan Firebase Realtime Database untuk menyegerakkan lokasi GPS anda secara langsung. Ahli Channel dan responder boleh menjejaki pergerakan anda pada peta secara tepat semasa insiden berlaku.";
     }
     if (q.includes("channel") || q.includes("room") || q.includes("saluran") || q.includes("bilik") || q.includes("group") || q.includes("ahli") || q.includes("contact") || q.includes("kenalan")) {
       return "**Fungsi Channels** menghubungkan anda dengan kenalan kecemasan dipercayai (trusted contacts).\n\nSetiap Channel memaparkan status keselamatan ahli, tahap bateri telefon, dan lokasi terkini bagi memastikan semua orang sentiasa selamat.";
@@ -2036,7 +2036,7 @@ function getNotificationHistory() {
   const sosNotifications = getSosAlerts().map((alert) => ({
     id: alert.id,
     type: alert.active ? "SOS Alert" : (alert.data && (alert.data.resolvedAt || alert.data.status === "resolved" || Number(alert.data.progressStep) >= 4) ? "SOS Resolved" : "SOS Cancelled"),
-    recipient: alert.source === "legacy" && alert.data.toUid ? userName(alert.data.toUid) : "Room members",
+    recipient: alert.source === "legacy" && alert.data.toUid ? userName(alert.data.toUid) : "Channel members",
     recipientMeta: alert.source === "legacy" ? text(alert.data.toUid || "") : "excluding sender",
     sender: alert.senderName || userName(alert.senderUid),
     senderMeta: alert.senderUid,
@@ -2087,7 +2087,7 @@ function getNotificationHistory() {
     const details = text(audit.details || `Database reset: ${accountsDeleted} accounts deleted`);
 
     let subStats = `${accountsDeleted} akaun`;
-    if (roomsDeleted > 0) subStats += `, ${roomsDeleted} bilik`;
+    if (roomsDeleted > 0) subStats += `, ${roomsDeleted} saluran`;
     if (messagesRemoved > 0) subStats += `, ${messagesRemoved} mesej`;
     if (callsRemoved > 0) subStats += `, ${callsRemoved} panggilan`;
     if (sosAlertsRemoved > 0) subStats += `, ${sosAlertsRemoved} SOS`;
@@ -3190,7 +3190,7 @@ function updateSosAlarmSystem() {
   const btnView = document.getElementById("sosAlarmBtnView");
 
   if (subtitleEl) {
-    const roomTxt = latestAlert.roomId === "DIRECT" ? "Direct SOS (No Room)" : `Room ${latestAlert.roomId || "-"}`;
+    const roomTxt = latestAlert.roomId === "DIRECT" ? "Direct SOS (No Channel)" : `Channel ${latestAlert.roomId || "-"}`;
     subtitleEl.textContent = `${latestAlert.senderName || "User"} • ${roomTxt}`;
   }
   if (timerEl) {
@@ -3883,8 +3883,8 @@ function renderSosLivechat() {
   }
   if (els.soslivechatSelectedSubtitle) {
     const roomSub = (selectedSession.roomId === "DIRECT" || selectedSession.roomDisplay === "Direct SOS")
-      ? "Direct Emergency (No Room)"
-      : (selectedSession.roomDisplay ? `Room ${selectedSession.roomDisplay}` : "");
+      ? "Direct Emergency (No Channel)"
+      : (selectedSession.roomDisplay ? `Channel ${selectedSession.roomDisplay}` : "");
     els.soslivechatSelectedSubtitle.textContent = `${roomSub ? `${roomSub} • ` : ""}Created ${formatDate(selectedSession.createdAt)}`;
   }
 
@@ -4604,7 +4604,7 @@ function renderUserDetail(uid) {
         <span class="cell-meta">${escapeHtml(roomCode)} - ${escapeHtml(m.role || "member")}</span>
       </div>
     `;
-  }).join("") : `<span class="muted">No rooms.</span>`;
+  }).join("") : `<span class="muted">No channels.</span>`;
 
   const locationsHtml = locations.length ? locations.map(({ room, member }) => {
     const hasMap = Number.isFinite(member.lat) && Number.isFinite(member.lng) && member.lat !== 0 && member.lng !== 0;
@@ -4617,7 +4617,7 @@ function renderUserDetail(uid) {
         <span class="cell-meta">${escapeHtml(ageLabel(member.updatedAt))} - Battery ${member.batteryPct === null ? "-" : `${member.batteryPct}%`}</span>
       </div>
     `;
-  }).join("") : `<span class="muted">No online room location.</span>`;
+  }).join("") : `<span class="muted">No online channel location.</span>`;
 
   const activeSos = getActiveSosForUser(uid);
   const sosBanner = activeSos ? `
@@ -4626,7 +4626,7 @@ function renderUserDetail(uid) {
         ${icon("siren")}
         <div>
           <strong style="color: #ef4444; font-size: 13px; display: block;">Active SOS Triggered</strong>
-          <span style="font-size: 12px; color: var(--text-dim, #888);">Room: ${escapeHtml(activeSos.roomId || "-")}</span>
+          <span style="font-size: 12px; color: var(--text-dim, #888);">Channel: ${escapeHtml(activeSos.roomId || "-")}</span>
         </div>
       </div>
       <button class="small-button danger" data-action="view-sos" data-room="${escapeHtml(activeSos.roomId)}" data-alert="${escapeHtml(activeSos.key || activeSos.id)}" type="button">
@@ -4763,7 +4763,7 @@ function renderSosDetail(roomId, alertId) {
   const body = `
     <section class="detail-section">
       ${kv("Alert ID", alert.id)}
-      ${kv("Room", alert.roomId === "DIRECT" ? "Direct SOS (No Room)" : alert.roomId)}
+      ${kv("Channel", alert.roomId === "DIRECT" ? "Direct SOS (No Channel)" : alert.roomId)}
       ${kv("Source", alert.source)}
       ${kv("Status", label)}
       ${kv("Created", formatDate(alert.createdAt))}
@@ -4774,13 +4774,13 @@ function renderSosDetail(roomId, alertId) {
     </section>
     <section class="detail-section">
       ${isCaseActive ? `<button class="primary-button icon-button" data-action="manage-sos-case" data-room="${escapeHtml(alert.roomId)}" data-alert="${escapeHtml(alert.key)}" data-uid="${escapeHtml(alert.senderUid)}" data-name="${escapeHtml(alert.senderName || "Sender")}" type="button">${icon("shield-alert")}<span>${isCurrentlyServed ? "Update Case" : "Reserve Case"}</span></button>` : ""}
-      ${alert.roomId !== "DIRECT" ? `<button class="secondary-button icon-button" data-action="view-room" data-room="${escapeHtml(alert.roomId)}" type="button">${icon("external-link")}<span>Open room</span></button>` : ""}
+      ${alert.roomId !== "DIRECT" ? `<button class="secondary-button icon-button" data-action="view-room" data-room="${escapeHtml(alert.roomId)}" type="button">${icon("external-link")}<span>Open channel</span></button>` : ""}
       ${alert.senderUid ? `<button class="secondary-button icon-button" data-action="view-user" data-uid="${escapeHtml(alert.senderUid)}" data-force-profile="true" type="button">${icon("user-round")}<span>Profile View</span></button>` : ""}
       ${canCancel ? `<button class="secondary-button danger icon-button" data-action="cancel-sos" data-room="${escapeHtml(alert.roomId)}" data-alert="${escapeHtml(alert.key)}" type="button">${icon("circle-x")}<span>Cancel SOS</span></button>` : ""}
     </section>
   `;
   const senderAvatar = alert.senderUid ? avatarHtml(senderUser, alert.senderUid) : "";
-  const roomTitle = alert.roomId === "DIRECT" ? "Direct SOS (No Room)" : (alert.roomId || "-");
+  const roomTitle = alert.roomId === "DIRECT" ? "Direct SOS (No Channel)" : (alert.roomId || "-");
   detailShell(alert.senderName || alert.senderUid || "SOS Alert", `${roomTitle} - ${label}`, body, senderAvatar);
 }
 
@@ -5509,7 +5509,7 @@ function openCaseModal(roomId, alertId, senderUid, senderName) {
   const roomBtn = document.getElementById("caseRoomBtn");
 
   if (title) title.textContent = `SOS: ${resolvedName}`;
-  if (sub) sub.textContent = `${roomId === "DIRECT" ? "Direct SOS (No Room)" : `Room ${roomId || "-"}`} • Active Emergency Case`;
+  if (sub) sub.textContent = `${roomId === "DIRECT" ? "Direct SOS (No Channel)" : `Channel ${roomId || "-"}`} • Active Emergency Case`;
   if (notesInput) notesInput.value = curNotes;
 
   // Reset/Set active step
