@@ -733,6 +733,10 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
     private void enableMyLocationAndCenter(boolean userInitiated) {
         if (map == null) return;
         if (!PermissionUtils.hasAnyLocation(this)) return;
+        if (isNavigating()) {
+            if (currentLatLng != null) upsertMyLocationMarker(currentLatLng);
+            return;
+        }
         try {
             fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
                 if (map == null) return;
@@ -1313,6 +1317,19 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         animateMarkerSwitch(true, currentNavBearing);
         startNavigationLocationUpdates();
 
+        // Segera bawa kamera ke pandangan navigasi 3D jarak dekat (Close-up 3D Cockpit View)
+        if (map != null) {
+            int padBottom = dp(this, 180);
+            map.setPadding(0, 0, 0, padBottom);
+            com.google.android.gms.maps.model.CameraPosition initialNavCam = new com.google.android.gms.maps.model.CameraPosition.Builder()
+                    .target(currentLatLng)
+                    .zoom(19.8f)
+                    .bearing(currentNavBearing)
+                    .tilt(58f)
+                    .build();
+            map.animateCamera(CameraUpdateFactory.newCameraPosition(initialNavCam), 900, null);
+        }
+
         // 5. Lukis laluan navigasi polyline secara in-app
         fetchAndDrawInAppRoute(currentLatLng, target, item);
     }
@@ -1408,18 +1425,18 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
             smoothRotateMarkerTo(bearing);
 
             // Pad camera so route ahead is nicely visible above bottom sheet
-            int padBottom = dp(this, 140);
+            int padBottom = dp(this, 180);
             map.setPadding(0, 0, 0, padBottom);
 
             com.google.android.gms.maps.model.CameraPosition cameraPosition = new com.google.android.gms.maps.model.CameraPosition.Builder()
                     .target(userPos)
-                    .zoom(18.5f)
+                    .zoom(19.8f)
                     .bearing(bearing)
-                    .tilt(60f)
+                    .tilt(58f)
                     .build();
 
             map.stopAnimation();
-            map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1200, null);
+            map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000, null);
         } catch (Exception ignored) {
         }
     }
@@ -1658,14 +1675,14 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
                     .title("You")
                     .icon(BitmapDescriptorFactory.fromBitmap(icon))
                     .anchor(0.5f, 0.5f)
-                    .flat(navigating)
+                    .flat(false)
                     .rotation(rot)
                     .zIndex(navigating ? 100f : 10f));
         } else {
             myLocationMarker.setPosition(pos);
             myLocationMarker.setIcon(BitmapDescriptorFactory.fromBitmap(icon));
             myLocationMarker.setAnchor(0.5f, 0.5f);
-            myLocationMarker.setFlat(navigating);
+            myLocationMarker.setFlat(false);
             myLocationMarker.setRotation(rot);
             myLocationMarker.setZIndex(navigating ? 100f : 10f);
         }
@@ -1718,7 +1735,7 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
                 // Fasa 2: Tukar sifat marker dan kembangkan ikon baharu dengan kesan pop spring (0.05 -> 1.0)
                 if (!switched[0]) {
                     switched[0] = true;
-                    myLocationMarker.setFlat(toNavigation);
+                    myLocationMarker.setFlat(false);
                     myLocationMarker.setZIndex(toNavigation ? 100f : 10f);
                 }
 
@@ -1740,7 +1757,7 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
             @Override
             public void onAnimationEnd(android.animation.Animator animation) {
                 if (myLocationMarker == null) return;
-                myLocationMarker.setFlat(toNavigation);
+                myLocationMarker.setFlat(false);
                 myLocationMarker.setZIndex(toNavigation ? 100f : 10f);
                 myLocationMarker.setRotation(toNavigation ? targetBearing : 0f);
                 Bitmap finalBmp = toNavigation ? navBmp : avatarBmp;
@@ -1800,11 +1817,11 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
     }
 
     /**
-     * 3D Navigation Direction Arrow / Chevron Icon matching modern navigation GPS style.
-     * Mengubah ikon profil pengguna kepada anak panah panduan arah 3D (cyan / teal dengan bingkai putih dan bayang asas).
+     * 3D Navigation Direction Arrow / Chevron Icon (ResQTap Hot Pink 3D Style).
+     * Reka bentuk 3D timbul berketebalan tinggi (ultra-bold hot pink dengan dwi-prisma dan rim putih tebal).
      */
     private static Bitmap buildNavigationDirectionBitmap(Context ctx) {
-        final int sizePx = dp(ctx, 62);
+        final int sizePx = dp(ctx, 84);
         Bitmap bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
 
@@ -1813,102 +1830,124 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
 
         // 1. Bayang Sentuhan Jalan Raya (Ambient Ground Contact Shadow)
         Paint haloPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        haloPaint.setColor(Color.parseColor("#38334155"));
+        haloPaint.setColor(Color.parseColor("#38271724"));
         haloPaint.setStyle(Paint.Style.FILL);
-        canvas.drawCircle(cx, cy + dp(ctx, 1.5f), dp(ctx, 24f), haloPaint);
+        canvas.drawCircle(cx, cy + dp(ctx, 3f), dp(ctx, 32f), haloPaint);
 
         Paint haloInnerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        haloInnerPaint.setColor(Color.parseColor("#200F172A"));
+        haloInnerPaint.setColor(Color.parseColor("#330F020B"));
         haloInnerPaint.setStyle(Paint.Style.FILL);
-        canvas.drawCircle(cx, cy + dp(ctx, 2.5f), dp(ctx, 19f), haloInnerPaint);
+        canvas.drawCircle(cx, cy + dp(ctx, 4.5f), dp(ctx, 24f), haloInnerPaint);
 
-        float w = dp(ctx, 32f);
-        float h = dp(ctx, 35f);
-        float notch = dp(ctx, 10.5f);
+        float w = dp(ctx, 48f);
+        float h = dp(ctx, 52f);
+        float notch = dp(ctx, 15f);
 
-        // 2. Lapisan Penyambung 3D Bawah (Extruded Vertical Side Walls)
-        // Lapisan 2A - Shadowed Base Extrusion (Bawah)
-        Path bevelPathBottom = createChevronPath(cx, cy + dp(ctx, 3.8f), w, h, notch);
+        // 2. Lapisan Ketebalan Sisi 3D Vertikal (Multi-Layer Extrusion Walls)
+        // 2A. Dasar Bawah Gelap (Deep Burgundy Base Shadow)
+        Path bevelPathBottom = createChevronPath(cx, cy + dp(ctx, 6.0f), w, h, notch);
         Paint bevelPaintBottom = new Paint(Paint.ANTI_ALIAS_FLAG);
-        bevelPaintBottom.setColor(Color.parseColor("#00838F")); // Deep teal shadow
+        bevelPaintBottom.setColor(Color.parseColor("#4A0028"));
         bevelPaintBottom.setStyle(Paint.Style.FILL);
-        bevelPaintBottom.setPathEffect(new CornerPathEffect(dp(ctx, 5.5f)));
+        bevelPaintBottom.setPathEffect(new CornerPathEffect(dp(ctx, 7.5f)));
         canvas.drawPath(bevelPathBottom, bevelPaintBottom);
 
-        // Lapisan 2B - Mid Extrusion Chamfer
-        Path bevelPathMid = createChevronPath(cx, cy + dp(ctx, 2.4f), w, h, notch);
-        Paint bevelPaintMid = new Paint(Paint.ANTI_ALIAS_FLAG);
-        bevelPaintMid.setColor(Color.parseColor("#4DD0E1")); // Cyan-mint wall
-        bevelPaintMid.setStyle(Paint.Style.FILL);
-        bevelPaintMid.setPathEffect(new CornerPathEffect(dp(ctx, 5.2f)));
-        canvas.drawPath(bevelPathMid, bevelPaintMid);
+        // 2B. Dinding Sisi Bawah (Dark Magenta Wall)
+        Path bevelPathMid1 = createChevronPath(cx, cy + dp(ctx, 4.2f), w, h, notch);
+        Paint bevelPaintMid1 = new Paint(Paint.ANTI_ALIAS_FLAG);
+        bevelPaintMid1.setColor(Color.parseColor("#880E4F"));
+        bevelPaintMid1.setStyle(Paint.Style.FILL);
+        bevelPaintMid1.setPathEffect(new CornerPathEffect(dp(ctx, 7.2f)));
+        canvas.drawPath(bevelPathMid1, bevelPaintMid1);
 
-        // Lapisan 2C - Upper Rim Chamfer
+        // 2C. Dinding Sisi Tengah (Vibrant Magenta-Pink Bevel Wall)
+        Path bevelPathMid2 = createChevronPath(cx, cy + dp(ctx, 2.2f), w, h, notch);
+        Paint bevelPaintMid2 = new Paint(Paint.ANTI_ALIAS_FLAG);
+        bevelPaintMid2.setColor(Color.parseColor("#C2185B"));
+        bevelPaintMid2.setStyle(Paint.Style.FILL);
+        bevelPaintMid2.setPathEffect(new CornerPathEffect(dp(ctx, 7.0f)));
+        canvas.drawPath(bevelPathMid2, bevelPaintMid2);
+
+        // 2D. Rim Atas Chamfer (Soft Pink Chamfer Rim)
         Path bevelPathTop = createChevronPath(cx, cy + dp(ctx, 1.0f), w, h, notch);
         Paint bevelPaintTop = new Paint(Paint.ANTI_ALIAS_FLAG);
-        bevelPaintTop.setColor(Color.parseColor("#B2EBF2")); // Light cyan-white rim
+        bevelPaintTop.setColor(Color.parseColor("#F8BBD0"));
         bevelPaintTop.setStyle(Paint.Style.FILL);
-        bevelPaintTop.setPathEffect(new CornerPathEffect(dp(ctx, 5.0f)));
+        bevelPaintTop.setPathEffect(new CornerPathEffect(dp(ctx, 6.8f)));
         canvas.drawPath(bevelPathTop, bevelPaintTop);
 
-        // 3. Bingkai Putih Timbul 3D (Solid Rounded White Frame with Depth Shadow)
+        // 3. Bingkai Putih Timbul 3D (Solid Rounded White Frame with Depth Drop Shadow)
         Path outerPath = createChevronPath(cx, cy, w, h, notch);
         Paint whitePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         whitePaint.setColor(Color.WHITE);
         whitePaint.setStyle(Paint.Style.FILL);
-        whitePaint.setPathEffect(new CornerPathEffect(dp(ctx, 5.0f)));
-        whitePaint.setShadowLayer(dp(ctx, 2.5f), 0f, dp(ctx, 1.2f), 0x33000000);
+        whitePaint.setPathEffect(new CornerPathEffect(dp(ctx, 6.8f)));
+        whitePaint.setShadowLayer(dp(ctx, 3.5f), 0f, dp(ctx, 1.8f), 0x38000000);
         canvas.drawPath(outerPath, whitePaint);
 
-        // 4. Badan Utama Anak Panah 3D Berprisma (Split Dual-Facet Prism Core)
-        float innerW = w - dp(ctx, 6.4f);
-        float innerH = h - dp(ctx, 6.4f);
-        float innerNotch = notch - dp(ctx, 1.9f);
-        float innerCy = cy - dp(ctx, 0.4f);
+        // 4. Badan Utama Anak Panah 3D Berprisma HOT PINK (Split Dual-Facet Prism Core)
+        float innerW = w - dp(ctx, 9.5f);
+        float innerH = h - dp(ctx, 9.5f);
+        float innerNotch = notch - dp(ctx, 2.8f);
+        float innerCy = cy - dp(ctx, 0.6f);
 
-        // 4A. Sayap Kiri Prisma (Terima Cahaya / Illuminated Cyan)
+        // 4A. Bayang Inset Alur Dalam
+        Path innerShadowPath = createChevronPath(cx, innerCy + dp(ctx, 1.0f), innerW, innerH, innerNotch);
+        Paint innerShadowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        innerShadowPaint.setColor(Color.parseColor("#5A002C"));
+        innerShadowPaint.setStyle(Paint.Style.FILL);
+        innerShadowPaint.setPathEffect(new CornerPathEffect(dp(ctx, 5.0f)));
+        canvas.drawPath(innerShadowPath, innerShadowPaint);
+
+        // 4B. Sayap Kiri Prisma (Terima Cahaya / Illuminated Neon Hot Pink)
         Path leftFacet = createLeftChevronFacet(cx, innerCy, innerW, innerH, innerNotch);
         Paint leftPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         leftPaint.setStyle(Paint.Style.FILL);
-        leftPaint.setPathEffect(new CornerPathEffect(dp(ctx, 3.8f)));
+        leftPaint.setPathEffect(new CornerPathEffect(dp(ctx, 5.0f)));
         LinearGradient leftGradient = new LinearGradient(
                 cx, innerCy - (innerH / 2f),
                 cx - (innerW / 2f), innerCy + (innerH / 2f),
-                Color.parseColor("#00F5FF"),
-                Color.parseColor("#00C4D4"),
+                Color.parseColor("#FF2E93"),
+                Color.parseColor("#E60067"),
                 Shader.TileMode.CLAMP
         );
         leftPaint.setShader(leftGradient);
         canvas.drawPath(leftFacet, leftPaint);
 
-        // 4B. Sayap Kanan Prisma (Bayang Sederhana / Shaded Turquoise)
+        // 4C. Sayap Kanan Prisma (Bayang Sederhana / Deep Crimson Magenta)
         Path rightFacet = createRightChevronFacet(cx, innerCy, innerW, innerH, innerNotch);
         Paint rightPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         rightPaint.setStyle(Paint.Style.FILL);
-        rightPaint.setPathEffect(new CornerPathEffect(dp(ctx, 3.8f)));
+        rightPaint.setPathEffect(new CornerPathEffect(dp(ctx, 5.0f)));
         LinearGradient rightGradient = new LinearGradient(
                 cx, innerCy - (innerH / 2f),
                 cx + (innerW / 2f), innerCy + (innerH / 2f),
-                Color.parseColor("#00BCD4"),
-                Color.parseColor("#00838F"),
+                Color.parseColor("#D81B60"),
+                Color.parseColor("#880E4F"),
                 Shader.TileMode.CLAMP
         );
         rightPaint.setShader(rightGradient);
         canvas.drawPath(rightFacet, rightPaint);
 
-        // 5. Garis Tulang Belakang 3D & Kilauan Refleksi Atas (3D Ridge & Specular Highlight)
+        // 5. Kilauan Refleksi Atas Enamel 3D (Glossy Specular Highlight)
         Path highlightPath = new Path();
-        float topY = innerCy - (innerH / 2f) + dp(ctx, 1.5f);
+        float topY = innerCy - (innerH / 2f) + dp(ctx, 2.0f);
         highlightPath.moveTo(cx, topY);
-        highlightPath.lineTo(cx + (innerW * 0.26f), innerCy - dp(ctx, 2.5f));
-        highlightPath.lineTo(cx - (innerW * 0.26f), innerCy - dp(ctx, 2.5f));
+        highlightPath.lineTo(cx + (innerW * 0.28f), innerCy - dp(ctx, 3.5f));
+        highlightPath.lineTo(cx - (innerW * 0.28f), innerCy - dp(ctx, 3.5f));
         highlightPath.close();
 
         Paint hlPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        hlPaint.setColor(Color.argb(90, 255, 255, 255));
+        hlPaint.setColor(Color.argb(130, 255, 255, 255));
         hlPaint.setStyle(Paint.Style.FILL);
-        hlPaint.setPathEffect(new CornerPathEffect(dp(ctx, 2.5f)));
+        hlPaint.setPathEffect(new CornerPathEffect(dp(ctx, 3.5f)));
         canvas.drawPath(highlightPath, hlPaint);
+
+        // 5B. Titik Kilauan Muncung
+        Paint dotPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        dotPaint.setColor(Color.argb(160, 255, 255, 255));
+        dotPaint.setStyle(Paint.Style.FILL);
+        canvas.drawCircle(cx, topY + dp(ctx, 3.5f), dp(ctx, 2.2f), dotPaint);
 
         return bitmap;
     }
@@ -1978,11 +2017,12 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
                 upsertMyLocationMarker(currentLatLng);
 
                 if (isNavigating3D) {
+                    smoothRotateMarkerTo(currentNavBearing);
                     com.google.android.gms.maps.model.CameraPosition cameraPosition = new com.google.android.gms.maps.model.CameraPosition.Builder()
                             .target(currentLatLng)
-                            .zoom(18.5f)
+                            .zoom(19.8f)
                             .bearing(currentNavBearing)
-                            .tilt(60f)
+                            .tilt(58f)
                             .build();
                     map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 900, null);
                 }
