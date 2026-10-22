@@ -156,7 +156,7 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
     private ImageView navCheckSatellite;
     private View navCardTraffic;
     private SwitchMaterial navSwitchTraffic;
-    private boolean isNavSheetExpanded = false;
+    private BottomSheetBehavior<MaterialCardView> navSheetBehavior;
 
     private HorizontalScrollView scrollCategoryFilters;
     private MaterialCardView searchCard;
@@ -586,8 +586,8 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                if (isNavSheetExpanded) {
-                    expandNavigationOptions(false);
+                if (navSheetBehavior != null && navSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+                    navSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                     return;
                 }
                 if (isNavigating()) {
@@ -1361,12 +1361,13 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
 
         // 2. Paparkan kad maklumat navigasi di bawah skrin
         if (cardNavigationInfo != null) {
-            isNavSheetExpanded = false;
-            if (navSheetExpandedContent != null) {
-                navSheetExpandedContent.setVisibility(View.GONE);
-            }
             updateNavMapTypeSelectionUi();
             cardNavigationInfo.setVisibility(View.VISIBLE);
+            if (navSheetBehavior != null) {
+                navSheetBehavior.setHideable(false);
+                navSheetBehavior.setPeekHeight(dp(this, 106));
+                navSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }
             if (navDestinationName != null) navDestinationName.setText(item.name);
             if (navAddress != null) navAddress.setText(item.address == null ? "" : item.address);
             if (navEtaDistance != null) navEtaDistance.setText(R.string.nav_calculating_route);
@@ -1692,60 +1693,48 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
     }
 
     private void setupNavSheetSwipeAndOptions() {
-        GestureDetector gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
-            private static final int SWIPE_THRESHOLD = 30;
-            private static final int SWIPE_VELOCITY_THRESHOLD = 30;
+        if (cardNavigationInfo != null) {
+            navSheetBehavior = BottomSheetBehavior.from(cardNavigationInfo);
+            navSheetBehavior.setFitToContents(true);
+            navSheetBehavior.setHideable(true);
+            navSheetBehavior.setSkipCollapsed(false);
+            navSheetBehavior.setPeekHeight(dp(this, 106));
+            navSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
-            @Override
-            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                if (e1 == null || e2 == null) return false;
-                float diffY = e2.getY() - e1.getY();
-                if (Math.abs(diffY) > SWIPE_THRESHOLD && Math.abs(velocityY) > SWIPE_VELOCITY_THRESHOLD) {
-                    if (diffY < 0) {
-                        expandNavigationOptions(true);
-                        return true;
-                    } else {
-                        expandNavigationOptions(false);
-                        return true;
+            navSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+                @Override
+                public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                    if (newState == BottomSheetBehavior.STATE_EXPANDED) {
+                        try {
+                            bottomSheet.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                        } catch (Exception ignored) {}
+                        updateNavMapTypeSelectionUi();
+                    } else if (newState == BottomSheetBehavior.STATE_HIDDEN && isNavigating()) {
+                        navSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                     }
                 }
-                return false;
-            }
-        });
 
-        View.OnTouchListener swipeListener = new View.OnTouchListener() {
-            private float downY = 0f;
-
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                gestureDetector.onTouchEvent(event);
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        downY = event.getRawY();
-                        break;
-                    case MotionEvent.ACTION_UP:
-                        float deltaY = event.getRawY() - downY;
-                        if (deltaY < -40) {
-                            expandNavigationOptions(true);
-                            return true;
-                        } else if (deltaY > 40) {
-                            expandNavigationOptions(false);
-                            return true;
-                        }
-                        break;
+                @Override
+                public void onSlide(@NonNull View bottomSheet, float slideOffset) {
                 }
-                return false;
+            });
+        }
+
+        View.OnClickListener toggleClick = v -> {
+            if (navSheetBehavior != null) {
+                if (navSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+                    navSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                } else {
+                    navSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                }
             }
         };
 
-        if (cardNavigationInfo != null) {
-            cardNavigationInfo.setOnTouchListener(swipeListener);
-        }
         if (navSheetHeader != null) {
-            navSheetHeader.setOnTouchListener(swipeListener);
+            navSheetHeader.setOnClickListener(toggleClick);
         }
         if (navSheetHandle != null) {
-            navSheetHandle.setOnClickListener(v -> toggleNavigationOptions());
+            navSheetHandle.setOnClickListener(toggleClick);
         }
 
         if (navCardAuto != null) {
@@ -1806,25 +1795,6 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         }
     }
 
-    private void expandNavigationOptions(boolean expand) {
-        if (navSheetExpandedContent == null || cardNavigationInfo == null) return;
-        if (isNavSheetExpanded == expand) return;
-        isNavSheetExpanded = expand;
-        try {
-            cardNavigationInfo.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
-        } catch (Exception ignored) {}
-
-        TransitionManager.beginDelayedTransition(cardNavigationInfo, new AutoTransition().setDuration(260));
-        navSheetExpandedContent.setVisibility(expand ? View.VISIBLE : View.GONE);
-        if (expand) {
-            updateNavMapTypeSelectionUi();
-        }
-    }
-
-    private void toggleNavigationOptions() {
-        expandNavigationOptions(!isNavSheetExpanded);
-    }
-
     private void updateNavMapTypeSelectionUi() {
         if (map == null) return;
         int type = map.getMapType();
@@ -1875,9 +1845,9 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
         currentNavBearing = 0f;
         animateMarkerSwitch(false, 0f);
         if (cardNavigationInfo != null) {
-            isNavSheetExpanded = false;
-            if (navSheetExpandedContent != null) {
-                navSheetExpandedContent.setVisibility(View.GONE);
+            if (navSheetBehavior != null) {
+                navSheetBehavior.setHideable(true);
+                navSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
             }
             cardNavigationInfo.setVisibility(View.GONE);
         }
