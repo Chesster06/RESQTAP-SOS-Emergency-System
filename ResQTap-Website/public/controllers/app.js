@@ -7,7 +7,9 @@ import {
   getAuth,
   onAuthStateChanged,
   signInWithEmailAndPassword,
-  signOut
+  signOut,
+  updateProfile,
+  updatePassword
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import {
   getDatabase,
@@ -190,7 +192,27 @@ const els = {
   grantAdminForm: document.getElementById("grantAdminForm"),
   adminUidInput: document.getElementById("adminUidInput"),
   detailPanel: document.getElementById("detailPanel"),
-  toast: document.getElementById("toast")
+  toast: document.getElementById("toast"),
+  adminProfileForm: document.getElementById("adminProfileForm"),
+  adminProfileName: document.getElementById("adminProfileName"),
+  adminProfileEmail: document.getElementById("adminProfileEmail"),
+  adminProfilePhone: document.getElementById("adminProfilePhone"),
+  adminProfileRole: document.getElementById("adminProfileRole"),
+  adminProfileUid: document.getElementById("adminProfileUid"),
+  copyAdminUidBtn: document.getElementById("copyAdminUidBtn"),
+  saveAdminProfileBtn: document.getElementById("saveAdminProfileBtn"),
+  profileAvatarDisplay: document.getElementById("profileAvatarDisplay"),
+  profileAvatarInitials: document.getElementById("profileAvatarInitials"),
+  profileDisplayHeaderName: document.getElementById("profileDisplayHeaderName"),
+  profileDisplayHeaderEmail: document.getElementById("profileDisplayHeaderEmail"),
+  profileRoleBadge: document.getElementById("profileRoleBadge"),
+  profileUidShort: document.getElementById("profileUidShort"),
+  adminPasswordForm: document.getElementById("adminPasswordForm"),
+  adminNewPassword: document.getElementById("adminNewPassword"),
+  adminConfirmPassword: document.getElementById("adminConfirmPassword"),
+  toggleNewPasswordBtn: document.getElementById("toggleNewPasswordBtn"),
+  toggleConfirmPasswordBtn: document.getElementById("toggleConfirmPasswordBtn"),
+  saveAdminPasswordBtn: document.getElementById("saveAdminPasswordBtn")
 };
 
 const PUBLIC_PAGES = new Set(["home", "features", "flow", "safety"]);
@@ -3194,6 +3216,7 @@ function render() {
   if (els.aiChatCount) renderAiChat();
   renderAdmins();
   renderHighlights();
+  renderAdminProfile();
   renderDetail();
 
   // If case update modal is open and the victim cancelled the alert, auto-close modal
@@ -3229,7 +3252,8 @@ function renderNav() {
     livechat: "Livechat",
     highlights: "Highlights (Mobile Carousel)",
     logs: "Logs",
-    admins: "Admins"
+    admins: "Admins",
+    profile: "Admin Profile"
   };
   const attentionState = getNavAttentionState();
   markNavViewSeen(state.activeView, attentionState);
@@ -4304,6 +4328,48 @@ function renderHighlights() {
   }).join("");
 
   if (window.lucide) window.lucide.createIcons();
+}
+
+function renderAdminProfile() {
+  if (!state.currentUser) return;
+  const uid = state.currentUser.uid;
+  const adminData = asRecord(state.admins[uid]);
+  const userData = asRecord(state.users[uid]);
+
+  const name = text(adminData.name || state.currentUser.displayName || userData.name || "Administrator").trim();
+  const email = text(adminData.email || state.currentUser.email || userData.email || "").trim();
+  const phone = text(adminData.phone || userData.phone || "").trim();
+  const role = text(adminData.role || userData.role || "Administrator").trim();
+
+  if (els.profileDisplayHeaderName) {
+    els.profileDisplayHeaderName.textContent = name;
+  }
+  if (els.profileDisplayHeaderEmail) {
+    els.profileDisplayHeaderEmail.textContent = email || "No email";
+  }
+  if (els.profileAvatarInitials) {
+    const letters = (name || "AD").trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+    els.profileAvatarInitials.textContent = letters || "AD";
+  }
+  if (els.profileUidShort) {
+    els.profileUidShort.textContent = uid ? `${uid.slice(0, 6)}...${uid.slice(-4)}` : "-";
+  }
+
+  if (els.adminProfileName && document.activeElement !== els.adminProfileName) {
+    els.adminProfileName.value = name;
+  }
+  if (els.adminProfileEmail) {
+    els.adminProfileEmail.value = email;
+  }
+  if (els.adminProfilePhone && document.activeElement !== els.adminProfilePhone) {
+    els.adminProfilePhone.value = phone;
+  }
+  if (els.adminProfileRole) {
+    els.adminProfileRole.value = role;
+  }
+  if (els.adminProfileUid) {
+    els.adminProfileUid.value = uid;
+  }
 }
 
 
@@ -6908,6 +6974,162 @@ function bindEvents() {
     const action = event.target.closest("[data-action]");
     if (action) handleAction(action);
   });
+
+  if (els.adminProfileForm) {
+    els.adminProfileForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!state.currentUser) {
+        showToast("Session expired. Please log in again.");
+        return;
+      }
+      const uid = state.currentUser.uid;
+      const newName = (els.adminProfileName ? els.adminProfileName.value : "").trim();
+      const newPhone = (els.adminProfilePhone ? els.adminProfilePhone.value : "").trim();
+      if (!newName) {
+        showToast("Please enter a valid display name.");
+        return;
+      }
+
+      const saveBtn = els.saveAdminProfileBtn;
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = `${icon("loader-2")}<span>Saving...</span>`;
+      }
+
+      try {
+        if (auth.currentUser) {
+          await updateProfile(auth.currentUser, { displayName: newName });
+        }
+
+        const adminUpdate = {
+          name: newName,
+          phone: newPhone,
+          updatedAt: serverTimestamp()
+        };
+        await update(ref(db, `admins/${uid}`), adminUpdate);
+
+        try {
+          await update(ref(db, `users/${uid}`), {
+            name: newName,
+            phone: newPhone,
+            updatedAt: serverTimestamp()
+          });
+        } catch (_) {}
+
+        try {
+          await supabase.from("profiles").update({
+            full_name: newName,
+            phone: newPhone,
+            updated_at: new Date().toISOString()
+          }).eq("id", uid);
+        } catch (_) {}
+
+        if (state.admins[uid]) {
+          state.admins[uid].name = newName;
+          state.admins[uid].phone = newPhone;
+        }
+        if (state.users[uid]) {
+          state.users[uid].name = newName;
+          state.users[uid].phone = newPhone;
+        }
+
+        showToast("Profile details updated successfully!");
+        render();
+      } catch (err) {
+        console.error("Failed to update profile:", err);
+        showToast("Failed to save: " + (err.message || "Unknown error"));
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = `${icon("save")}<span>Save Changes</span>`;
+          refreshIcons();
+        }
+      }
+    });
+  }
+
+  if (els.copyAdminUidBtn) {
+    els.copyAdminUidBtn.addEventListener("click", async () => {
+      const uid = (els.adminProfileUid ? els.adminProfileUid.value : "") || (state.currentUser ? state.currentUser.uid : "");
+      if (!uid) return;
+      try {
+        await navigator.clipboard.writeText(uid);
+        showToast("UID copied to clipboard!");
+      } catch (_) {
+        showToast("UID: " + uid);
+      }
+    });
+  }
+
+  if (els.toggleNewPasswordBtn && els.adminNewPassword) {
+    els.toggleNewPasswordBtn.addEventListener("click", () => {
+      const isPwd = els.adminNewPassword.type === "password";
+      els.adminNewPassword.type = isPwd ? "text" : "password";
+      const iconEl = els.toggleNewPasswordBtn.querySelector("[data-lucide]");
+      if (iconEl) {
+        iconEl.setAttribute("data-lucide", isPwd ? "eye-off" : "eye");
+        refreshIcons();
+      }
+    });
+  }
+
+  if (els.toggleConfirmPasswordBtn && els.adminConfirmPassword) {
+    els.toggleConfirmPasswordBtn.addEventListener("click", () => {
+      const isPwd = els.adminConfirmPassword.type === "password";
+      els.adminConfirmPassword.type = isPwd ? "text" : "password";
+      const iconEl = els.toggleConfirmPasswordBtn.querySelector("[data-lucide]");
+      if (iconEl) {
+        iconEl.setAttribute("data-lucide", isPwd ? "eye-off" : "eye");
+        refreshIcons();
+      }
+    });
+  }
+
+  if (els.adminPasswordForm) {
+    els.adminPasswordForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!auth.currentUser) {
+        showToast("Session expired. Please log in again.");
+        return;
+      }
+      const newPwd = els.adminNewPassword ? els.adminNewPassword.value : "";
+      const confirmPwd = els.adminConfirmPassword ? els.adminConfirmPassword.value : "";
+      if (newPwd.length < 6) {
+        showToast("Password must be at least 6 characters.");
+        return;
+      }
+      if (newPwd !== confirmPwd) {
+        showToast("Passwords do not match. Please verify.");
+        return;
+      }
+
+      const pwdBtn = els.saveAdminPasswordBtn;
+      if (pwdBtn) {
+        pwdBtn.disabled = true;
+        pwdBtn.innerHTML = `${icon("loader-2")}<span>Updating...</span>`;
+      }
+
+      try {
+        await updatePassword(auth.currentUser, newPwd);
+        if (els.adminNewPassword) els.adminNewPassword.value = "";
+        if (els.adminConfirmPassword) els.adminConfirmPassword.value = "";
+        showToast("Password updated successfully!");
+      } catch (err) {
+        console.error("Password update error:", err);
+        if (err.code === "auth/requires-recent-login") {
+          showToast("This operation requires recent authentication. Please sign out and log back in to change password.");
+        } else {
+          showToast("Error updating password: " + (err.message || "Failed"));
+        }
+      } finally {
+        if (pwdBtn) {
+          pwdBtn.disabled = false;
+          pwdBtn.innerHTML = `${icon("key-round")}<span>Update Password</span>`;
+          refreshIcons();
+        }
+      }
+    });
+  }
 }
 
 window.addEventListener("load", refreshIcons);

@@ -516,6 +516,10 @@
         </button>
 
         <span class="nav-group-label">Session</span>
+        <button class="nav-button" data-view="profile" data-label="Profile" type="button">
+          <i data-lucide="user-cog" aria-hidden="true"></i>
+          <span>Profile</span>
+        </button>
         <button id="sidebarSignOutBtn" class="nav-button nav-button-danger" data-label="Sign out" type="button">
           <i data-lucide="log-out" aria-hidden="true"></i>
           <span>Sign out</span>
@@ -1026,6 +1030,138 @@
       </section>
 
       <!-- ============================================================
+           ADMIN PROFILE VIEW
+           Allows the logged-in administrator to view and edit profile details
+      ============================================================ -->
+      <section id="profileView" class="view-section hidden">
+        <div class="profile-layout-grid">
+          <!-- Left: Profile Summary Card -->
+          <div class="panel profile-card-panel">
+            <div class="profile-header-banner">
+              <div class="profile-avatar-circle" id="profileAvatarDisplay">
+                <span id="profileAvatarInitials">AD</span>
+              </div>
+              <div class="profile-header-meta">
+                <h3 id="profileDisplayHeaderName">Administrator</h3>
+                <span class="profile-badge-pill" id="profileRoleBadge">
+                  <i data-lucide="shield-check" aria-hidden="true"></i>
+                  <span>Administrator</span>
+                </span>
+                <p id="profileDisplayHeaderEmail" class="muted">admin@resqtap.com</p>
+              </div>
+            </div>
+
+            <div class="profile-quick-stats">
+              <div class="quick-stat-item">
+                <span class="quick-stat-label">Status</span>
+                <span class="quick-stat-value text-success"><i data-lucide="check-circle-2" aria-hidden="true"></i> Active</span>
+              </div>
+              <div class="quick-stat-item">
+                <span class="quick-stat-label">Access Level</span>
+                <span class="quick-stat-value">Super Admin</span>
+              </div>
+              <div class="quick-stat-item">
+                <span class="quick-stat-label">Admin UID</span>
+                <span class="quick-stat-value font-mono" id="profileUidShort">-</span>
+              </div>
+            </div>
+
+            <div class="profile-info-notes">
+              <i data-lucide="info" aria-hidden="true"></i>
+              <span>Profile updates sync immediately with Firebase Authentication and Emergency Operations.</span>
+            </div>
+          </div>
+
+          <!-- Right: Edit Forms Column -->
+          <div class="profile-forms-column">
+            <!-- Account Information -->
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h3>Admin Information</h3>
+                  <span class="muted">Update your display name and contact details</span>
+                </div>
+              </div>
+              <form id="adminProfileForm" class="profile-edit-form">
+                <div class="profile-form-grid">
+                  <label class="field">
+                    <span>Full Name / Display Name</span>
+                    <input id="adminProfileName" type="text" placeholder="e.g. Chesster" required maxlength="50">
+                  </label>
+                  <label class="field">
+                    <span>Email Address</span>
+                    <input id="adminProfileEmail" type="email" placeholder="admin@resqtap.com" readonly class="is-readonly" title="Email is managed via authentication credentials">
+                  </label>
+                  <label class="field">
+                    <span>Phone Number</span>
+                    <input id="adminProfilePhone" type="tel" placeholder="e.g. +60123456789" maxlength="20">
+                  </label>
+                  <label class="field">
+                    <span>Role</span>
+                    <input id="adminProfileRole" type="text" value="Administrator" readonly class="is-readonly">
+                  </label>
+                  <label class="field profile-field-full">
+                    <span>Firebase User ID (UID)</span>
+                    <div class="input-with-action">
+                      <input id="adminProfileUid" type="text" readonly class="is-readonly font-mono">
+                      <button id="copyAdminUidBtn" class="secondary-button slim icon-button" type="button" title="Copy UID">
+                        <i data-lucide="copy" aria-hidden="true"></i>
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                  </label>
+                </div>
+                <div class="profile-form-actions">
+                  <button id="saveAdminProfileBtn" class="primary-button icon-button" type="submit">
+                    <i data-lucide="save" aria-hidden="true"></i>
+                    <span>Save Changes</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Security & Password -->
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h3>Security & Password</h3>
+                  <span class="muted">Update your login password</span>
+                </div>
+              </div>
+              <form id="adminPasswordForm" class="profile-edit-form">
+                <div class="profile-form-grid">
+                  <label class="field">
+                    <span>New Password</span>
+                    <div class="input-with-action">
+                      <input id="adminNewPassword" type="password" placeholder="At least 6 characters" minlength="6" autocomplete="new-password">
+                      <button id="toggleNewPasswordBtn" class="secondary-button slim icon-button" type="button" aria-label="Toggle password visibility">
+                        <i data-lucide="eye" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  </label>
+                  <label class="field">
+                    <span>Confirm Password</span>
+                    <div class="input-with-action">
+                      <input id="adminConfirmPassword" type="password" placeholder="Re-enter new password" minlength="6" autocomplete="new-password">
+                      <button id="toggleConfirmPasswordBtn" class="secondary-button slim icon-button" type="button" aria-label="Toggle password visibility">
+                        <i data-lucide="eye" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  </label>
+                </div>
+                <div class="profile-form-actions">
+                  <button id="saveAdminPasswordBtn" class="secondary-button icon-button" type="submit">
+                    <i data-lucide="key-round" aria-hidden="true"></i>
+                    <span>Update Password</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
            LIVE MAP VIEW
            Real-time satellite map monitoring all room member locations,
            active SOS alerts, and incident reports.
@@ -1351,7 +1487,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=orig-restore-115"></script>
+  <script type="module" src="/app.js?v=admin-profile-1"></script>
 </body>
 </html>
 
