@@ -1085,6 +1085,9 @@
     <string name="nav_toggle_3d">Togol Pandangan 3D</string>
     <string name="nav_view_2d">Tukar ke pandangan 2D</string>
     <string name="nav_view_3d">Tukar ke pandangan navigasi 3D</string>
+    <string name="nav_overview">Overview</string>
+    <string name="nav_recenter">Recenter</string>
+    <string name="nav_cancel">Batalkan Navigasi</string>
     <string name="nav_getting_gps">Mendapatkan koordinat GPS semasa…</string>
     <string name="report_summary">Ringkasan Laporan</string>
     <string name="toast_wrong_password_google_hint">Kata laluan tidak tepat. Jika anda mendaftar menggunakan Google, sila tekan \'Sign in with Google\'.</string>

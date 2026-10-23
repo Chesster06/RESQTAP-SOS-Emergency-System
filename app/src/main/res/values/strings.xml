@@ -1241,6 +1241,9 @@ Terms Version: 1.0</string>
     <string name="nav_toggle_3d">Toggle 3D View</string>
     <string name="nav_view_2d">Switch to 2D overview</string>
     <string name="nav_view_3d">Switch to 3D navigation</string>
+    <string name="nav_overview">Overview</string>
+    <string name="nav_recenter">Recenter</string>
+    <string name="nav_cancel">Cancel Navigation</string>
     <string name="nav_getting_gps">Obtaining current GPS location…</string>
     <string name="report_summary">Report Summary</string>
     <string name="toast_wrong_password_google_hint">Incorrect password. If you registered using Google, please tap \'Sign in with Google\'.</string>

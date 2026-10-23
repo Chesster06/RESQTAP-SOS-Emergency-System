@@ -1395,6 +1395,107 @@
     </div>
   </div>
 
+  <!-- Floating Incident Report Case Update Modal -->
+  <div id="reportCaseUpdateModal" class="sos-case-modal hidden" aria-modal="true" role="dialog">
+    <div class="sos-case-backdrop" data-action="close-report-case-modal"></div>
+    <div class="sos-case-card">
+      <header class="sos-case-header">
+        <div class="sos-case-header-main">
+          <div class="sos-case-badge-pulse" style="background:#eff6ff;color:#2563eb;box-shadow:0 4px 14px rgba(37,99,235,0.2);">
+            <i data-lucide="clipboard-edit" aria-hidden="true"></i>
+          </div>
+          <div>
+            <h2 id="reportCaseModalTitle" class="sos-case-title">Incident Report Case</h2>
+            <p id="reportCaseModalSubtitle" class="sos-case-subtitle">Manage report review and emergency response stage</p>
+          </div>
+        </div>
+        <button class="sos-case-close-btn" data-action="close-report-case-modal" type="button" aria-label="Close modal">
+          <i data-lucide="x" aria-hidden="true"></i>
+        </button>
+      </header>
+
+      <div class="sos-case-body">
+        <!-- Reporter & Location Info Summary -->
+        <div class="report-case-summary-card" id="reportCaseSummaryCard" style="display:flex;align-items:center;justify-content:space-between;background:var(--panel-soft,rgba(255,255,255,0.05));border:1px solid var(--line);border-radius:12px;padding:12px 16px;">
+          <div>
+            <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Reporter & Location</div>
+            <div id="reportCaseReporterText" style="font-weight:700;color:var(--ink);font-size:0.95rem;margin-top:2px;">User</div>
+            <div id="reportCaseLocationText" style="font-size:0.8rem;color:var(--muted);margin-top:2px;">-</div>
+          </div>
+          <span id="reportCaseStatusBadge" class="pill-badge pill-alert">New</span>
+        </div>
+
+        <!-- Progress Stepper Selector -->
+        <div class="sos-case-section">
+          <label class="sos-case-label">Case Investigation Stage</label>
+          <div class="sos-case-steps-grid" id="reportCaseStepsGrid">
+            <button class="sos-case-step-btn is-active" type="button" data-step="1" data-status="new" data-label="Submitted" data-desc="Report received and registered in system.">
+              <div class="step-num">1</div>
+              <div class="step-text">
+                <strong>Submitted</strong>
+                <span>Baru</span>
+              </div>
+            </button>
+            <button class="sos-case-step-btn" type="button" data-step="2" data-status="reviewing" data-label="Under Review" data-desc="Report is being reviewed and verified by authorities.">
+              <div class="step-num">2</div>
+              <div class="step-text">
+                <strong>Under Review</strong>
+                <span>Disemak</span>
+              </div>
+            </button>
+            <button class="sos-case-step-btn" type="button" data-step="3" data-status="in_progress" data-label="In Progress" data-desc="Assistance or investigation is actively underway.">
+              <div class="step-num">3</div>
+              <div class="step-text">
+                <strong>In Progress</strong>
+                <span>Tindakan</span>
+              </div>
+            </button>
+            <button class="sos-case-step-btn" type="button" data-step="4" data-status="resolved" data-label="Resolved" data-desc="Incident investigated, handled, and safely resolved.">
+              <div class="step-num">4</div>
+              <div class="step-text">
+                <strong>Resolved</strong>
+                <span>Selesai</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Admin Notes / Response to Reporter -->
+        <div class="sos-case-section">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <label class="sos-case-label" for="reportCaseNotesInput">Admin Remarks & Notes</label>
+            <span id="reportCaseAutoSaveStatus" class="sos-case-autosave is-saved" style="font-size:0.75rem;">
+              <i data-lucide="check" style="width:13px;height:13px;"></i> All changes saved
+            </span>
+          </div>
+          <div class="sos-case-quick-tags" id="reportCaseQuickTags">
+            <button type="button" class="sos-tag-chip" data-note="Laporan telah diterima dan pegawai bertugas sedang menyemak maklumat kejadian.">Laporan Diterima</button>
+            <button type="button" class="sos-tag-chip" data-note="Pasukan penyelamat / bantuan sedang digerakkan ke lokasi yang dilaporkan.">Pasukan Digerakkan</button>
+            <button type="button" class="sos-tag-chip" data-note="Siasatan dan tindakan kawalan sedang dijalankan di lokasi kejadian.">Tindakan Dijalankan</button>
+            <button type="button" class="sos-tag-chip" data-note="Kes telah disahkan selesai dan tindakan susulan telah diambil sepenuhnya.">Kes Selesai</button>
+          </div>
+          <textarea id="reportCaseNotesInput" class="sos-case-textarea" rows="3" placeholder="Enter notes or updates for the user / case record..."></textarea>
+        </div>
+
+        <!-- Quick Actions Footer -->
+        <div class="sos-case-quick-actions" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <button id="reportCaseCallBtn" class="secondary-button icon-button" type="button">
+            <i data-lucide="phone-call" aria-hidden="true"></i>
+            <span>Call Reporter</span>
+          </button>
+          <button id="reportCaseRejectBtn" class="secondary-button danger icon-button" type="button" data-action="report-case-reject">
+            <i data-lucide="circle-x" aria-hidden="true"></i>
+            <span>Reject / Invalid</span>
+          </button>
+          <button id="reportCaseDeleteBtn" class="secondary-button danger icon-button" type="button" data-action="report-case-delete" style="margin-left:auto;">
+            <i data-lucide="trash-2" aria-hidden="true"></i>
+            <span>Delete Report</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Emergency Call Options Modal -->
   <div id="caseCallOptionsModal" class="sos-case-modal hidden" aria-modal="true" role="dialog">
     <div class="sos-case-backdrop" id="caseCallOptionsBackdrop"></div>
@@ -1530,7 +1631,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=no-report-marker-v1"></script>
+  <script type="module" src="/app.js?v=fix-syntax-v7"></script>
 </body>
 </html>
 

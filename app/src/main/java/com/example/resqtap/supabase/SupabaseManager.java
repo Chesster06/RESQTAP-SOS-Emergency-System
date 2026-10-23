@@ -114,7 +114,7 @@ public class SupabaseManager {
 
     // 3. LAPORAN INSIDEN (REPORTS)
 
-    public void submitReport(String userId, String userName, String title, String desc, String category, double lat, double lng, String address, Callback<Boolean> callback) {
+    public void submitReport(String userId, String userName, String title, String desc, String category, double lat, double lng, String address, String imageUrl, Callback<String> callback) {
         executor.execute(() -> {
             try {
                 String endpoint = "/rest/v1/reports";
@@ -127,12 +127,52 @@ public class SupabaseManager {
                 body.put("latitude", lat);
                 body.put("longitude", lng);
                 body.put("address", address);
-                body.put("status", "pending");
+                if (imageUrl != null && !imageUrl.isEmpty()) {
+                    body.put("image_url", imageUrl);
+                }
+                body.put("status", "new");
 
-                executeRequest("POST", endpoint, body.toString());
-                postSuccess(callback, true);
+                String response = executeRequest("POST", endpoint, body.toString(), "return=representation");
+                JSONArray array = new JSONArray(response);
+                String newId = null;
+                if (array.length() > 0) {
+                    newId = array.getJSONObject(0).optString("id", null);
+                }
+                postSuccess(callback, newId);
             } catch (Exception e) {
                 Log.e(TAG, "submitReport failed: " + e.getMessage());
+                postError(callback, e);
+            }
+        });
+    }
+
+    public void submitReport(String userId, String userName, String title, String desc, String category, double lat, double lng, String address, Callback<Boolean> callback) {
+        submitReport(userId, userName, title, desc, category, lat, lng, address, null, new Callback<String>() {
+            @Override
+            public void onSuccess(String result) {
+                postSuccess(callback, true);
+            }
+
+            @Override
+            public void onError(Exception error) {
+                postError(callback, error);
+            }
+        });
+    }
+
+    public void getReport(String reportId, Callback<JSONObject> callback) {
+        executor.execute(() -> {
+            try {
+                String endpoint = "/rest/v1/reports?id=eq." + java.net.URLEncoder.encode(reportId, "UTF-8") + "&select=*";
+                String response = executeRequest("GET", endpoint, null);
+                JSONArray array = new JSONArray(response);
+                if (array.length() > 0) {
+                    postSuccess(callback, array.getJSONObject(0));
+                } else {
+                    postSuccess(callback, null);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "getReport failed: " + e.getMessage());
                 postError(callback, e);
             }
         });

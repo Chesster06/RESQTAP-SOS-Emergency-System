@@ -71,7 +71,8 @@ const NOTIFICATION_CATEGORIES = [
 ];
 const REPORT_STATUSES = [
   { id: "new", label: "New", tone: "alert" },
-  { id: "reviewing", label: "Reviewing", tone: "warn" },
+  { id: "reviewing", label: "Under Review", tone: "warn" },
+  { id: "in_progress", label: "In Progress", tone: "warn" },
   { id: "resolved", label: "Resolved", tone: "good" },
   { id: "rejected", label: "Rejected", tone: "" }
 ];
@@ -920,8 +921,30 @@ const state = {
   lastSyncAt: 0,
   navSeenSignatures: readNavSeenSignatures(),
   aiChatCleanupTimer: null,
-  aiChatCleanupRunning: false
+  aiChatCleanupRunning: false,
+  deletedReportIds: null
 };
+
+function getDeletedReportIds() {
+  if (!state.deletedReportIds) {
+    try {
+      const raw = window.localStorage.getItem("resqtap_deleted_reports");
+      state.deletedReportIds = new Set(raw ? JSON.parse(raw) : []);
+    } catch (_) {
+      state.deletedReportIds = new Set();
+    }
+  }
+  return state.deletedReportIds;
+}
+
+function markReportAsDeleted(id) {
+  if (!id) return;
+  const set = getDeletedReportIds();
+  set.add(id);
+  try {
+    window.localStorage.setItem("resqtap_deleted_reports", JSON.stringify([...set]));
+  } catch (_) {}
+}
 
 const DETAIL_PANEL_MIN_WIDTH = 318;
 const DETAIL_PANEL_MAX_WIDTH = 760;
@@ -1370,26 +1393,30 @@ async function syncFromSupabase() {
       state.roomTombstones = { ...rtMap, ...state.roomTombstones };
     }
 
-    // 7. Incident Reports
+    // 7. Incident Reports - Disimpan dan dimuatkan dari Supabase sepenuhnya
     const { data: rep } = await supabase.from("reports").select("*").order("created_at", { ascending: false });
-    if (Array.isArray(rep) && rep.length > 0) {
+    if (Array.isArray(rep)) {
+      const delSet = getDeletedReportIds();
       const repMap = {};
       rep.forEach((r) => {
-        repMap[r.id] = {
-          id: r.id,
-          title: r.title,
-          description: r.description,
-          category: r.category,
-          latitude: r.latitude,
-          longitude: r.longitude,
-          address: r.address,
-          status: r.status,
-          senderName: r.user_name || "User",
-          senderUid: r.user_id,
-          createdAt: r.created_at ? new Date(r.created_at).getTime() : Date.now()
-        };
+        if (!delSet.has(r.id)) {
+          repMap[r.id] = {
+            id: r.id,
+            supabaseId: r.id,
+            title: r.title,
+            description: r.description,
+            category: r.category,
+            latitude: r.latitude,
+            longitude: r.longitude,
+            address: r.address,
+            status: r.status,
+            senderName: r.user_name || "User",
+            senderUid: r.user_id,
+            createdAt: r.created_at ? new Date(r.created_at).getTime() : Date.now()
+          };
+        }
       });
-      state.incidentReports = { ...repMap, ...state.incidentReports };
+      state.incidentReports = repMap;
     }
 
     state.lastSyncAt = Date.now();
@@ -1478,9 +1505,7 @@ function startDataListeners() {
   subscribe("sos_alerts", (value) => {
     state.legacyAlerts = asRecord(value);
   });
-  subscribe("incidentReports", (value) => {
-    state.incidentReports = asRecord(value);
-  });
+  // Laporan kini disimpan dan diuruskan sepenuhnya dalam Supabase sahaja
   subscribe("admin_audit_logs", (value) => {
     state.adminAuditLogs = asRecord(value);
   });
@@ -1724,21 +1749,24 @@ function reportAttachments(report) {
 }
 
 function getIncidentReports() {
-  return entries(state.incidentReports).map(([id, value]) => {
+  const rawList = entries(state.incidentReports).map(([id, value]) => {
     const report = asRecord(value);
     const reportId = text(report.reportId).trim() || id;
-    const senderUid = text(report.senderUid).trim();
+    const senderUid = text(report.senderUid || report.userId || report.uid).trim();
     const user = asRecord(state.users?.[senderUid]);
+    const isRtdb = id.startsWith("-") || !id.includes("-");
     return {
       id: reportId,
       key: id,
+      supabaseId: report.supabaseId || (id.length === 36 && id.includes("-") ? id : null),
+      isRtdb,
       senderUid,
       senderName: text(report.senderName || user.name || user.email || senderUid).trim(),
       senderEmail: text(report.senderEmail || user.email).trim(),
       publicId: text(report.publicId || user.publicId).trim(),
       category: text(report.category).trim(),
-      categoryLabel: text(report.categoryLabel || report.category).trim() || "Report",
-      details: text(report.details).trim(),
+      categoryLabel: text(report.categoryLabel || report.title || report.category).trim() || "Report",
+      details: text(report.details || report.description).trim(),
       address: text(report.address).trim(),
       latitude: Number(report.latitude),
       longitude: Number(report.longitude),
@@ -1748,7 +1776,34 @@ function getIncidentReports() {
       attachments: reportAttachments(report),
       data: report
     };
-  }).sort((a, b) => b.createdAt - a.createdAt || b.updatedAt - a.updatedAt);
+  });
+
+  // Sort so RTDB entries come first
+  rawList.sort((a, b) => {
+    if (a.isRtdb !== b.isRtdb) return a.isRtdb ? -1 : 1;
+    return b.createdAt - a.createdAt || b.updatedAt - a.updatedAt;
+  });
+
+  const deduped = [];
+  for (const item of rawList) {
+    const existing = deduped.find((d) => {
+      const timeDiff = Math.abs(d.createdAt - item.createdAt);
+      const isUidMatch = d.senderUid && item.senderUid && d.senderUid === item.senderUid;
+      const isCatMatch = d.category.toLowerCase() === item.category.toLowerCase();
+      const isCoordMatch = Math.abs(d.latitude - item.latitude) < 0.005 && Math.abs(d.longitude - item.longitude) < 0.005;
+      return isUidMatch && timeDiff < 300000 && (isCoordMatch || isCatMatch);
+    });
+
+    if (existing) {
+      if (item.supabaseId && !existing.supabaseId) {
+        existing.supabaseId = item.supabaseId;
+      }
+      continue;
+    }
+    deduped.push(item);
+  }
+
+  return deduped.sort((a, b) => b.createdAt - a.createdAt || b.updatedAt - a.updatedAt);
 }
 
 function getStats() {
@@ -3573,10 +3628,8 @@ function renderReports() {
         <td>${escapeHtml(formatDate(report.createdAt))}</td>
         <td>
           <div class="row-actions">
+            <button class="small-button highlight" data-action="manage-report-case" data-report="${escapeHtml(report.key)}" type="button">${icon("clipboard-edit")}<span>Update Case</span></button>
             <button class="small-button" data-action="view-report" data-report="${escapeHtml(report.key)}" type="button">${icon("eye")}<span>View</span></button>
-            ${report.status !== "reviewing" ? `<button class="small-button" data-action="set-report-status" data-report="${escapeHtml(report.key)}" data-status="reviewing" type="button">${icon("clock")}<span>Review</span></button>` : ""}
-            ${report.status !== "resolved" ? `<button class="small-button" data-action="set-report-status" data-report="${escapeHtml(report.key)}" data-status="resolved" type="button">${icon("check-circle-2")}<span>Resolve</span></button>` : ""}
-            <button class="small-button danger" data-action="delete-report" data-report="${escapeHtml(report.key)}" type="button">${icon("trash-2")}<span>Delete</span></button>
           </div>
         </td>
       </tr>
@@ -4850,11 +4903,14 @@ function renderReportDetail(reportKey) {
       <div class="report-attachment-grid">${attachmentsHtml}</div>
     </section>
     <section class="detail-section">
+      <button class="primary-button icon-button" data-action="manage-report-case" data-report="${escapeHtml(report.key)}" type="button" style="width:100%;margin-bottom:12px;">
+        ${icon("clipboard-edit")}<span>Update Case Progress</span>
+      </button>
       <h3>Status Actions</h3>
       <div class="row-actions">
         ${REPORT_STATUSES.map((option) => `
           <button class="small-button${option.id === report.status ? " is-current" : ""}" data-action="set-report-status" data-report="${escapeHtml(report.key)}" data-status="${escapeHtml(option.id)}" type="button">
-            ${icon(option.id === "resolved" ? "check-circle-2" : option.id === "rejected" ? "circle-x" : option.id === "reviewing" ? "clock" : "sparkles")}
+            ${icon(option.id === "resolved" ? "check-circle-2" : option.id === "rejected" ? "circle-x" : option.id === "reviewing" ? "clock" : option.id === "in_progress" ? "activity" : "sparkles")}
             <span>${escapeHtml(option.label)}</span>
           </button>
         `).join("")}
@@ -5768,6 +5824,155 @@ async function saveCaseProgress(options = {}) {
   }
 }
 
+let activeReportCaseData = null;
+
+function openReportCaseModal(reportKey) {
+  const modal = document.getElementById("reportCaseUpdateModal");
+  if (!modal) return;
+
+  const report = getIncidentReports().find((item) => item.key === reportKey || item.id === reportKey);
+  if (!report) {
+    showToast("Report not found.");
+    return;
+  }
+
+  const curStatus = (report.status || "new").toLowerCase();
+  const reporterName = report.senderName || report.senderEmail || "Anonymous Reporter";
+  const reporterUid = report.senderUid || "";
+  const address = report.address || "Location unavailable";
+  const categoryLabel = report.categoryLabel || "Incident";
+  const currentNotes = report.details || report.data?.description || report.description || "";
+
+  activeReportCaseData = {
+    reportKey: report.key || report.id,
+    reportId: report.id,
+    status: curStatus,
+    reporterName,
+    reporterUid,
+    address,
+    categoryLabel,
+    notes: currentNotes
+  };
+
+  const title = document.getElementById("reportCaseModalTitle");
+  const sub = document.getElementById("reportCaseModalSubtitle");
+  const repText = document.getElementById("reportCaseReporterText");
+  const locText = document.getElementById("reportCaseLocationText");
+  const badge = document.getElementById("reportCaseStatusBadge");
+  const notesInput = document.getElementById("reportCaseNotesInput");
+  const callBtn = document.getElementById("reportCaseCallBtn");
+
+  if (title) title.textContent = `Report: ${categoryLabel}`;
+  if (sub) sub.textContent = `Case #${report.id.slice(0, 8)} • Response Stage`;
+  if (repText) repText.textContent = `${reporterName} (${report.senderEmail || reporterUid || "No contact"})`;
+  if (locText) locText.textContent = address;
+
+  const statusMeta = reportStatusMeta(curStatus);
+  if (badge) {
+    badge.textContent = statusMeta.label;
+    badge.className = `pill-badge pill-${statusMeta.tone || "neutral"}`;
+  }
+
+  if (notesInput) notesInput.value = currentNotes;
+
+  const stepMap = {
+    new: "1",
+    submitted: "1",
+    pending: "1",
+    reviewing: "2",
+    in_progress: "3",
+    action_in_progress: "3",
+    investigating: "3",
+    resolved: "4",
+    completed: "4"
+  };
+  const activeStepNum = stepMap[curStatus] || (curStatus === "rejected" ? "" : "1");
+
+  document.querySelectorAll("#reportCaseStepsGrid .sos-case-step-btn").forEach((btn) => {
+    btn.classList.toggle("is-active", btn.dataset.step === activeStepNum);
+  });
+
+  updateReportCaseAutoSaveStatus("All changes saved", "saved");
+
+  if (callBtn) {
+    callBtn.onclick = () => {
+      if (reporterUid) {
+        openCaseCallOptions(reporterUid, reporterName);
+      } else {
+        showToast("Reporter contact not available.");
+      }
+    };
+  }
+
+  modal.classList.remove("hidden");
+  refreshIcons();
+}
+
+function closeReportCaseModal() {
+  const modal = document.getElementById("reportCaseUpdateModal");
+  if (modal) modal.classList.add("hidden");
+  activeReportCaseData = null;
+}
+
+function updateReportCaseAutoSaveStatus(msg, type = "saved") {
+  const indicator = document.getElementById("reportCaseAutoSaveStatus");
+  if (!indicator) return;
+  if (type === "saving") {
+    indicator.className = "sos-case-autosave is-saving";
+    indicator.innerHTML = `<i data-lucide="refresh-cw" class="spin" style="width:13px;height:13px;"></i> <span>${msg || "Saving changes..."}</span>`;
+  } else if (type === "error") {
+    indicator.className = "sos-case-autosave is-error";
+    indicator.innerHTML = `<i data-lucide="alert-circle" style="width:13px;height:13px;"></i> <span>${msg || "Error saving"}</span>`;
+  } else {
+    indicator.className = "sos-case-autosave is-saved";
+    indicator.innerHTML = `<i data-lucide="check" style="width:13px;height:13px;"></i> <span>${msg || "All changes saved"}</span>`;
+  }
+  refreshIcons();
+}
+
+let isSavingReportCase = false;
+let pendingReportCaseSave = false;
+
+async function saveReportCaseProgress(forcedStatus = null) {
+  if (!activeReportCaseData) return;
+  if (isSavingReportCase) {
+    pendingReportCaseSave = true;
+    return;
+  }
+  isSavingReportCase = true;
+  updateReportCaseAutoSaveStatus("Saving changes...", "saving");
+
+  try {
+    const reportKey = activeReportCaseData.reportKey;
+    const activeStepBtn = document.querySelector("#reportCaseStepsGrid .sos-case-step-btn.is-active");
+    const status = forcedStatus || (activeStepBtn ? activeStepBtn.dataset.status : activeReportCaseData.status) || "new";
+    const notesInput = document.getElementById("reportCaseNotesInput");
+    const notes = notesInput ? notesInput.value.trim() : "";
+
+    activeReportCaseData.status = status;
+    activeReportCaseData.notes = notes;
+
+    const badge = document.getElementById("reportCaseStatusBadge");
+    const meta = reportStatusMeta(status);
+    if (badge) {
+      badge.textContent = meta.label;
+      badge.className = `pill-badge pill-${meta.tone || "neutral"}`;
+    }
+
+    await setReportStatus(reportKey, status, notes);
+    updateReportCaseAutoSaveStatus("All changes saved", "saved");
+  } catch (err) {
+    console.error("saveReportCaseProgress error:", err);
+    updateReportCaseAutoSaveStatus("Failed to save", "error");
+  } finally {
+    isSavingReportCase = false;
+    if (pendingReportCaseSave) {
+      pendingReportCaseSave = false;
+      saveReportCaseProgress();
+    }
+  }
+}
+
 async function cancelSos(roomId, alertId) {
   if (!validPathSegment(roomId) || !validPathSegment(alertId)) {
     showToast("Invalid SOS path.");
@@ -6064,70 +6269,112 @@ async function revokeAdmin(uid) {
   showToast("Admin access revoked.");
 }
 
-async function setReportStatus(reportId, status) {
-  if (!validPathSegment(reportId)) {
+async function setReportStatus(reportId, status, notes = null) {
+  if (!reportId) {
     showToast("Invalid report ID.");
     return;
   }
   const meta = reportStatusMeta(status);
-  const updates = {
-    status: meta.id,
-    updatedAt: serverTimestamp(),
-    reviewedBy: state.currentUser.uid
-  };
-  if (meta.id === "reviewing") updates.reviewedAt = serverTimestamp();
-  if (meta.id === "resolved") updates.resolvedAt = serverTimestamp();
-  if (meta.id === "rejected") updates.rejectedAt = serverTimestamp();
-  await update(ref(db, `incidentReports/${reportId}`), updates);
-  // Dual-cloud sync: Update Supabase reports table
+  const repObj = state.incidentReports && state.incidentReports[reportId];
+  const supId = repObj?.supabaseId || reportId;
+
+  if (state.incidentReports && state.incidentReports[reportId]) {
+    state.incidentReports[reportId].status = meta.id;
+    if (notes !== null && notes !== undefined) {
+      state.incidentReports[reportId].description = notes;
+    }
+    render();
+  }
+
+  // 1. Kemas kini terus ke jadual Supabase reports (Pangkalan data utama)
   try {
-    await supabase.from("reports").update({ status: meta.id }).eq("id", reportId);
+    const updatePayload = {
+      status: meta.id,
+      updated_at: new Date().toISOString()
+    };
+    if (notes !== null && notes !== undefined) {
+      updatePayload.description = notes;
+    }
+    const { error } = await supabase.from("reports").update(updatePayload).eq("id", supId);
+    if (error) {
+      console.warn("[SUPABASE_REPORT_STATUS_ERR]", error);
+    }
+    if (supId !== reportId) {
+      await supabase.from("reports").update(updatePayload).eq("id", reportId);
+    }
   } catch (sErr) {
     console.warn("[SUPABASE_REPORT_STATUS_ERR]", sErr);
   }
+
+  // 2. Fallback pilihan selamat ke RTDB tanpa mengganggu aliran jika tiada rekod
+  try {
+    if (validPathSegment(reportId)) {
+      const updates = {
+        status: meta.id,
+        updatedAt: serverTimestamp(),
+        reviewedBy: state.currentUser?.uid || "admin"
+      };
+      if (notes !== null && notes !== undefined) updates.description = notes;
+      if (meta.id === "reviewing") updates.reviewedAt = serverTimestamp();
+      if (meta.id === "in_progress") updates.inProgressAt = serverTimestamp();
+      if (meta.id === "resolved") updates.resolvedAt = serverTimestamp();
+      if (meta.id === "rejected") updates.rejectedAt = serverTimestamp();
+      await update(ref(db, `incidentReports/${reportId}`), updates);
+    }
+  } catch (_) {}
+
+  // 3. Segerakkan semula data
+  try {
+    await syncFromSupabase();
+  } catch (_) {}
+
   showToast(`Report marked ${meta.label.toLowerCase()}.`);
 }
 
 async function deleteReport(reportId) {
-  if (!validPathSegment(reportId)) {
+  if (!reportId) {
     showToast("Invalid report ID.");
     return;
   }
   if (!window.confirm(`Delete report ${reportId}?`)) return;
-  // Dual-cloud sync: Delete from Supabase reports table
+
+  const repObj = state.incidentReports && state.incidentReports[reportId];
+  const supId = repObj?.supabaseId || reportId;
+
+  markReportAsDeleted(reportId);
+  if (supId && supId !== reportId) {
+    markReportAsDeleted(supId);
+  }
+  if (state.incidentReports) {
+    delete state.incidentReports[reportId];
+    if (supId) delete state.incidentReports[supId];
+  }
+  if (state.selected && state.selected.type === "report" && (state.selected.id === reportId || state.selected.id === supId)) {
+    state.selected = null;
+  }
+  render();
+
+  // 1. Padam rekod dari jadual Supabase reports
   try {
-    await supabase.from("reports").delete().eq("id", reportId);
+    await supabase.from("reports").delete().eq("id", supId);
+    if (supId !== reportId) {
+      await supabase.from("reports").delete().eq("id", reportId);
+    }
   } catch (sErr) {
     console.warn("[SUPABASE_REPORT_DEL_ERR]", sErr);
   }
-  let rep = state.incidentReports && state.incidentReports[reportId];
-  if (!rep) {
-    try {
-      const snap = await get(ref(db, `incidentReports/${reportId}`));
-      if (snap && snap.exists()) rep = snap.val();
-    } catch (_) {}
-  }
-  const senderUid = rep ? (rep.senderUid || rep.userId || rep.uid) : null;
-  await remove(ref(db, `incidentReports/${reportId}`));
-  if (senderUid && validPathSegment(senderUid)) {
-    try {
-      await remove(ref(db, `users/${senderUid}/lastIncidentReportId`));
-    } catch (e) {
-      console.warn("Could not remove user lastIncidentReportId:", e);
+
+  // 2. Pembersihan selamat RTDB jika ada
+  try {
+    if (validPathSegment(reportId)) {
+      await remove(ref(db, `incidentReports/${reportId}`));
     }
-  }
-  if (state.users) {
-    for (const [uid, userVal] of Object.entries(state.users)) {
-      if (userVal && userVal.lastIncidentReportId === reportId) {
-        try {
-          await remove(ref(db, `users/${uid}/lastIncidentReportId`));
-        } catch (_) {}
-      }
-    }
-  }
-  if (state.selected && state.selected.type === "report" && state.selected.id === reportId) {
-    state.selected = null;
-  }
+  } catch (_) {}
+
+  try {
+    await syncFromSupabase();
+  } catch (_) {}
+
   showToast("Report deleted.");
 }
 
@@ -6357,11 +6604,35 @@ async function executeClearDatabase() {
     });
 
     // Reports
-    entries(state.reports || {}).forEach(([reportId, rep]) => {
-      if (rep && deleteUids.has(rep.senderUid)) {
+    entries(state.incidentReports || {}).forEach(([reportId, rep]) => {
+      if (rep && (deleteUids.size === 0 || deleteUids.has(rep.senderUid))) {
+        markReportAsDeleted(reportId);
         updates[`incidentReports/${reportId}`] = null;
       }
     });
+
+    // Padam laporan daripada Supabase reports table
+    try {
+      if (deleteUids.size > 0) {
+        for (const uid of deleteUids) {
+          await supabase.from("reports").delete().eq("user_id", uid);
+        }
+      } else {
+        await supabase.from("reports").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      }
+    } catch (sErr) {
+      console.warn("[SUPABASE_CLEAR_DB_REPORTS_ERR]", sErr);
+    }
+    if (deleteUids.size === 0) {
+      state.incidentReports = {};
+    } else {
+      for (const [reportId, rep] of Object.entries(state.incidentReports || {})) {
+        if (rep && deleteUids.has(rep.senderUid)) {
+          delete state.incidentReports[reportId];
+        }
+      }
+    }
+    render();
 
     // Tandakan admin_tasks/clear_database completed
     updates["admin_tasks/clear_database"] = {
@@ -6492,6 +6763,30 @@ function handleAction(button) {
 
       await focusSosSenderOnMap(matchedAlert);
       openCaseModal(room, alert, uid, button.dataset.name || "Sender");
+      return;
+    }
+    if (action === "manage-report-case") {
+      openReportCaseModal(report);
+      return;
+    }
+    if (action === "close-report-case-modal") {
+      closeReportCaseModal();
+      return;
+    }
+    if (action === "report-case-reject") {
+      if (activeReportCaseData) {
+        document.querySelectorAll("#reportCaseStepsGrid .sos-case-step-btn").forEach((b) => b.classList.remove("is-active"));
+        await saveReportCaseProgress("rejected");
+        showToast("Report marked as rejected.");
+      }
+      return;
+    }
+    if (action === "report-case-delete") {
+      if (activeReportCaseData && confirm("Are you sure you want to delete this incident report?")) {
+        const key = activeReportCaseData.reportKey;
+        closeReportCaseModal();
+        await deleteReport(key);
+      }
       return;
     }
     if (action === "close-case-modal") {
@@ -8630,6 +8925,76 @@ elsVc.sendMessageBtn.addEventListener("click", (e) => {
     document.addEventListener("DOMContentLoaded", setupNotesInput);
   } else {
     setupNotesInput();
+  }
+})();
+
+// Incident Report Case Modal Listeners & Stepper Setup with Automatic Saving
+(function initReportCaseModalListeners() {
+  let notesDebounceTimer = null;
+
+  document.addEventListener("click", async (e) => {
+    // 1. Click stage step button in reportCaseStepsGrid
+    const stepBtn = e.target.closest("#reportCaseStepsGrid .sos-case-step-btn");
+    if (stepBtn) {
+      e.preventDefault();
+      document.querySelectorAll("#reportCaseStepsGrid .sos-case-step-btn").forEach((b) => b.classList.remove("is-active"));
+      stepBtn.classList.add("is-active");
+      const chosenStatus = stepBtn.dataset.status || "new";
+      if (activeReportCaseData) {
+        activeReportCaseData.status = chosenStatus;
+      }
+      await saveReportCaseProgress(chosenStatus);
+      return;
+    }
+
+    // 2. Click quick note tag chip in reportCaseQuickTags
+    const tagChip = e.target.closest("#reportCaseQuickTags .sos-tag-chip");
+    if (tagChip) {
+      e.preventDefault();
+      const notesInput = document.getElementById("reportCaseNotesInput");
+      if (notesInput && tagChip.dataset.note) {
+        notesInput.value = tagChip.dataset.note;
+        await saveReportCaseProgress();
+      }
+      return;
+    }
+  });
+
+  function setupReportNotesInput() {
+    const notesInput = document.getElementById("reportCaseNotesInput");
+    if (!notesInput) return;
+
+    notesInput.addEventListener("input", () => {
+      updateReportCaseAutoSaveStatus("Saving notes...", "saving");
+      clearTimeout(notesDebounceTimer);
+      notesDebounceTimer = setTimeout(() => {
+        saveReportCaseProgress();
+      }, 500);
+    });
+
+    notesInput.addEventListener("change", () => {
+      clearTimeout(notesDebounceTimer);
+      saveReportCaseProgress();
+    });
+
+    notesInput.addEventListener("blur", () => {
+      clearTimeout(notesDebounceTimer);
+      saveReportCaseProgress();
+    });
+
+    notesInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        clearTimeout(notesDebounceTimer);
+        notesInput.blur();
+      }
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", setupReportNotesInput);
+  } else {
+    setupReportNotesInput();
   }
 })();
 

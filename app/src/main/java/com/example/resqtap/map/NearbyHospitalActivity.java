@@ -135,12 +135,15 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
 
     private MaterialCardView cardNavigationInfo;
     private TextView navDestinationName;
-    private TextView navEtaDistance;
+    private TextView navStatusBadge;
+    private TextView navCategoryBadge;
     private TextView navAddress;
     private ImageView navCategoryIcon;
     private MaterialCardView navIconCard;
-    private MaterialButton btnCloseNavigation;
+    private MaterialButton btnCancelNavigation;
     private MaterialButton btnToggle3d;
+    private TextView tvToggle3dLabel;
+    private View layoutToggleView;
     private boolean isNavigating3D = true;
     private final ArrayList<LatLng> currentRoutePoints = new ArrayList<>();
     private float currentNavBearing = 0f;
@@ -541,12 +544,15 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
 
         cardNavigationInfo = findViewById(R.id.card_navigation_info);
         navDestinationName = findViewById(R.id.nav_destination_name);
-        navEtaDistance = findViewById(R.id.nav_eta_distance);
+        navStatusBadge = findViewById(R.id.nav_status_badge);
+        navCategoryBadge = findViewById(R.id.nav_category_badge);
         navAddress = findViewById(R.id.nav_address);
         navCategoryIcon = findViewById(R.id.nav_category_icon);
         navIconCard = (MaterialCardView) findViewById(R.id.nav_icon_card);
-        btnCloseNavigation = findViewById(R.id.btn_close_navigation);
+        btnCancelNavigation = findViewById(R.id.btn_cancel_navigation);
         btnToggle3d = findViewById(R.id.btn_toggle_3d);
+        tvToggle3dLabel = findViewById(R.id.tv_toggle_3d_label);
+        layoutToggleView = findViewById(R.id.nav_actions_layout);
 
         navSheetHeader = findViewById(R.id.nav_sheet_header);
         navSheetHandle = findViewById(R.id.nav_sheet_handle);
@@ -595,14 +601,17 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
             });
         }
 
-        if (btnCloseNavigation != null) {
-            btnCloseNavigation.setOnClickListener(v -> {
+        if (btnCancelNavigation != null) {
+            btnCancelNavigation.setOnClickListener(v -> {
                 animateButtonClick(v);
                 stopNavigation();
             });
         }
         if (btnToggle3d != null) {
             btnToggle3d.setOnClickListener(v -> toggle3DNavigationMode());
+        }
+        if (layoutToggleView != null) {
+            layoutToggleView.setOnClickListener(v -> toggle3DNavigationMode());
         }
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
@@ -1555,7 +1564,17 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
             }
             if (navDestinationName != null) navDestinationName.setText(item.name);
             if (navAddress != null) navAddress.setText(item.address == null ? "" : item.address);
-            if (navEtaDistance != null) navEtaDistance.setText(R.string.nav_calculating_route);
+            if (navStatusBadge != null) navStatusBadge.setText(R.string.marker_info_status_active);
+
+            String agency = "KKM";
+            if ("police".equalsIgnoreCase(item.category)) {
+                agency = "PDRM";
+            } else if ("fire".equalsIgnoreCase(item.category)) {
+                agency = "Bomba";
+            }
+            if (navCategoryBadge != null) {
+                navCategoryBadge.setText(" • " + agency);
+            }
 
             int iconRes = R.drawable.logo_kkm;
             int bgTint = Color.parseColor("#FFF0F2");
@@ -1575,6 +1594,7 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
             if (navIconCard != null) {
                 navIconCard.setCardBackgroundColor(bgTint);
             }
+            updateToggle3DIcon();
         }
 
         // Gantikan kad atas dan bar filter dengan Capsule Estimated Arrival semasa navigasi
@@ -1674,9 +1694,6 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
                     SimpleDateFormat timeFormat = new SimpleDateFormat("h:mm a", Locale.getDefault());
                     String arrivalClockTime = timeFormat.format(cal.getTime());
 
-                    if (navEtaDistance != null) {
-                        navEtaDistance.setText(min + " min • " + distStr);
-                    }
                     if (capsuleEtaValue != null) {
                         capsuleEtaValue.setText(arrivalClockTime + " • " + min + " min (" + distStr + ")");
                     }
@@ -1692,9 +1709,6 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
                     SimpleDateFormat timeFormat = new SimpleDateFormat("h:mm a", Locale.getDefault());
                     String arrivalClockTime = timeFormat.format(cal.getTime());
 
-                    if (navEtaDistance != null) {
-                        navEtaDistance.setText(min + " min • " + distStr);
-                    }
                     if (capsuleEtaValue != null) {
                         capsuleEtaValue.setText(arrivalClockTime + " • " + min + " min (" + distStr + ")");
                     }
@@ -1870,13 +1884,20 @@ public class NearbyHospitalActivity extends BaseActivity implements OnMapReadyCa
 
     private void updateToggle3DIcon() {
         if (btnToggle3d == null) return;
-        btnToggle3d.setIconResource(R.drawable.ic_navigation_3d);
         if (isNavigating3D) {
-            btnToggle3d.setIconTint(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.brand_primary)));
-            btnToggle3d.setContentDescription(getString(R.string.nav_view_2d));
+            btnToggle3d.setIconResource(R.drawable.ic_route_overview);
+            btnToggle3d.setIconTint(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.text_primary)));
+            btnToggle3d.setContentDescription(getString(R.string.nav_overview));
+            if (tvToggle3dLabel != null) {
+                tvToggle3dLabel.setText(R.string.nav_overview);
+            }
         } else {
-            btnToggle3d.setIconTint(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.text_secondary)));
-            btnToggle3d.setContentDescription(getString(R.string.nav_view_3d));
+            btnToggle3d.setIconResource(R.drawable.ic_navigation_3d);
+            btnToggle3d.setIconTint(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.brand_primary)));
+            btnToggle3d.setContentDescription(getString(R.string.nav_recenter));
+            if (tvToggle3dLabel != null) {
+                tvToggle3dLabel.setText(R.string.nav_recenter);
+            }
         }
     }
 

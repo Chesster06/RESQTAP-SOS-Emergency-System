@@ -22,6 +22,8 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.OpenableColumns;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -241,7 +243,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         if (locationTokenSource != null) locationTokenSource.cancel();
         geocoderExecutor.shutdownNow();
         detachActiveReportListener();
-        detachUserReportIdListener();
         super.onDestroy();
     }
 
@@ -717,53 +718,54 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         }
 
         setSubmitting(true, getString(R.string.report_attachment_uploading));
-        DatabaseReference reportRef = FirebaseDatabase
-                .getInstance(FirebaseRoomClient.DATABASE_URL)
-                .getReference("incidentReports")
-                .push();
-        String reportId = reportRef.getKey();
-        if (reportId == null || reportId.trim().isEmpty()) {
-            setSubmitting(false, getString(R.string.report_continue));
-            Toast.makeText(this, R.string.report_submit_failed, Toast.LENGTH_SHORT).show();
-            return;
-        }
+        String tempUploadId = java.util.UUID.randomUUID().toString();
 
-        uploadAttachments(user.getUid(), reportId, 0, new ArrayList<>(), uploaded -> {
-            Map<String, Object> report = buildReportPayload(reportId, user, category, uploaded);
-            reportRef.setValue(report).addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    markReportSubmitted();
-                    currentReportStatus = "new";
-                    UserPrefs.setLastIncidentReportStatus(ReportActivity.this, "new");
-                    UserPrefs.setLastIncidentReportId(ReportActivity.this, reportId);
-                    try {
-                        FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL)
-                                .getReference("users").child(user.getUid())
-                                .child("lastIncidentReportId").setValue(reportId);
-                    } catch (Exception ignored) {
+        uploadAttachments(user.getUid(), tempUploadId, 0, new ArrayList<>(), uploaded -> {
+            String uId = user.getUid();
+            String uName = safe(UserPrefs.getName(ReportActivity.this));
+            if (uName.isEmpty()) uName = safe(user.getDisplayName());
+            if (uName.isEmpty()) uName = "User";
+
+            String rTitle = safe(categoryLabel(category));
+            if (rTitle.isEmpty()) rTitle = category;
+
+            String rDesc = detailsInput != null ? safe(detailsInput.getText().toString().trim()) : "";
+            String rAddr = incidentAddress != null ? incidentAddress : "";
+            double rLat = incidentLatLng != null ? incidentLatLng.latitude : 0.0;
+            double rLng = incidentLatLng != null ? incidentLatLng.longitude : 0.0;
+
+            String firstImageUrl = null;
+            if (!uploaded.isEmpty() && uploaded.get(0).containsKey("downloadUrl")) {
+                firstImageUrl = String.valueOf(uploaded.get(0).get("downloadUrl"));
+            }
+
+            com.example.resqtap.supabase.SupabaseManager.getInstance().submitReport(
+                    uId, uName, rTitle, rDesc, category, rLat, rLng, rAddr, firstImageUrl,
+                    new com.example.resqtap.supabase.SupabaseManager.Callback<String>() {
+                        @Override
+                        public void onSuccess(String newReportId) {
+                            runOnUiThread(() -> {
+                                markReportSubmitted();
+                                currentReportStatus = "new";
+                                UserPrefs.setLastIncidentReportStatus(ReportActivity.this, "new");
+                                UserPrefs.setLastIncidentReportId(ReportActivity.this, newReportId);
+
+                                Map<String, Object> report = buildReportPayload(newReportId, user, category, uploaded);
+                                if (successOverlay != null) successOverlay.setVisibility(View.GONE);
+                                showProgressMode(newReportId, report);
+                                Toast.makeText(ReportActivity.this, R.string.report_submitted, Toast.LENGTH_SHORT).show();
+                            });
+                        }
+
+                        @Override
+                        public void onError(Exception error) {
+                            runOnUiThread(() -> {
+                                setSubmitting(false, getString(R.string.report_continue));
+                                Toast.makeText(ReportActivity.this, R.string.report_submit_failed, Toast.LENGTH_SHORT).show();
+                            });
+                        }
                     }
-                    // Juga simpan laporan ke Supabase
-                    try {
-                        String uId = user != null ? user.getUid() : "anon";
-                        String uName = safe(UserPrefs.getName(ReportActivity.this));
-                        String rTitle = report.containsKey("title") && report.get("title") != null ? String.valueOf(report.get("title")) : category;
-                        String rDesc = report.containsKey("description") && report.get("description") != null ? String.valueOf(report.get("description")) : "";
-                        String rAddr = report.containsKey("address") && report.get("address") != null ? String.valueOf(report.get("address")) : "";
-                        double rLat = report.get("latitude") instanceof Number ? ((Number) report.get("latitude")).doubleValue() : 0.0;
-                        double rLng = report.get("longitude") instanceof Number ? ((Number) report.get("longitude")).doubleValue() : 0.0;
-                        com.example.resqtap.supabase.SupabaseManager.getInstance().submitReport(
-                                uId, uName, rTitle, rDesc, category, rLat, rLng, rAddr, null
-                        );
-                    } catch (Exception ignored) {
-                    }
-                    if (successOverlay != null) successOverlay.setVisibility(View.GONE);
-                    showProgressMode(reportId, report);
-                    Toast.makeText(ReportActivity.this, R.string.report_submitted, Toast.LENGTH_SHORT).show();
-                } else {
-                    setSubmitting(false, getString(R.string.report_continue));
-                    Toast.makeText(this, R.string.report_submit_failed, Toast.LENGTH_SHORT).show();
-                }
-            });
+            );
         }, error -> {
             setSubmitting(false, getString(R.string.report_continue));
             Toast.makeText(this, R.string.report_submit_failed, Toast.LENGTH_SHORT).show();
@@ -891,13 +893,8 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         finish();
     }
 
-    /** Semak laporan sedia ada pengguna untuk paparan kemajuan secara automatik. */
+    /** Semak laporan sedia ada pengguna untuk paparan kemajuan secara automatik dari Supabase. */
     private void checkExistingReport() {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
-            attachUserReportIdListener(user.getUid());
-        }
-
         String lastReportId = UserPrefs.getLastIncidentReportId(this);
         if (lastReportId != null && !lastReportId.trim().isEmpty()) {
             currentReportId = lastReportId.trim();
@@ -910,138 +907,92 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
             }
             attachActiveReportListener(lastReportId.trim());
             verifyReportExistsInDatabase(lastReportId.trim());
-            return;
-        }
-
-        if (user != null) {
-            FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL)
-                    .getReference("users")
-                    .child(user.getUid())
-                    .child("lastIncidentReportId")
-                    .get()
-                    .addOnSuccessListener(snapshot -> {
-                        if (snapshot.exists()) {
-                            String cloudReportId = snapshot.getValue(String.class);
-                            if (cloudReportId != null && !cloudReportId.trim().isEmpty()) {
-                                UserPrefs.setLastIncidentReportId(this, cloudReportId.trim());
-                                currentReportId = cloudReportId.trim();
-                                attachActiveReportListener(cloudReportId.trim());
-                                verifyReportExistsInDatabase(cloudReportId.trim());
-                            }
-                        }
-                    });
-        }
-    }
-
-    /** Pasang listener untuk mengesan jika lastIncidentReportId pengguna dipadam oleh admin. */
-    private void attachUserReportIdListener(String uid) {
-        detachUserReportIdListener();
-        userReportIdRef = FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL)
-                .getReference("users")
-                .child(uid)
-                .child("lastIncidentReportId");
-        userReportIdListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                String cloudReportId = snapshot.getValue(String.class);
-                if ((cloudReportId == null || cloudReportId.trim().isEmpty()) && currentReportId != null) {
-                    handleReportDeleted();
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError error) {
-            }
-        };
-        userReportIdRef.addValueEventListener(userReportIdListener);
-    }
-
-    /** Tanggalkan listener lastIncidentReportId pengguna. */
-    private void detachUserReportIdListener() {
-        if (userReportIdRef != null && userReportIdListener != null) {
-            userReportIdRef.removeEventListener(userReportIdListener);
-            userReportIdListener = null;
-            userReportIdRef = null;
         }
     }
 
     /** Sahkan bahawa laporan masih wujud di dalam incidentReports. */
+    private final Handler reportPollHandler = new Handler(Looper.getMainLooper());
+    private Runnable reportPollRunnable;
+
+    /** Sahkan bahawa laporan masih wujud di dalam Supabase. */
     private void verifyReportExistsInDatabase(String reportId) {
         if (reportId == null || reportId.trim().isEmpty()) return;
-        FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL)
-                .getReference("incidentReports")
-                .child(reportId.trim())
-                .get()
-                .addOnSuccessListener(snapshot -> {
-                    if (!snapshot.exists()) {
-                        handleReportDeleted();
-                    } else {
-                        Map<String, Object> data = (Map<String, Object>) snapshot.getValue();
-                        renderProgressData(reportId.trim(), data);
+        com.example.resqtap.supabase.SupabaseManager.getInstance().getReport(reportId.trim(),
+                new com.example.resqtap.supabase.SupabaseManager.Callback<org.json.JSONObject>() {
+                    @Override
+                    public void onSuccess(org.json.JSONObject snapshot) {
+                        runOnUiThread(() -> {
+                            if (snapshot == null) {
+                                handleReportDeleted();
+                            } else {
+                                Map<String, Object> data = jsonToReportMap(snapshot);
+                                renderProgressData(reportId.trim(), data);
+                            }
+                        });
                     }
-                })
-                .addOnFailureListener(e -> {
-                    handleReportDeleted();
+
+                    @Override
+                    public void onError(Exception e) {
+                        android.util.Log.w("ReportActivity", "verifyReportExistsInDatabase error: " + e.getMessage());
+                    }
                 });
     }
 
-    /** Pasang listener masa nyata untuk status kemajuan laporan aktif. */
+    /** Pasang listener/polling berkala untuk status kemajuan laporan aktif dari Supabase. */
     private void attachActiveReportListener(String reportId) {
         detachActiveReportListener();
-        currentReportId = reportId;
-        activeReportRef = FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL)
-                .getReference("incidentReports")
-                .child(reportId);
+        if (reportId == null || reportId.trim().isEmpty()) return;
+        currentReportId = reportId.trim();
 
-        activeReportListener = new ValueEventListener() {
+        reportPollRunnable = new Runnable() {
             @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                if (!snapshot.exists()) {
-                    handleReportDeleted();
-                    return;
-                }
+            public void run() {
+                if (currentReportId == null || currentReportId.isEmpty()) return;
+                com.example.resqtap.supabase.SupabaseManager.getInstance().getReport(currentReportId,
+                        new com.example.resqtap.supabase.SupabaseManager.Callback<org.json.JSONObject>() {
+                            @Override
+                            public void onSuccess(org.json.JSONObject reportObj) {
+                                runOnUiThread(() -> {
+                                    if (reportObj == null) {
+                                        handleReportDeleted();
+                                        return;
+                                    }
+                                    Map<String, Object> data = jsonToReportMap(reportObj);
+                                    String status = String.valueOf(data.get("status"));
+                                    currentReportStatus = status;
+                                    UserPrefs.setLastIncidentReportStatus(ReportActivity.this, status);
+                                    renderProgressData(currentReportId, data);
 
-                Map<String, Object> data = (Map<String, Object>) snapshot.getValue();
-                if (data == null) data = new HashMap<>();
+                                    boolean isResolved = "resolved".equalsIgnoreCase(status);
+                                    if (!isResolved) {
+                                        if (!isShowingProgress) showProgressMode();
+                                        if (btnNewReportTop != null) btnNewReportTop.setVisibility(View.GONE);
+                                        if (cardActiveReportBanner != null) cardActiveReportBanner.setVisibility(View.GONE);
+                                        reportPollHandler.postDelayed(reportPollRunnable, 3500);
+                                    } else {
+                                        if (btnNewReportTop != null && isShowingProgress) {
+                                            btnNewReportTop.setVisibility(View.VISIBLE);
+                                        }
+                                    }
+                                });
+                            }
 
-                String status = String.valueOf(data.get("status"));
-                currentReportStatus = status;
-                UserPrefs.setLastIncidentReportStatus(ReportActivity.this, status);
-
-                renderProgressData(reportId, data);
-
-                boolean isResolved = "resolved".equalsIgnoreCase(status);
-
-                if (!isResolved) {
-                    if (!isShowingProgress) {
-                        showProgressMode();
-                    }
-                    if (btnNewReportTop != null) {
-                        btnNewReportTop.setVisibility(View.GONE);
-                    }
-                    if (cardActiveReportBanner != null) {
-                        cardActiveReportBanner.setVisibility(View.GONE);
-                    }
-                } else {
-                    if (btnNewReportTop != null && isShowingProgress) {
-                        btnNewReportTop.setVisibility(View.VISIBLE);
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError error) {
-                if (error != null && (error.getCode() == DatabaseError.PERMISSION_DENIED
-                        || error.getCode() == DatabaseError.DATA_STALE)) {
-                    handleReportDeleted();
-                }
+                            @Override
+                            public void onError(Exception error) {
+                                reportPollHandler.postDelayed(reportPollRunnable, 5000);
+                            }
+                        });
             }
         };
-        activeReportRef.addValueEventListener(activeReportListener);
+        reportPollHandler.post(reportPollRunnable);
     }
 
     /** Tanggalkan listener kemajuan laporan aktif jika ada. */
     private void detachActiveReportListener() {
+        if (reportPollRunnable != null) {
+            reportPollHandler.removeCallbacks(reportPollRunnable);
+            reportPollRunnable = null;
+        }
         if (activeReportRef != null && activeReportListener != null) {
             activeReportRef.removeEventListener(activeReportListener);
             activeReportListener = null;
@@ -1251,7 +1202,7 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         int colorActive = 0xFFE60067;
         int colorPending = 0xFFCBD5E1;
 
-        if ("resolved".equals(status)) {
+        if ("resolved".equals(status) || "closed".equals(status) || "completed".equals(status)) {
             if (tvProgressStatusBadge != null) {
                 tvProgressStatusBadge.setText(R.string.report_status_resolved);
                 tvProgressStatusBadge.setTextColor(0xFF059669);
@@ -1276,7 +1227,7 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
             if (tvStep3Title != null) tvStep3Title.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
             if (tvStep4Title != null) tvStep4Title.setTextColor(0xFF059669);
 
-        } else if ("reviewing".equals(status)) {
+        } else if ("reviewing".equals(status) || "in_progress".equals(status) || "investigating".equals(status) || "action_in_progress".equals(status)) {
             if (tvProgressStatusBadge != null) {
                 tvProgressStatusBadge.setText(R.string.report_status_reviewing);
                 tvProgressStatusBadge.setTextColor(0xFFD97706);
@@ -1301,7 +1252,7 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
             if (tvStep3Title != null) tvStep3Title.setTextColor(colorActive);
             if (tvStep4Title != null) tvStep4Title.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
 
-        } else if ("rejected".equals(status)) {
+        } else if ("rejected".equals(status) || "cancelled".equals(status)) {
             if (tvProgressStatusBadge != null) {
                 tvProgressStatusBadge.setText(R.string.report_status_rejected);
                 tvProgressStatusBadge.setTextColor(0xFFE11D48);
@@ -1388,7 +1339,15 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
     }
 
     private void refreshProgress() {
-        if (currentReportId == null) return;
+        if (currentReportId == null || currentReportId.trim().isEmpty()) {
+            String savedId = UserPrefs.getLastIncidentReportId(this);
+            if (savedId != null && !savedId.trim().isEmpty()) {
+                currentReportId = savedId.trim();
+            } else {
+                Toast.makeText(this, "Tiada laporan aktif untuk disemak.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
         if (ivRefreshIcon != null) {
             ivRefreshIcon.animate()
                     .rotationBy(360f)
@@ -1396,21 +1355,71 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
                     .setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator())
                     .start();
         }
-        FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL)
-                .getReference("incidentReports")
-                .child(currentReportId)
-                .get()
-                .addOnSuccessListener(snapshot -> {
-                    if (snapshot.exists()) {
-                        Map<String, Object> data = (Map<String, Object>) snapshot.getValue();
-                        renderProgressData(currentReportId, data);
-                    } else {
-                        handleReportDeleted();
+        com.example.resqtap.supabase.SupabaseManager.getInstance().getReport(currentReportId.trim(),
+                new com.example.resqtap.supabase.SupabaseManager.Callback<org.json.JSONObject>() {
+                    @Override
+                    public void onSuccess(org.json.JSONObject snapshot) {
+                        runOnUiThread(() -> {
+                            if (snapshot != null) {
+                                Map<String, Object> data = jsonToReportMap(snapshot);
+                                String status = String.valueOf(data.get("status"));
+                                currentReportStatus = status;
+                                UserPrefs.setLastIncidentReportStatus(ReportActivity.this, status);
+                                renderProgressData(currentReportId, data);
+                                Toast.makeText(ReportActivity.this, "Status: " + getStatusLabel(status), Toast.LENGTH_SHORT).show();
+                            } else {
+                                handleReportDeleted();
+                            }
+                        });
                     }
-                })
-                .addOnFailureListener(e -> {
-                    handleReportDeleted();
+
+                    @Override
+                    public void onError(Exception e) {
+                        runOnUiThread(() -> {
+                            Toast.makeText(ReportActivity.this, "Gagal menyemak status terkini.", Toast.LENGTH_SHORT).show();
+                        });
+                    }
                 });
+    }
+
+    private Map<String, Object> jsonToReportMap(org.json.JSONObject obj) {
+        Map<String, Object> map = new HashMap<>();
+        if (obj == null) return map;
+        map.put("status", obj.optString("status", "new"));
+        map.put("title", obj.optString("title", ""));
+        map.put("category", obj.optString("category", ""));
+        map.put("categoryLabel", categoryLabel(obj.optString("category", "")));
+        map.put("details", obj.optString("description", ""));
+        map.put("description", obj.optString("description", ""));
+        map.put("address", obj.optString("address", ""));
+        map.put("latitude", obj.optDouble("latitude", 0.0));
+        map.put("longitude", obj.optDouble("longitude", 0.0));
+        map.put("senderName", obj.optString("user_name", ""));
+        map.put("senderUid", obj.optString("user_id", ""));
+
+        String createdStr = obj.optString("created_at", "");
+        long createdMs = System.currentTimeMillis();
+        if (!createdStr.isEmpty()) {
+            try {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.US);
+                sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                String cleanStr = createdStr.split("\\.")[0];
+                java.util.Date parsed = sdf.parse(cleanStr);
+                if (parsed != null) createdMs = parsed.getTime();
+            } catch (Exception ignored) {}
+        }
+        map.put("createdAt", createdMs);
+
+        String imgUrl = obj.optString("image_url", "");
+        if (!imgUrl.isEmpty()) {
+            ArrayList<Map<String, Object>> attList = new ArrayList<>();
+            Map<String, Object> att = new HashMap<>();
+            att.put("downloadUrl", imgUrl);
+            att.put("name", "attachment");
+            attList.add(att);
+            map.put("attachments", attList);
+        }
+        return map;
     }
 
     private void renderProgressAttachments(Object attachmentsObj) {

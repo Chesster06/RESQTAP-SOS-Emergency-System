@@ -27,7 +27,8 @@ async function cleanupSupabaseUsers(uidsToDelete) {
         await Promise.allSettled([
           fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(uid)}`, { method: "DELETE", headers }),
           fetch(`${SUPABASE_URL}/rest/v1/medical_cards?user_id=eq.${encodeURIComponent(uid)}`, { method: "DELETE", headers }),
-          fetch(`${SUPABASE_URL}/rest/v1/user_notifications?user_uid=eq.${encodeURIComponent(uid)}`, { method: "DELETE", headers })
+          fetch(`${SUPABASE_URL}/rest/v1/user_notifications?user_uid=eq.${encodeURIComponent(uid)}`, { method: "DELETE", headers }),
+          fetch(`${SUPABASE_URL}/rest/v1/reports?user_id=eq.${encodeURIComponent(uid)}`, { method: "DELETE", headers })
         ]);
       }
     } else {
@@ -38,6 +39,7 @@ async function cleanupSupabaseUsers(uidsToDelete) {
         fetch(`${SUPABASE_URL}/rest/v1/user_notifications?id=neq.dummy_never_match`, { method: "DELETE", headers }),
         fetch(`${SUPABASE_URL}/rest/v1/room_tombstones?room_code=neq.dummy_never_match`, { method: "DELETE", headers }),
         fetch(`${SUPABASE_URL}/rest/v1/system_calls?id=neq.dummy_never_match`, { method: "DELETE", headers }),
+        fetch(`${SUPABASE_URL}/rest/v1/reports?id=neq.00000000-0000-0000-0000-000000000000`, { method: "DELETE", headers }),
         fetch(`${SUPABASE_URL}/rest/v1/system_metadata?key=eq.counters`, {
           method: "PATCH",
           headers,

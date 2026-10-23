@@ -590,6 +590,9 @@
     <string name="nav_toggle_3d">3D பார்வையை மாற்றவும்</string>
     <string name="nav_view_2d">2D பார்வைக்கு மாற்றவும்</string>
     <string name="nav_view_3d">3D வழிசெலுத்தலுக்கு மாற்றவும்</string>
+    <string name="nav_overview">மேலோட்டம்</string>
+    <string name="nav_recenter">மீண்டும் மையம்</string>
+    <string name="nav_cancel">வழிசெலுத்தலை ரத்துசெய்</string>
     <string name="nav_getting_gps">தற்போதைய GPS இருப்பிடத்தைப் பெறுகிறது…</string>
     <string name="report_summary">அறிக்கை சுருக்கம்</string>
     <string name="toast_wrong_password_google_hint">கடவுச்சொல் தவறானது. நீங்கள் Google மூலம் பதிவுசெய்திருந்தால், \'Sign in with Google\' என்பதைத் தட்டவும்.</string>

@@ -591,6 +591,9 @@
     <string name="nav_toggle_3d">切换 3D 视图</string>
     <string name="nav_view_2d">切换至 2D 概览</string>
     <string name="nav_view_3d">切换至 3D 导航</string>
+    <string name="nav_overview">概览</string>
+    <string name="nav_recenter">重置中心</string>
+    <string name="nav_cancel">取消导航</string>
     <string name="nav_getting_gps">正在获取当前 GPS 位置…</string>
     <string name="report_summary">报告摘要</string>
     <string name="toast_wrong_password_google_hint">密码不正确。如果您使用 Google 注册，请点击“Sign in with Google”。</string>

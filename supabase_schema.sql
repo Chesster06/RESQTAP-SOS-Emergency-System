@@ -128,13 +128,14 @@ CREATE POLICY "Read Medical Cards" ON public.medical_cards FOR SELECT
 CREATE POLICY "Modify Own Medical Card" ON public.medical_cards FOR ALL 
     USING (auth.uid() = user_id);
 
--- 7.4 Reports: Laporan boleh dibaca oleh pengirim atau admin; boleh dicipta oleh pengguna sah
-CREATE POLICY "Read Reports" ON public.reports FOR SELECT 
-    USING (auth.uid() = reporter_uid OR public.is_app_admin());
-CREATE POLICY "Insert Reports" ON public.reports FOR INSERT 
-    WITH CHECK (auth.uid() = reporter_uid OR auth.uid() IS NOT NULL);
-CREATE POLICY "Admin Update Reports" ON public.reports FOR UPDATE 
-    USING (public.is_app_admin());
+-- 7.4 Reports: Akses penuh untuk pembacaan, penghantaran, pengemaskinian status dan pemadaman
+DROP POLICY IF EXISTS "Read Reports" ON public.reports;
+DROP POLICY IF EXISTS "Insert Reports" ON public.reports;
+DROP POLICY IF EXISTS "Admin Update Reports" ON public.reports;
+DROP POLICY IF EXISTS "Allow All Reports" ON public.reports;
+CREATE POLICY "Allow All Reports" ON public.reports FOR ALL 
+    USING (true) 
+    WITH CHECK (true);
 
 -- 7.5 Rooms & Members: Hanya ahli atau pencipta bilik boleh membaca dan mengurus
 CREATE POLICY "Read Rooms" ON public.rooms FOR SELECT 
