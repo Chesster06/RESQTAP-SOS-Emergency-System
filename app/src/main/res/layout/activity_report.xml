@@ -85,7 +85,7 @@
                 app:icon="@drawable/ic_call_modern_outline"
                 app:iconPadding="0dp"
                 app:iconSize="22dp"
-                app:iconTint="#16A34A"
+                app:iconTint="@color/text_primary"
                 app:strokeWidth="0dp" />
 
             <com.google.android.material.button.MaterialButton
