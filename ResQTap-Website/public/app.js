@@ -5838,7 +5838,7 @@ function openReportCaseModal(reportKey) {
 
   const curStatus = (report.status || "new").toLowerCase();
   const reporterName = report.senderName || report.senderEmail || "Anonymous Reporter";
-  const reporterUid = report.senderUid || "";
+  const reporterUid = report.senderUid || report.user_id || report.data?.user_id || report.data?.senderUid || "";
   const address = report.address || "Location unavailable";
   const categoryLabel = report.categoryLabel || "Incident";
   const currentNotes = report.details || report.data?.description || report.description || "";
@@ -6277,7 +6277,9 @@ async function setReportStatus(reportId, status, notes = null) {
   const meta = reportStatusMeta(status);
   const repObj = state.incidentReports && state.incidentReports[reportId];
   const supId = repObj?.supabaseId || reportId;
+  const reporterUid = repObj?.senderUid || repObj?.user_id || activeReportCaseData?.reporterUid || "";
 
+  // 1. Kemas kini status tempatan (optimistic UI)
   if (state.incidentReports && state.incidentReports[reportId]) {
     state.incidentReports[reportId].status = meta.id;
     if (notes !== null && notes !== undefined) {
@@ -6286,47 +6288,89 @@ async function setReportStatus(reportId, status, notes = null) {
     render();
   }
 
-  // 1. Kemas kini terus ke jadual Supabase reports (Pangkalan data utama)
-  try {
-    const updatePayload = {
-      status: meta.id,
-      updated_at: new Date().toISOString()
-    };
-    if (notes !== null && notes !== undefined) {
-      updatePayload.description = notes;
-    }
-    const { error } = await supabase.from("reports").update(updatePayload).eq("id", supId);
-    if (error) {
-      console.warn("[SUPABASE_REPORT_STATUS_ERR]", error);
-    }
-    if (supId !== reportId) {
-      await supabase.from("reports").update(updatePayload).eq("id", reportId);
-    }
-  } catch (sErr) {
-    console.warn("[SUPABASE_REPORT_STATUS_ERR]", sErr);
-  }
+  const stepMap = {
+    new: 1,
+    submitted: 1,
+    pending: 1,
+    reviewing: 2,
+    investigating: 2,
+    in_progress: 3,
+    action_in_progress: 3,
+    resolved: 4,
+    completed: 4,
+    rejected: 0
+  };
 
-  // 2. Fallback pilihan selamat ke RTDB tanpa mengganggu aliran jika tiada rekod
-  try {
-    if (validPathSegment(reportId)) {
-      const updates = {
+  // 2. SEGERA PUSH KE RTDB SECARA LANGSUNG (<50ms via WebSocket untuk Android App)
+  const rtdbSyncPromise = (async () => {
+    try {
+      if (validPathSegment(reportId)) {
+        const rootUpdates = {};
+        const prefix = `incidentReports/${reportId}`;
+        rootUpdates[`${prefix}/status`] = meta.id;
+        rootUpdates[`${prefix}/progressStatus`] = meta.label;
+        rootUpdates[`${prefix}/progressStep`] = stepMap[meta.id] || 1;
+        rootUpdates[`${prefix}/updatedAt`] = serverTimestamp();
+        rootUpdates[`${prefix}/reviewedBy`] = state.currentUser?.uid || "admin";
+        rootUpdates[`${prefix}/reviewedByName`] = getAdminDisplayName();
+
+        if (notes !== null && notes !== undefined) {
+          rootUpdates[`${prefix}/description`] = notes;
+          rootUpdates[`${prefix}/details`] = notes;
+          rootUpdates[`${prefix}/progressNotes`] = notes;
+          rootUpdates[`${prefix}/adminNotes`] = notes;
+        }
+        if (repObj) {
+          if (repObj.senderUid || repObj.user_id) rootUpdates[`${prefix}/senderUid`] = repObj.senderUid || repObj.user_id;
+          if (repObj.senderName) rootUpdates[`${prefix}/senderName`] = repObj.senderName;
+          if (repObj.category) rootUpdates[`${prefix}/category`] = repObj.category;
+          if (repObj.categoryLabel) rootUpdates[`${prefix}/categoryLabel`] = repObj.categoryLabel;
+          if (repObj.address) rootUpdates[`${prefix}/address`] = repObj.address;
+        }
+        if (meta.id === "reviewing") rootUpdates[`${prefix}/reviewedAt`] = serverTimestamp();
+        if (meta.id === "in_progress") rootUpdates[`${prefix}/inProgressAt`] = serverTimestamp();
+        if (meta.id === "resolved") rootUpdates[`${prefix}/resolvedAt`] = serverTimestamp();
+        if (meta.id === "rejected") rootUpdates[`${prefix}/rejectedAt`] = serverTimestamp();
+
+        // Segerakkan terus ke nod pengguna untuk jaminan tindak balas realtime di telefon
+        if (reporterUid && validPathSegment(reporterUid)) {
+          rootUpdates[`users/${reporterUid}/lastIncidentReportId`] = reportId;
+          rootUpdates[`users/${reporterUid}/lastIncidentReportStatus`] = meta.id;
+          rootUpdates[`users/${reporterUid}/lastIncidentReportNotes`] = notes !== null ? notes : (repObj?.description || "");
+          rootUpdates[`users/${reporterUid}/lastIncidentReportUpdatedAt`] = serverTimestamp();
+        }
+
+        await update(ref(db), rootUpdates);
+      }
+    } catch (rErr) {
+      console.warn("[RTDB_FAST_SYNC_ERR]", rErr);
+    }
+  })();
+
+  // 3. Kemas kini serentak ke jadual Supabase reports
+  const supabaseSyncPromise = (async () => {
+    try {
+      const updatePayload = {
         status: meta.id,
-        updatedAt: serverTimestamp(),
-        reviewedBy: state.currentUser?.uid || "admin"
+        updated_at: new Date().toISOString()
       };
-      if (notes !== null && notes !== undefined) updates.description = notes;
-      if (meta.id === "reviewing") updates.reviewedAt = serverTimestamp();
-      if (meta.id === "in_progress") updates.inProgressAt = serverTimestamp();
-      if (meta.id === "resolved") updates.resolvedAt = serverTimestamp();
-      if (meta.id === "rejected") updates.rejectedAt = serverTimestamp();
-      await update(ref(db, `incidentReports/${reportId}`), updates);
+      if (notes !== null && notes !== undefined) {
+        updatePayload.description = notes;
+      }
+      const { error } = await supabase.from("reports").update(updatePayload).eq("id", supId);
+      if (error) console.warn("[SUPABASE_REPORT_STATUS_ERR]", error);
+      if (supId !== reportId) {
+        await supabase.from("reports").update(updatePayload).eq("id", reportId);
+      }
+    } catch (sErr) {
+      console.warn("[SUPABASE_REPORT_STATUS_ERR]", sErr);
     }
-  } catch (_) {}
+  })();
 
-  // 3. Segerakkan semula data
-  try {
-    await syncFromSupabase();
-  } catch (_) {}
+  await Promise.allSettled([rtdbSyncPromise, supabaseSyncPromise]);
+
+  // Non-blocking sync di latar belakang
+  syncFromSupabase().catch(() => {});
 
   showToast(`Report marked ${meta.label.toLowerCase()}.`);
 }

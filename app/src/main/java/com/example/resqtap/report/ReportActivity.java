@@ -39,6 +39,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.content.ContextCompat;
@@ -751,6 +752,23 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
                                 UserPrefs.setLastIncidentReportId(ReportActivity.this, newReportId);
 
                                 Map<String, Object> report = buildReportPayload(newReportId, user, category, uploaded);
+                                try {
+                                    FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL)
+                                            .getReference("incidentReports")
+                                            .child(newReportId)
+                                            .setValue(report);
+                                    FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL)
+                                            .getReference("users")
+                                            .child(user.getUid())
+                                            .child("lastIncidentReportId")
+                                            .setValue(newReportId);
+                                    FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL)
+                                            .getReference("users")
+                                            .child(user.getUid())
+                                            .child("lastIncidentReportStatus")
+                                            .setValue("new");
+                                } catch (Exception ignored) {}
+
                                 if (successOverlay != null) successOverlay.setVisibility(View.GONE);
                                 showProgressMode(newReportId, report);
                                 Toast.makeText(ReportActivity.this, R.string.report_submitted, Toast.LENGTH_SHORT).show();
@@ -938,12 +956,82 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
                 });
     }
 
-    /** Pasang listener/polling berkala untuk status kemajuan laporan aktif dari Supabase. */
+    /** Pasang listener realtime (Firebase RTDB WebSocket <50ms) berserta polling Supabase. */
     private void attachActiveReportListener(String reportId) {
         detachActiveReportListener();
         if (reportId == null || reportId.trim().isEmpty()) return;
         currentReportId = reportId.trim();
 
+        // 1. PUSH REALTIME WEBSOCKET MENERUSI FIREBASE REALTIME DATABASE (SUB-SAAT)
+        try {
+            activeReportRef = FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL)
+                    .getReference("incidentReports")
+                    .child(currentReportId);
+
+            activeReportListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (!snapshot.exists()) return;
+                    runOnUiThread(() -> {
+                        Map<String, Object> data = snapshotToReportMap(snapshot);
+                        String status = String.valueOf(data.get("status"));
+                        if (status != null && !status.isEmpty() && !"null".equalsIgnoreCase(status)) {
+                            currentReportStatus = status;
+                            UserPrefs.setLastIncidentReportStatus(ReportActivity.this, status);
+                            renderProgressData(currentReportId, data);
+                        }
+                    });
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    android.util.Log.w("ReportActivity", "activeReportListener cancelled: " + error.getMessage());
+                }
+            };
+            activeReportRef.addValueEventListener(activeReportListener);
+        } catch (Exception e) {
+            android.util.Log.w("ReportActivity", "attachActiveReportListener RTDB error: " + e.getMessage());
+        }
+
+        // 2. SEGERA DENGAR PADA NOD PROFIL PENGGUNA SENDIRI UNTUK PUSH LANGSUNG DARI WEB
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            try {
+                userReportIdRef = FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL)
+                        .getReference("users")
+                        .child(user.getUid());
+
+                userReportIdListener = new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (!snapshot.exists()) return;
+                        String lastId = snapshot.child("lastIncidentReportId").getValue(String.class);
+                        String lastStatus = snapshot.child("lastIncidentReportStatus").getValue(String.class);
+                        String lastNotes = snapshot.child("lastIncidentReportNotes").getValue(String.class);
+
+                        if (currentReportId != null && currentReportId.equals(lastId) && lastStatus != null && !lastStatus.isEmpty()) {
+                            runOnUiThread(() -> {
+                                currentReportStatus = lastStatus;
+                                UserPrefs.setLastIncidentReportStatus(ReportActivity.this, lastStatus);
+                                updateStatusAndStepperUI(lastStatus);
+                                if (lastNotes != null && !lastNotes.trim().isEmpty() && tvProgressDetails != null) {
+                                    tvProgressDetails.setText(lastNotes.trim());
+                                    tvProgressDetails.setVisibility(View.VISIBLE);
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {}
+                };
+                userReportIdRef.addValueEventListener(userReportIdListener);
+            } catch (Exception e) {
+                android.util.Log.w("ReportActivity", "attachActiveReportListener user node error: " + e.getMessage());
+            }
+        }
+
+        // 3. POLLING BERKALA SUPABASE SEBAGAI FALLBACK SANDARAN
         reportPollRunnable = new Runnable() {
             @Override
             public void run() {
@@ -954,7 +1042,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
                             public void onSuccess(org.json.JSONObject reportObj) {
                                 runOnUiThread(() -> {
                                     if (reportObj == null) {
-                                        handleReportDeleted();
                                         return;
                                     }
                                     Map<String, Object> data = jsonToReportMap(reportObj);
@@ -968,7 +1055,7 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
                                         if (!isShowingProgress) showProgressMode();
                                         if (btnNewReportTop != null) btnNewReportTop.setVisibility(View.GONE);
                                         if (cardActiveReportBanner != null) cardActiveReportBanner.setVisibility(View.GONE);
-                                        reportPollHandler.postDelayed(reportPollRunnable, 3500);
+                                        reportPollHandler.postDelayed(reportPollRunnable, 2000);
                                     } else {
                                         if (btnNewReportTop != null && isShowingProgress) {
                                             btnNewReportTop.setVisibility(View.VISIBLE);
@@ -979,12 +1066,54 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
 
                             @Override
                             public void onError(Exception error) {
-                                reportPollHandler.postDelayed(reportPollRunnable, 5000);
+                                reportPollHandler.postDelayed(reportPollRunnable, 3000);
                             }
                         });
             }
         };
         reportPollHandler.post(reportPollRunnable);
+    }
+
+    /** Tukar DataSnapshot RTDB kepada format Map laporan serasi. */
+    private Map<String, Object> snapshotToReportMap(DataSnapshot snapshot) {
+        Map<String, Object> map = new HashMap<>();
+        if (snapshot == null || !snapshot.exists()) return map;
+
+        String status = snapshot.child("status").getValue(String.class);
+        if (status == null || status.isEmpty()) status = "new";
+        map.put("status", status);
+
+        String title = snapshot.child("title").getValue(String.class);
+        map.put("title", title != null ? title : "");
+
+        String category = snapshot.child("category").getValue(String.class);
+        map.put("category", category != null ? category : "");
+        map.put("categoryLabel", categoryLabel(category != null ? category : ""));
+
+        String desc = snapshot.child("description").getValue(String.class);
+        if (desc == null || desc.isEmpty()) desc = snapshot.child("details").getValue(String.class);
+        if (desc == null || desc.isEmpty()) desc = snapshot.child("progressNotes").getValue(String.class);
+        if (desc == null || desc.isEmpty()) desc = snapshot.child("adminNotes").getValue(String.class);
+        map.put("details", desc != null ? desc : "");
+        map.put("description", desc != null ? desc : "");
+
+        String address = snapshot.child("address").getValue(String.class);
+        map.put("address", address != null ? address : "");
+
+        Double lat = snapshot.child("latitude").getValue(Double.class);
+        map.put("latitude", lat != null ? lat : 0.0);
+        Double lng = snapshot.child("longitude").getValue(Double.class);
+        map.put("longitude", lng != null ? lng : 0.0);
+
+        String senderName = snapshot.child("senderName").getValue(String.class);
+        map.put("senderName", senderName != null ? senderName : "");
+        String senderUid = snapshot.child("senderUid").getValue(String.class);
+        map.put("senderUid", senderUid != null ? senderUid : "");
+
+        Long createdAt = snapshot.child("createdAt").getValue(Long.class);
+        map.put("createdAt", createdAt != null ? createdAt : System.currentTimeMillis());
+
+        return map;
     }
 
     /** Tanggalkan listener kemajuan laporan aktif jika ada. */
@@ -994,9 +1123,18 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
             reportPollRunnable = null;
         }
         if (activeReportRef != null && activeReportListener != null) {
-            activeReportRef.removeEventListener(activeReportListener);
+            try {
+                activeReportRef.removeEventListener(activeReportListener);
+            } catch (Exception ignored) {}
             activeReportListener = null;
             activeReportRef = null;
+        }
+        if (userReportIdRef != null && userReportIdListener != null) {
+            try {
+                userReportIdRef.removeEventListener(userReportIdListener);
+            } catch (Exception ignored) {}
+            userReportIdListener = null;
+            userReportIdRef = null;
         }
     }
 
@@ -1227,7 +1365,33 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
             if (tvStep3Title != null) tvStep3Title.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
             if (tvStep4Title != null) tvStep4Title.setTextColor(0xFF059669);
 
-        } else if ("reviewing".equals(status) || "in_progress".equals(status) || "investigating".equals(status) || "action_in_progress".equals(status)) {
+        } else if ("in_progress".equals(status) || "action_in_progress".equals(status)) {
+            if (tvProgressStatusBadge != null) {
+                tvProgressStatusBadge.setText(R.string.report_step_3_title);
+                tvProgressStatusBadge.setTextColor(0xFFE60067);
+                tvProgressStatusBadge.setBackgroundColor(0xFFFFE4EE);
+            }
+            if (tvProgressMessage != null) {
+                tvProgressMessage.setText(R.string.report_step_3_desc);
+            }
+
+            setStepCircle(step1Circle, step1Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
+            if (stepLine12 != null) stepLine12.setBackgroundColor(colorDone);
+
+            setStepCircle(step2Circle, step2Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
+            if (stepLine23 != null) stepLine23.setBackgroundColor(colorDone);
+
+            setStepCircle(step3Circle, step3Icon, R.drawable.bg_step_circle_active, R.drawable.ic_ios_security, 0xFFFFFFFF);
+            if (stepLine34 != null) stepLine34.setBackgroundColor(colorPending);
+
+            setStepCircle(step4Circle, step4Icon, R.drawable.bg_step_circle_pending, R.drawable.ic_verified_user_24, 0xFF64748B);
+
+            if (tvStep1Title != null) tvStep1Title.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+            if (tvStep2Title != null) tvStep2Title.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+            if (tvStep3Title != null) tvStep3Title.setTextColor(colorActive);
+            if (tvStep4Title != null) tvStep4Title.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+
+        } else if ("reviewing".equals(status) || "investigating".equals(status)) {
             if (tvProgressStatusBadge != null) {
                 tvProgressStatusBadge.setText(R.string.report_status_reviewing);
                 tvProgressStatusBadge.setTextColor(0xFFD97706);
@@ -1238,18 +1402,19 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
             }
 
             setStepCircle(step1Circle, step1Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
-            if (stepLine12 != null) stepLine12.setBackgroundColor(colorDone);
+            if (stepLine12 != null) stepLine12.setBackgroundColor(colorActive);
 
-            setStepCircle(step2Circle, step2Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
-            if (stepLine23 != null) stepLine23.setBackgroundColor(colorActive);
+            setStepCircle(step2Circle, step2Icon, R.drawable.bg_step_circle_active, R.drawable.ic_clock_24, 0xFFFFFFFF);
+            if (stepLine23 != null) stepLine23.setBackgroundColor(colorPending);
 
-            setStepCircle(step3Circle, step3Icon, R.drawable.bg_step_circle_active, R.drawable.ic_ios_security, 0xFFFFFFFF);
+            setStepCircle(step3Circle, step3Icon, R.drawable.bg_step_circle_pending, R.drawable.ic_ios_security, 0xFF64748B);
             if (stepLine34 != null) stepLine34.setBackgroundColor(colorPending);
 
             setStepCircle(step4Circle, step4Icon, R.drawable.bg_step_circle_pending, R.drawable.ic_verified_user_24, 0xFF64748B);
 
-            if (tvStep2Title != null) tvStep2Title.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
-            if (tvStep3Title != null) tvStep3Title.setTextColor(colorActive);
+            if (tvStep1Title != null) tvStep1Title.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+            if (tvStep2Title != null) tvStep2Title.setTextColor(colorActive);
+            if (tvStep3Title != null) tvStep3Title.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
             if (tvStep4Title != null) tvStep4Title.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
 
         } else if ("rejected".equals(status) || "cancelled".equals(status)) {
@@ -1266,7 +1431,7 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
             setStepCircle(step2Circle, step2Icon, R.drawable.bg_step_circle_pending, R.drawable.ic_close_24, 0xFFE11D48);
 
         } else {
-            // "new" status
+            // "new" / "submitted" status
             if (tvProgressStatusBadge != null) {
                 tvProgressStatusBadge.setText(R.string.report_status_new);
                 tvProgressStatusBadge.setTextColor(0xFF0284C7);
@@ -1277,9 +1442,9 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
             }
 
             setStepCircle(step1Circle, step1Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
-            if (stepLine12 != null) stepLine12.setBackgroundColor(colorActive);
+            if (stepLine12 != null) stepLine12.setBackgroundColor(colorPending);
 
-            setStepCircle(step2Circle, step2Icon, R.drawable.bg_step_circle_active, R.drawable.ic_clock_24, 0xFFFFFFFF);
+            setStepCircle(step2Circle, step2Icon, R.drawable.bg_step_circle_pending, R.drawable.ic_clock_24, 0xFF64748B);
             if (stepLine23 != null) stepLine23.setBackgroundColor(colorPending);
 
             setStepCircle(step3Circle, step3Icon, R.drawable.bg_step_circle_pending, R.drawable.ic_ios_security, 0xFF64748B);
@@ -1287,7 +1452,8 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
 
             setStepCircle(step4Circle, step4Icon, R.drawable.bg_step_circle_pending, R.drawable.ic_verified_user_24, 0xFF64748B);
 
-            if (tvStep2Title != null) tvStep2Title.setTextColor(colorActive);
+            if (tvStep1Title != null) tvStep1Title.setTextColor(0xFF0284C7);
+            if (tvStep2Title != null) tvStep2Title.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
             if (tvStep3Title != null) tvStep3Title.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
             if (tvStep4Title != null) tvStep4Title.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
         }
@@ -1302,9 +1468,10 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
     }
 
     private String getStatusLabel(String status) {
-        if ("reviewing".equalsIgnoreCase(status)) return getString(R.string.report_status_reviewing);
-        if ("resolved".equalsIgnoreCase(status)) return getString(R.string.report_status_resolved);
-        if ("rejected".equalsIgnoreCase(status)) return getString(R.string.report_status_rejected);
+        if ("reviewing".equalsIgnoreCase(status) || "investigating".equalsIgnoreCase(status)) return getString(R.string.report_status_reviewing);
+        if ("in_progress".equalsIgnoreCase(status) || "action_in_progress".equalsIgnoreCase(status)) return getString(R.string.report_step_3_title);
+        if ("resolved".equalsIgnoreCase(status) || "closed".equalsIgnoreCase(status)) return getString(R.string.report_status_resolved);
+        if ("rejected".equalsIgnoreCase(status) || "cancelled".equalsIgnoreCase(status)) return getString(R.string.report_status_rejected);
         return getString(R.string.report_status_new);
     }
 
@@ -1355,6 +1522,27 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
                     .setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator())
                     .start();
         }
+
+        // Semak segera secara realtime dari Firebase RTDB
+        try {
+            FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL)
+                    .getReference("incidentReports")
+                    .child(currentReportId.trim())
+                    .get()
+                    .addOnSuccessListener(snapshot -> {
+                        if (snapshot != null && snapshot.exists()) {
+                            runOnUiThread(() -> {
+                                Map<String, Object> data = snapshotToReportMap(snapshot);
+                                String status = String.valueOf(data.get("status"));
+                                currentReportStatus = status;
+                                UserPrefs.setLastIncidentReportStatus(ReportActivity.this, status);
+                                renderProgressData(currentReportId, data);
+                            });
+                        }
+                    });
+        } catch (Exception ignored) {}
+
+        // Semak dari Supabase
         com.example.resqtap.supabase.SupabaseManager.getInstance().getReport(currentReportId.trim(),
                 new com.example.resqtap.supabase.SupabaseManager.Callback<org.json.JSONObject>() {
                     @Override
