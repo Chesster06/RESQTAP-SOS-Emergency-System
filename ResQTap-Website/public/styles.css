@@ -9512,9 +9512,30 @@ body.dark-mode .admin-name-title {
   margin: 0;
 }
 
-/* Photo action bar - hidden as camera badge is on avatar */
-.admin-photo-btn-bar {
-  display: none !important;
+/* Photo action buttons bar */
+.admin-photo-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.admin-photo-actions-row .photo-upload-btn {
+  cursor: pointer;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 8px;
+}
+
+.admin-photo-actions-row .photo-hint-text {
+  font-size: 12px;
+  color: var(--text-muted, #94A3B8);
 }
 
 .danger-tint {
@@ -9859,6 +9880,52 @@ body.dark-mode .sidebar:hover .sidebar-username {
 .sidebar .sidebar-userrole,
 .sidebar:hover .sidebar-userrole {
   display: none !important;
+}
+
+/* Sidebar Sign Out Button (positioned right below Profile at bottom of sidebar) */
+.sidebar .sidebar-signout-btn {
+  width: 44px !important;
+  max-width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  padding: 0 !important;
+  margin: 0 auto 4px !important;
+  justify-content: center !important;
+  align-items: center !important;
+  display: flex !important;
+  border-radius: 12px;
+}
+
+.sidebar .sidebar-signout-btn span {
+  display: none !important;
+}
+
+.sidebar .sidebar-signout-btn svg,
+.sidebar .sidebar-signout-btn i {
+  margin-right: 0 !important;
+}
+
+.sidebar:hover .sidebar-signout-btn {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 40px !important;
+  padding: 0 14px !important;
+  flex-direction: row !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  margin: 0 0 4px !important;
+}
+
+.sidebar:hover .sidebar-signout-btn span {
+  display: inline-block !important;
+  font-size: 0.88rem !important;
+  font-weight: 700 !important;
+}
+
+.sidebar:hover .sidebar-signout-btn svg,
+.sidebar:hover .sidebar-signout-btn i {
+  margin-right: 12px !important;
 }
 
 /* Account Session & Sign Out Card on Profile Page */

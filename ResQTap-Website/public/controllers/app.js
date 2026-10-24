@@ -221,6 +221,7 @@ const els = {
   profileAvatarImg: document.getElementById("profileAvatarImg"),
   adminProfileSignOutBtn: document.getElementById("adminProfileSignOutBtn"),
   adminPageSignOutBtn: document.getElementById("adminPageSignOutBtn"),
+  sidebarSignOutBtn: document.getElementById("sidebarSignOutBtn"),
   sidebarProfileNavBtn: document.getElementById("sidebarProfileNavBtn"),
   sidebarProfileName: document.getElementById("sidebarProfileName"),
   sidebarProfileRole: document.getElementById("sidebarProfileRole"),
@@ -7400,6 +7401,9 @@ function bindEvents() {
   }
   if (els.adminPageSignOutBtn) {
     els.adminPageSignOutBtn.addEventListener("click", handleSignOut);
+  }
+  if (els.sidebarSignOutBtn) {
+    els.sidebarSignOutBtn.addEventListener("click", handleSignOut);
   }
 
   // Dark Mode Toggle Logic

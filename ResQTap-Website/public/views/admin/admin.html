@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=admin-profile-v3">
+  <link rel="stylesheet" href="/styles.css?v=admin-profile-v5">
   <!-- Leaflet.js: open-source map library for Live Map view -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css"/>
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
@@ -524,6 +524,10 @@
             <span id="sidebarProfileName" class="sidebar-username">Administrator</span>
             <span id="sidebarProfileRole" class="sidebar-userrole hidden"></span>
           </div>
+        </button>
+        <button id="sidebarSignOutBtn" class="nav-button nav-button-danger sidebar-signout-btn" data-label="Sign Out" type="button" title="Sign out of admin console">
+          <i data-lucide="log-out" aria-hidden="true"></i>
+          <span>Sign Out</span>
         </button>
       </nav>
     </aside>
@@ -1064,6 +1068,17 @@
                   </div>
                   <p id="profileDisplayHeaderEmail" class="admin-email-text">admin@resqtap.com</p>
 
+                  <div class="admin-photo-actions-row">
+                    <label for="adminPhotoFileInput" class="primary-button slim icon-button photo-upload-btn" title="Choose new profile photo">
+                      <i data-lucide="upload" aria-hidden="true"></i>
+                      <span id="adminUploadBtnLabel">Upload Picture</span>
+                    </label>
+                    <button id="adminRemovePhotoBtn" class="secondary-button slim icon-button danger-tint hidden" type="button" title="Remove custom photo">
+                      <i data-lucide="trash-2" aria-hidden="true"></i>
+                      <span>Remove</span>
+                    </button>
+                    <span class="photo-hint-text">JPG, PNG, or WebP &bull; Max 5MB</span>
+                  </div>
                 </div>
               </div>
 
@@ -1635,7 +1650,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=admin-profile-v4"></script>
+  <script type="module" src="/app.js?v=admin-profile-v5"></script>
 </body>
 </html>
 
