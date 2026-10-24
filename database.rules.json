@@ -117,6 +117,17 @@
         }
       }
     },
+    "sosChats": {
+      "$chatId": {
+        ".read": "auth != null && ($chatId === auth.uid || root.child('admins').child(auth.uid).val() === true || root.child('admins').child(auth.uid).child('active').val() === true || data.child('meta').child('userUid').val() === auth.uid)",
+        ".write": "auth != null && ($chatId === auth.uid || root.child('admins').child(auth.uid).val() === true || root.child('admins').child(auth.uid).child('active').val() === true || data.child('meta').child('userUid').val() === auth.uid || newData.child('meta').child('userUid').val() === auth.uid)",
+        "messages": {
+          ".indexOn": [
+            "createdAt"
+          ]
+        }
+      }
+    },
     "aiChats": {
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).val() === true || root.child('admins').child(auth.uid).child('active').val() === true)",

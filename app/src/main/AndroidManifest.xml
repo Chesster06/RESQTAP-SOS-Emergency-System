@@ -204,7 +204,7 @@
 
         <activity
             android:name=".sos.SosLivechatActivity"
-            android:exported="false"
+            android:exported="true"
             android:windowSoftInputMode="adjustResize"
             android:launchMode="singleTop" />
 

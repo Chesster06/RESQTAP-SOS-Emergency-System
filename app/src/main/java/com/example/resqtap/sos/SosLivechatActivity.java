@@ -230,8 +230,25 @@ public class SosLivechatActivity extends BaseActivity {
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (messagesListener == null || chatRef == null) {
+            setupFirebaseChat();
+        }
+    }
+
     private void setupFirebaseChat() {
         if (myUid.isEmpty()) return;
+
+        if (messagesQuery != null && messagesListener != null) {
+            messagesQuery.removeEventListener(messagesListener);
+            messagesListener = null;
+        }
+        if (chatRef != null && metaListener != null) {
+            chatRef.child("meta").removeEventListener(metaListener);
+            metaListener = null;
+        }
 
         String cleanRoom = roomCode != null ? roomCode.trim().toUpperCase(Locale.ROOT) : "";
         String cleanAlert = alertId != null ? alertId.trim() : "";
@@ -243,10 +260,6 @@ public class SosLivechatActivity extends BaseActivity {
                     .child("sosAlerts")
                     .child(cleanAlert)
                     .child("chat");
-        } else if (!cleanAlert.isEmpty()) {
-            chatRef = FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL)
-                    .getReference("sosChats")
-                    .child(cleanAlert);
         } else {
             chatRef = FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL)
                     .getReference("sosChats")
@@ -282,7 +295,9 @@ public class SosLivechatActivity extends BaseActivity {
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
+            public void onCancelled(@NonNull DatabaseError error) {
+                android.util.Log.e("SosLivechatActivity", "metaListener onCancelled: " + error.getMessage());
+            }
         };
         chatRef.child("meta").addValueEventListener(metaListener);
 
@@ -295,7 +310,9 @@ public class SosLivechatActivity extends BaseActivity {
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
+            public void onCancelled(@NonNull DatabaseError error) {
+                android.util.Log.e("SosLivechatActivity", "messagesListener onCancelled: " + error.getMessage());
+            }
         };
         messagesQuery.addValueEventListener(messagesListener);
     }
@@ -451,6 +468,10 @@ public class SosLivechatActivity extends BaseActivity {
         newMsgRef.setValue(msg).addOnCompleteListener(task -> {
             isSending = false;
             if (btnSend != null) btnSend.setEnabled(true);
+            if (!task.isSuccessful()) {
+                android.util.Log.e("SosLivechatActivity", "Message send failed: ", task.getException());
+                Toast.makeText(SosLivechatActivity.this, "Gagal menghantar: " + (task.getException() != null ? task.getException().getMessage() : "Ralat"), Toast.LENGTH_SHORT).show();
+            }
         });
 
         // Update meta
