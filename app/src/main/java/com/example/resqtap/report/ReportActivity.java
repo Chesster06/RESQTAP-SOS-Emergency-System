@@ -204,11 +204,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
     // Responder Direct Communication Views & Signaling
     private View btnTopChatAdmin;
     private View btnTopCallAdmin;
-    private View cardProgressContactAdmin;
-    private View btnProgressChatAdmin;
-    private View btnProgressCallAdmin;
-    private TextView tvProgressResponderSubtitle;
-    private TextView badgeResponderLive;
     private BottomSheetDialog callWaitDialog;
     private DatabaseReference userCallRef;
     private ValueEventListener userCallListener;
@@ -433,23 +428,12 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
 
         btnTopChatAdmin = findViewById(R.id.btn_top_chat_admin);
         btnTopCallAdmin = findViewById(R.id.btn_top_call_admin);
-        cardProgressContactAdmin = findViewById(R.id.card_progress_contact_admin);
-        btnProgressChatAdmin = findViewById(R.id.btn_progress_chat_admin);
-        btnProgressCallAdmin = findViewById(R.id.btn_progress_call_admin);
-        tvProgressResponderSubtitle = findViewById(R.id.tv_progress_responder_subtitle);
-        badgeResponderLive = findViewById(R.id.badge_responder_live);
 
         if (btnTopChatAdmin != null) {
             btnTopChatAdmin.setOnClickListener(v -> openAdminChatForReport());
         }
-        if (btnProgressChatAdmin != null) {
-            btnProgressChatAdmin.setOnClickListener(v -> openAdminChatForReport());
-        }
         if (btnTopCallAdmin != null) {
             btnTopCallAdmin.setOnClickListener(v -> showCallOptionsBottomSheet());
-        }
-        if (btnProgressCallAdmin != null) {
-            btnProgressCallAdmin.setOnClickListener(v -> showCallOptionsBottomSheet());
         }
 
         if (cardActiveReportBanner != null) {
@@ -1267,9 +1251,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         if (btnTopCallAdmin != null) {
             btnTopCallAdmin.setVisibility(View.VISIBLE);
         }
-        if (cardProgressContactAdmin != null) {
-            cardProgressContactAdmin.setVisibility(View.VISIBLE);
-        }
         if (btnNewReportTop != null) {
             boolean isResolved = "resolved".equalsIgnoreCase(currentReportStatus);
             btnNewReportTop.setVisibility(isResolved ? View.VISIBLE : View.GONE);
@@ -1300,9 +1281,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         }
         if (btnTopCallAdmin != null) {
             btnTopCallAdmin.setVisibility(View.GONE);
-        }
-        if (cardProgressContactAdmin != null) {
-            cardProgressContactAdmin.setVisibility(View.GONE);
         }
         if (reportProgressScroll != null) reportProgressScroll.setVisibility(View.GONE);
         if (reportScroll != null) reportScroll.setVisibility(View.VISIBLE);
@@ -1415,13 +1393,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
             if (tvProgressMessage != null) {
                 tvProgressMessage.setText(R.string.report_step_4_desc);
             }
-            if (tvProgressResponderSubtitle != null) {
-                tvProgressResponderSubtitle.setText("Kes ini telah diselesaikan. Anda masih boleh menghubungi admin.");
-            }
-            if (badgeResponderLive != null) {
-                badgeResponderLive.setText("Resolved");
-                badgeResponderLive.setTextColor(0xFF059669);
-            }
 
             setStepCircle(step1Circle, step1Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
             if (stepLine12 != null) stepLine12.setBackgroundColor(colorDone);
@@ -1446,13 +1417,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
             }
             if (tvProgressMessage != null) {
                 tvProgressMessage.setText(R.string.report_step_3_desc);
-            }
-            if (tvProgressResponderSubtitle != null) {
-                tvProgressResponderSubtitle.setText("Admin responder sedang mengendalikan tindakan kecemasan ini.");
-            }
-            if (badgeResponderLive != null) {
-                badgeResponderLive.setText("Responding");
-                badgeResponderLive.setTextColor(0xFFE11D48);
             }
 
             setStepCircle(step1Circle, step1Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
@@ -1480,13 +1444,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
             if (tvProgressMessage != null) {
                 tvProgressMessage.setText(R.string.report_step_2_desc);
             }
-            if (tvProgressResponderSubtitle != null) {
-                tvProgressResponderSubtitle.setText("Admin responder sedang menyemak butiran laporan anda.");
-            }
-            if (badgeResponderLive != null) {
-                badgeResponderLive.setText("Reviewing");
-                badgeResponderLive.setTextColor(0xFFD97706);
-            }
 
             setStepCircle(step1Circle, step1Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
             if (stepLine12 != null) stepLine12.setBackgroundColor(colorActive);
@@ -1513,13 +1470,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
             if (tvProgressMessage != null) {
                 tvProgressMessage.setText(R.string.report_status_rejected);
             }
-            if (tvProgressResponderSubtitle != null) {
-                tvProgressResponderSubtitle.setText("Laporan ini telah ditutup atau dibatalkan.");
-            }
-            if (badgeResponderLive != null) {
-                badgeResponderLive.setText("Closed");
-                badgeResponderLive.setTextColor(0xFFE11D48);
-            }
             setStepCircle(step1Circle, step1Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
             if (stepLine12 != null) stepLine12.setBackgroundColor(0xFFE11D48);
             setStepCircle(step2Circle, step2Icon, R.drawable.bg_step_circle_pending, R.drawable.ic_close_24, 0xFFE11D48);
@@ -1533,13 +1483,6 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
             }
             if (tvProgressMessage != null) {
                 tvProgressMessage.setText(R.string.report_step_1_desc);
-            }
-            if (tvProgressResponderSubtitle != null) {
-                tvProgressResponderSubtitle.setText("Hubungi admin responder bertugas untuk sebarang bantuan segera.");
-            }
-            if (badgeResponderLive != null) {
-                badgeResponderLive.setText("Online");
-                badgeResponderLive.setTextColor(0xFF059669);
             }
 
             setStepCircle(step1Circle, step1Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
