@@ -137,26 +137,19 @@ public class IncomingCallActivity extends BaseActivity {
 
         // Hantar mesej automatik atau buka perbualan terus
         try {
-            String activeSosRoom = com.example.resqtap.utils.UserPrefs.getActiveSosProgressRoom(this);
-            String activeSosAlert = com.example.resqtap.utils.UserPrefs.getActiveSosProgressAlert(this);
-            String activeRoomCode = com.example.resqtap.utils.UserPrefs.getActiveRoomCode(this);
+            boolean isSosActive = com.example.resqtap.utils.UserPrefs.isSosProgressActive(this);
+            String activeSosRoom = isSosActive ? com.example.resqtap.utils.UserPrefs.getActiveSosProgressRoom(this) : "";
+            String activeSosAlert = isSosActive ? com.example.resqtap.utils.UserPrefs.getActiveSosProgressAlert(this) : "";
             String myName = com.example.resqtap.utils.UserPrefs.getName(this);
             if (myName == null || myName.isEmpty()) myName = "User";
 
             String chatReason = "🔇 " + getString(R.string.call_declined_silent_reason);
 
-            if (activeSosAlert != null && !activeSosAlert.trim().isEmpty()) {
-                String cleanRoom = (activeSosRoom != null && !activeSosRoom.trim().isEmpty()) ? activeSosRoom.trim().toUpperCase(java.util.Locale.ROOT) : "";
-                com.google.firebase.database.DatabaseReference chatRef;
-                if (!cleanRoom.isEmpty()) {
-                    chatRef = com.google.firebase.database.FirebaseDatabase.getInstance(com.example.resqtap.room.FirebaseRoomClient.DATABASE_URL)
-                            .getReference("rooms").child(cleanRoom).child("sosAlerts").child(activeSosAlert.trim()).child("chat");
-                } else {
-                    chatRef = com.google.firebase.database.FirebaseDatabase.getInstance(com.example.resqtap.room.FirebaseRoomClient.DATABASE_URL)
-                            .getReference("sosChats").child(activeSosAlert.trim());
-                }
-
-                com.google.firebase.database.DatabaseReference newMsgRef = chatRef.child("messages").push();
+            // 1. Sentiasa hantar mesej ke sosChats/uid agar kedua-dua pihak (Android SOS Live Support & Web Admin SOS Livechat) dapat berkomunikasi terus
+            if (uid != null && !uid.isEmpty()) {
+                com.google.firebase.database.DatabaseReference sosChatRef = com.google.firebase.database.FirebaseDatabase.getInstance(com.example.resqtap.room.FirebaseRoomClient.DATABASE_URL)
+                        .getReference("sosChats").child(uid);
+                com.google.firebase.database.DatabaseReference newMsgRef = sosChatRef.child("messages").push();
                 String msgId = newMsgRef.getKey();
                 java.util.Map<String, Object> msg = new java.util.HashMap<>();
                 msg.put("id", msgId);
@@ -172,39 +165,42 @@ public class IncomingCallActivity extends BaseActivity {
                 metaUpdates.put("lastSender", "user");
                 metaUpdates.put("lastSenderUid", uid);
                 metaUpdates.put("status", "open");
+                metaUpdates.put("userUid", uid);
+                metaUpdates.put("userName", myName);
+                metaUpdates.put("topic", "SOS Emergency Call Livechat");
+                metaUpdates.put("isSosEmergency", true);
                 metaUpdates.put("updatedAt", com.google.firebase.database.ServerValue.TIMESTAMP);
-                chatRef.child("meta").updateChildren(metaUpdates);
+                sosChatRef.child("meta").updateChildren(metaUpdates);
+            }
+
+            // 2. Jika ada sesi amaran SOS bilik yang aktif, hantar juga salinan mesej ke chat bilik tersebut
+            if (activeSosAlert != null && !activeSosAlert.trim().isEmpty() && activeSosRoom != null && !activeSosRoom.trim().isEmpty()) {
+                String cleanRoom = activeSosRoom.trim().toUpperCase(java.util.Locale.ROOT);
+                com.google.firebase.database.DatabaseReference roomChatRef = com.google.firebase.database.FirebaseDatabase.getInstance(com.example.resqtap.room.FirebaseRoomClient.DATABASE_URL)
+                        .getReference("rooms").child(cleanRoom).child("sosAlerts").child(activeSosAlert.trim()).child("chat");
+                com.google.firebase.database.DatabaseReference newMsgRef2 = roomChatRef.child("messages").push();
+                String msgId2 = newMsgRef2.getKey();
+                java.util.Map<String, Object> msg2 = new java.util.HashMap<>();
+                msg2.put("id", msgId2);
+                msg2.put("text", chatReason);
+                msg2.put("sender", "user");
+                msg2.put("senderUid", uid);
+                msg2.put("senderName", myName);
+                msg2.put("createdAt", com.google.firebase.database.ServerValue.TIMESTAMP);
+                newMsgRef2.setValue(msg2);
+
+                java.util.Map<String, Object> meta2 = new java.util.HashMap<>();
+                meta2.put("lastMessage", chatReason);
+                meta2.put("lastSender", "user");
+                meta2.put("lastSenderUid", uid);
+                meta2.put("status", "open");
+                meta2.put("updatedAt", com.google.firebase.database.ServerValue.TIMESTAMP);
+                roomChatRef.child("meta").updateChildren(meta2);
 
                 com.example.resqtap.sos.SosLivechatActivity.launch(this, activeSosRoom, activeSosAlert, callerName, "");
             } else {
-                // Post silent notice to standard support chat
-                if (uid != null && !uid.isEmpty()) {
-                    com.google.firebase.database.DatabaseReference chatRef = com.google.firebase.database.FirebaseDatabase.getInstance(com.example.resqtap.room.FirebaseRoomClient.DATABASE_URL)
-                            .getReference("supportChats").child(uid);
-                    com.google.firebase.database.DatabaseReference newMsgRef = chatRef.child("messages").push();
-                    String msgId = newMsgRef.getKey();
-                    java.util.Map<String, Object> msg = new java.util.HashMap<>();
-                    msg.put("id", msgId);
-                    msg.put("text", chatReason);
-                    msg.put("sender", "user");
-                    msg.put("senderUid", uid);
-                    msg.put("senderName", myName);
-                    msg.put("createdAt", com.google.firebase.database.ServerValue.TIMESTAMP);
-                    newMsgRef.setValue(msg);
-
-                    java.util.Map<String, Object> metaUpdates = new java.util.HashMap<>();
-                    metaUpdates.put("lastMessage", chatReason);
-                    metaUpdates.put("lastSender", "user");
-                    metaUpdates.put("status", "open");
-                    metaUpdates.put("updatedAt", com.google.firebase.database.ServerValue.TIMESTAMP);
-                    chatRef.child("meta").updateChildren(metaUpdates);
-                }
-
-                if (activeRoomCode != null && !activeRoomCode.trim().isEmpty()) {
-                    com.example.resqtap.room.RoomChatActivity.start(this, activeRoomCode, "");
-                } else {
-                    startActivity(new Intent(this, com.example.resqtap.chat.LivechatActivity.class));
-                }
+                // Buka terus SOS Live Support aktiviti dengan sasaran sosChats/uid
+                com.example.resqtap.sos.SosLivechatActivity.launch(this, "", "", callerName, "");
             }
         } catch (Exception ignored) {
         }

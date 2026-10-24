@@ -119,8 +119,9 @@ public class SosLivechatActivity extends BaseActivity {
             String u = intent.getStringExtra(EXTRA_RESPONDER_UID);
             if (r != null && !r.isEmpty()) roomCode = r;
             if (a != null && !a.isEmpty()) alertId = a;
-            if (roomCode.isEmpty()) roomCode = UserPrefs.getActiveSosProgressRoom(this);
-            if (alertId.isEmpty()) alertId = UserPrefs.getActiveSosProgressAlert(this);
+            boolean isSosActive = UserPrefs.isSosProgressActive(this);
+            if (roomCode.isEmpty() && isSosActive) roomCode = UserPrefs.getActiveSosProgressRoom(this);
+            if (alertId.isEmpty() && isSosActive) alertId = UserPrefs.getActiveSosProgressAlert(this);
             if (n != null && !n.trim().isEmpty()) responderName = n.trim();
             if (u != null) responderUid = u;
             setupFirebaseChat();
@@ -150,10 +151,11 @@ public class SosLivechatActivity extends BaseActivity {
 
         if (roomCode == null) roomCode = "";
         if (alertId == null) alertId = "";
-        if (roomCode.isEmpty()) {
+        boolean isSosActive = UserPrefs.isSosProgressActive(this);
+        if (roomCode.isEmpty() && isSosActive) {
             roomCode = UserPrefs.getActiveSosProgressRoom(this);
         }
-        if (alertId.isEmpty()) {
+        if (alertId.isEmpty() && isSosActive) {
             alertId = UserPrefs.getActiveSosProgressAlert(this);
         }
         if (rName != null && !rName.trim().isEmpty()) responderName = rName.trim();

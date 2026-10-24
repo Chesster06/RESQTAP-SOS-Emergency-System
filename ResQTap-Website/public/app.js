@@ -895,6 +895,7 @@ const state = {
   callLogs: {},
   adminNotifications: {},
   supportChats: {},
+  sosChats: {},
   aiChats: {},
   highlights: {},
   medicalCards: {},
@@ -1517,6 +1518,9 @@ function startDataListeners() {
   });
   subscribe("supportChats", (value) => {
     state.supportChats = asRecord(value);
+  });
+  subscribe("sosChats", (value) => {
+    state.sosChats = asRecord(value);
   });
   subscribe("aiChats", (value) => {
     state.aiChats = asRecord(value);
@@ -3846,6 +3850,85 @@ function getSosLivechatSessions() {
     finalSessions.push(r);
   });
 
+  // Integrasi sesi SOS Livechat terus daripada laluan sosChats
+  entries(state.sosChats).forEach(([chatKey, rawChat]) => {
+    const chatRec = asRecord(rawChat);
+    const meta = asRecord(chatRec.meta);
+    const rawMessages = asRecord(chatRec.messages);
+    const messages = entries(rawMessages).map(([id, m]) => {
+      const val = asRecord(m);
+      return {
+        id,
+        text: text(val.text || val.message),
+        sender: text(val.sender || (val.senderType === "admin" ? "admin" : "user")),
+        senderName: text(val.senderName || (val.sender === "admin" ? "Admin Responder" : (meta.userName || "User"))),
+        senderUid: text(val.senderUid || meta.userUid),
+        createdAt: millis(val.createdAt || val.timestamp)
+      };
+    }).sort((a, b) => a.createdAt - b.createdAt);
+
+    const userUid = text(meta.userUid || chatKey);
+    const userRec = asRecord(state.users?.[userUid]);
+    const senderName = text(meta.userName || userRec.name || userRec.displayName || userRec.email || userUid);
+    const lastMsg = text(meta.lastMessage) || (messages.length ? messages[messages.length - 1].text : "");
+    const lastTime = millis(meta.updatedAt) || (messages.length ? messages[messages.length - 1].createdAt : Date.now());
+    const isSosActive = meta.status !== "resolved" && meta.status !== "closed";
+
+    // Semak sama ada sesi untuk pengguna ini sudah wujud dalam finalSessions (contohnya dari bilik)
+    const existing = finalSessions.find((s) => s.senderUid === userUid);
+    if (existing) {
+      existing.hasSosChat = true;
+      existing.chatKey = chatKey;
+      if (!existing.allAlerts) existing.allAlerts = [{ roomId: existing.roomId, alertId: existing.alertId }];
+      existing.allAlerts.push({ isSosChat: true, chatKey });
+      if (!existing.allSessionIds.includes(`SOSCHAT__${chatKey}`)) {
+        existing.allSessionIds.push(`SOSCHAT__${chatKey}`);
+      }
+      // Gabungkan mesej dengan deduplikasi
+      const existingIds = new Set((existing.messages || []).map((m) => m.id).filter(Boolean));
+      messages.forEach((m) => {
+        if (!m || !m.text) return;
+        if (m.id && existingIds.has(m.id)) return;
+        const dup = (existing.messages || []).some((ex) => {
+          if (m.id && ex.id && m.id === ex.id) return true;
+          return ex.sender === m.sender && String(ex.text).trim().toLowerCase() === String(m.text).trim().toLowerCase() && Math.abs((ex.createdAt || 0) - (m.createdAt || 0)) < 15000;
+        });
+        if (!dup) {
+          if (m.id) existingIds.add(m.id);
+          existing.messages.push(m);
+        }
+      });
+      existing.messages.sort((a, b) => a.createdAt - b.createdAt);
+      existing.messageCount = existing.messages.length;
+      if (existing.messages.length > 0) {
+        existing.lastMessage = existing.messages[existing.messages.length - 1].text;
+        existing.updatedAt = Math.max(existing.updatedAt, existing.messages[existing.messages.length - 1].createdAt || 0);
+      }
+    } else {
+      finalSessions.push({
+        sessionId: `SOSCHAT__${chatKey}`,
+        isSosChat: true,
+        chatKey,
+        roomId: "DIRECT",
+        roomDisplay: "Direct SOS",
+        alertId: chatKey,
+        senderUid: userUid,
+        senderName,
+        active: isSosActive,
+        status: isSosActive ? "active" : "resolved",
+        lastMessage: lastMsg,
+        updatedAt: lastTime,
+        createdAt: millis(meta.createdAt) || lastTime,
+        messageCount: messages.length,
+        messages,
+        meta,
+        allRooms: ["DIRECT"],
+        allAlerts: [{ isSosChat: true, chatKey }],
+        allSessionIds: [`SOSCHAT__${chatKey}`]
+      });
+    }
+  });
+
   return finalSessions.sort((a, b) => b.updatedAt - a.updatedAt);
 }
 
@@ -4022,10 +4105,23 @@ async function clearSosLivechatMessages(sessionParam) {
 
     const updates = {};
     alertsToClear.forEach((item) => {
-      updates[`rooms/${item.roomId}/sosAlerts/${item.alertId}/chat/messages`] = null;
-      updates[`rooms/${item.roomId}/sosAlerts/${item.alertId}/chat/meta/lastMessage`] = "";
-      updates[`rooms/${item.roomId}/sosAlerts/${item.alertId}/chat/meta/updatedAt`] = serverTimestamp();
+      if (item.isSosChat || item.chatKey) {
+        const k = item.chatKey || session.chatKey || session.senderUid;
+        updates[`sosChats/${k}/messages`] = null;
+        updates[`sosChats/${k}/meta/lastMessage`] = "";
+        updates[`sosChats/${k}/meta/updatedAt`] = serverTimestamp();
+      } else if (item.roomId && item.alertId && item.roomId !== "DIRECT") {
+        updates[`rooms/${item.roomId}/sosAlerts/${item.alertId}/chat/messages`] = null;
+        updates[`rooms/${item.roomId}/sosAlerts/${item.alertId}/chat/meta/lastMessage`] = "";
+        updates[`rooms/${item.roomId}/sosAlerts/${item.alertId}/chat/meta/updatedAt`] = serverTimestamp();
+      }
     });
+
+    if (session.senderUid) {
+      updates[`sosChats/${session.senderUid}/messages`] = null;
+      updates[`sosChats/${session.senderUid}/meta/lastMessage`] = "";
+      updates[`sosChats/${session.senderUid}/meta/updatedAt`] = serverTimestamp();
+    }
 
     await update(ref(db), updates);
     showToast("Semua mesej SOS Livechat telah dipadam.");
@@ -4059,28 +4155,48 @@ async function handleSosLivechatSubmit(event) {
       ? session.allAlerts
       : [{ roomId: session.roomId, alertId: session.alertId }];
 
-    // Use a single shared message ID across all alerts/rooms to avoid multi-room duplicates
-    const sharedMsgId = push(ref(db, `rooms/${alertsToWrite[0].roomId}/sosAlerts/${alertsToWrite[0].alertId}/chat/messages`)).key;
+    const targetChatKey = session.chatKey || session.senderUid || "general";
+    const sharedMsgId = push(ref(db, `sosChats/${targetChatKey}/messages`)).key;
 
     const updates = {};
-    alertsToWrite.forEach((item) => {
-      const chatMsg = {
-        id: sharedMsgId,
-        text: message,
-        sender: "admin",
-        senderType: "admin",
-        senderUid: adminUid,
-        senderName: adminName,
-        createdAt: serverTimestamp()
-      };
+    const chatMsg = {
+      id: sharedMsgId,
+      text: message,
+      sender: "admin",
+      senderType: "admin",
+      senderUid: adminUid,
+      senderName: adminName,
+      createdAt: serverTimestamp()
+    };
 
-      updates[`rooms/${item.roomId}/sosAlerts/${item.alertId}/chat/messages/${sharedMsgId}`] = chatMsg;
-      updates[`rooms/${item.roomId}/sosAlerts/${item.alertId}/chat/meta/lastMessage`] = message;
-      updates[`rooms/${item.roomId}/sosAlerts/${item.alertId}/chat/meta/lastSender`] = "admin";
-      updates[`rooms/${item.roomId}/sosAlerts/${item.alertId}/chat/meta/lastAdminUid`] = adminUid;
-      updates[`rooms/${item.roomId}/sosAlerts/${item.alertId}/chat/meta/lastAdminName`] = adminName;
-      updates[`rooms/${item.roomId}/sosAlerts/${item.alertId}/chat/meta/updatedAt`] = serverTimestamp();
+    alertsToWrite.forEach((item) => {
+      if (item.isSosChat || item.chatKey) {
+        const k = item.chatKey || targetChatKey;
+        updates[`sosChats/${k}/messages/${sharedMsgId}`] = chatMsg;
+        updates[`sosChats/${k}/meta/lastMessage`] = message;
+        updates[`sosChats/${k}/meta/lastSender`] = "admin";
+        updates[`sosChats/${k}/meta/lastAdminUid`] = adminUid;
+        updates[`sosChats/${k}/meta/lastAdminName`] = adminName;
+        updates[`sosChats/${k}/meta/updatedAt`] = serverTimestamp();
+      } else if (item.roomId && item.alertId && item.roomId !== "DIRECT") {
+        updates[`rooms/${item.roomId}/sosAlerts/${item.alertId}/chat/messages/${sharedMsgId}`] = chatMsg;
+        updates[`rooms/${item.roomId}/sosAlerts/${item.alertId}/chat/meta/lastMessage`] = message;
+        updates[`rooms/${item.roomId}/sosAlerts/${item.alertId}/chat/meta/lastSender`] = "admin";
+        updates[`rooms/${item.roomId}/sosAlerts/${item.alertId}/chat/meta/lastAdminUid`] = adminUid;
+        updates[`rooms/${item.roomId}/sosAlerts/${item.alertId}/chat/meta/lastAdminName`] = adminName;
+        updates[`rooms/${item.roomId}/sosAlerts/${item.alertId}/chat/meta/updatedAt`] = serverTimestamp();
+      }
     });
+
+    // Sentiasa pastikan sosChats/${session.senderUid} menerima mesej ini jika senderUid wujud
+    if (session.senderUid && !updates[`sosChats/${session.senderUid}/messages/${sharedMsgId}`]) {
+      updates[`sosChats/${session.senderUid}/messages/${sharedMsgId}`] = chatMsg;
+      updates[`sosChats/${session.senderUid}/meta/lastMessage`] = message;
+      updates[`sosChats/${session.senderUid}/meta/lastSender`] = "admin";
+      updates[`sosChats/${session.senderUid}/meta/lastAdminUid`] = adminUid;
+      updates[`sosChats/${session.senderUid}/meta/lastAdminName`] = adminName;
+      updates[`sosChats/${session.senderUid}/meta/updatedAt`] = serverTimestamp();
+    }
 
     await update(ref(db), updates);
     els.soslivechatReplyInput.value = "";
@@ -8188,9 +8304,11 @@ function switchToChatForUser(uid) {
   state.selected = null;
   renderDetail();
 
-  // 1. Semak sesi SOS Livechat aktif untuk pengguna ini
+  // 1. Semak sesi SOS Livechat aktif untuk pengguna ini (termasuk room alert & sosChats)
   const sosSessions = getSosLivechatSessions();
-  const activeSos = sosSessions.find((s) => s.senderUid === uid && s.active) || sosSessions.find((s) => s.senderUid === uid);
+  const activeSos = sosSessions.find((s) => s.senderUid === uid && s.active)
+                 || sosSessions.find((s) => s.senderUid === uid)
+                 || sosSessions.find((s) => s.chatKey === uid);
   if (activeSos) {
     state.selectedSosSessionId = activeSos.sessionId;
     setActiveView("soslivechat");
@@ -8206,10 +8324,40 @@ function switchToChatForUser(uid) {
     return;
   }
 
-  // 3. Fallback ke Livechat sokongan biasa
-  state.selectedChatUid = uid;
-  setActiveView("livechat");
-  claimLivechatThread(uid).catch(() => {});
+  // 3. Sentiasa buka SOS Livechat (bukan Ticket)
+  // Cipta atau buka sesi SOS direct untuk pengguna ini di bawah sosChats/${uid}
+  const targetSessionId = `SOSCHAT__${uid}`;
+  state.selectedSosSessionId = targetSessionId;
+  setActiveView("soslivechat");
+
+  // Inisialisasi meta sosChats jika belum wujud
+  const userRec = asRecord(state.users?.[uid]);
+  const userNameVal = text(userRec.name || userRec.displayName || userRec.email || "User");
+  const userEmailVal = text(userRec.email);
+
+  const metaUpdates = {
+    topic: "SOS Emergency Livechat",
+    status: "open",
+    userUid: uid,
+    userName: userNameVal,
+    userEmail: userEmailVal,
+    isSosEmergency: true,
+    updatedAt: serverTimestamp()
+  };
+
+  const updates = {
+    [`sosChats/${uid}/meta`]: metaUpdates
+  };
+
+  // Sekiranya ada mesej lama dari supportChats (contohnya ujian panggilan senyap sebelum ini), salin mesej ke sosChats
+  if (state.supportChats?.[uid]?.messages && (!state.sosChats?.[uid]?.messages || Object.keys(state.sosChats[uid].messages).length === 0)) {
+    const prevMessages = asRecord(state.supportChats[uid].messages);
+    entries(prevMessages).forEach(([id, m]) => {
+      updates[`sosChats/${uid}/messages/${id}`] = m;
+    });
+  }
+
+  update(ref(db), updates).catch(() => {});
 }
 
 function endAdminCall(preserveStatus = false) {
