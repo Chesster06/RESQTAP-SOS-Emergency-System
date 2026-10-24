@@ -68,10 +68,10 @@
                 android:layout_marginEnd="6dp"
                 android:contentDescription="Chat Admin"
                 android:visibility="gone"
-                app:icon="@drawable/ic_chat_bubble_modern"
+                app:icon="@drawable/ic_chat_modern_outline"
                 app:iconPadding="0dp"
-                app:iconSize="20dp"
-                app:iconTint="@color/text_primary"
+                app:iconSize="22dp"
+                app:iconTint="#E11D48"
                 app:strokeWidth="0dp" />
 
             <com.google.android.material.button.MaterialButton
@@ -82,9 +82,9 @@
                 android:layout_marginEnd="6dp"
                 android:contentDescription="Call Admin"
                 android:visibility="gone"
-                app:icon="@drawable/ic_phone"
+                app:icon="@drawable/ic_call_modern_outline"
                 app:iconPadding="0dp"
-                app:iconSize="20dp"
+                app:iconSize="22dp"
                 app:iconTint="#16A34A"
                 app:strokeWidth="0dp" />
 
@@ -1134,10 +1134,10 @@
                             android:textStyle="bold"
                             app:backgroundTint="#E11D48"
                             app:cornerRadius="14dp"
-                            app:icon="@drawable/ic_chat_bubble_modern"
+                            app:icon="@drawable/ic_chat_modern_outline"
                             app:iconGravity="textStart"
                             app:iconPadding="8dp"
-                            app:iconSize="18dp"
+                            app:iconSize="20dp"
                             app:iconTint="#FFFFFF"
                             app:strokeWidth="0dp" />
 
@@ -1157,10 +1157,10 @@
                             android:textStyle="bold"
                             app:backgroundTint="#DCFCE7"
                             app:cornerRadius="14dp"
-                            app:icon="@drawable/ic_phone"
+                            app:icon="@drawable/ic_call_modern_outline"
                             app:iconGravity="textStart"
                             app:iconPadding="8dp"
-                            app:iconSize="18dp"
+                            app:iconSize="20dp"
                             app:iconTint="#16A34A"
                             app:strokeColor="#BBF7D0"
                             app:strokeWidth="1dp" />
