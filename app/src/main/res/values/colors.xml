@@ -42,6 +42,7 @@
     <color name="member_pill_bg">#FFE4EE</color>
     <color name="member_pill_tint">#E60067</color>
     <color name="danger_red">#FF4D5E</color>
+    <color name="brand_danger">#FF4D5E</color>
     <color name="delete_account_button_bg">#00FFFFFF</color>
     <color name="brand_red_ring">#33E60067</color>
     <color name="brand_red_ring2">#18E60067</color>

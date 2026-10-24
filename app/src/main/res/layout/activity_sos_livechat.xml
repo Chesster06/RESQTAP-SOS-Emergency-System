@@ -70,7 +70,7 @@
             app:icon="@drawable/ic_delete"
             app:iconPadding="0dp"
             app:iconSize="20dp"
-            app:iconTint="@color/brand_danger"
+            app:iconTint="@color/danger_red"
             app:strokeWidth="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/btn_call_from_livechat"
