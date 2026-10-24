@@ -4106,7 +4106,7 @@ function renderLivechat() {
   ]));
   const allThreads = getSupportThreads();
   const selectedExists = state.selectedChatUid
-    && allThreads.some((thread) => thread.uid === state.selectedChatUid);
+    && (allThreads.some((thread) => thread.uid === state.selectedChatUid) || Boolean(state.supportChats?.[state.selectedChatUid]) || Boolean(state.users?.[state.selectedChatUid]));
 
   if (!selectedExists) {
     state.selectedChatUid = "";
@@ -4138,7 +4138,22 @@ function renderLivechat() {
     `;
   }).join("") : `<div class="livechat-empty inline"><strong>No livechat threads</strong><span>App users will appear after sending a message.</span></div>`;
 
-  const selectedThread = allThreads.find((thread) => thread.uid === state.selectedChatUid);
+  let selectedThread = allThreads.find((thread) => thread.uid === state.selectedChatUid);
+  if (!selectedThread && state.selectedChatUid) {
+    const userRec = asRecord(state.users?.[state.selectedChatUid]);
+    const rawChat = asRecord(state.supportChats?.[state.selectedChatUid]);
+    const chatMeta = asRecord(rawChat.meta);
+    const messages = getSupportChatMessages(rawChat);
+    selectedThread = {
+      uid: state.selectedChatUid,
+      meta: chatMeta,
+      messages,
+      name: text(chatMeta.userName || userRec.name || userRec.email || state.selectedChatUid),
+      email: text(chatMeta.userEmail || userRec.email),
+      status: text(chatMeta.status) || "open",
+      updatedAt: Date.now()
+    };
+  }
   if (!selectedThread) {
     els.livechatSelectedTitle.textContent = "Select a conversation";
     els.livechatSelectedSubtitle.textContent = "App users will appear here after they send a message.";
@@ -5633,6 +5648,7 @@ function openCaseCallOptions(uid, name) {
     vidBtn.onclick = () => {
       cleanup();
       closeCaseModal();
+      closeReportCaseModal();
       startAdminCall(uid, name || "Sender", "video");
     };
   }
@@ -5640,6 +5656,7 @@ function openCaseCallOptions(uid, name) {
     voiceBtn.onclick = () => {
       cleanup();
       closeCaseModal();
+      closeReportCaseModal();
       startAdminCall(uid, name || "Sender", "voice");
     };
   }
@@ -8111,6 +8128,11 @@ async function startAdminCall(uid, name, callType = "video", existingCallLogId =
       if (status === "chat_instead") {
         showToast("Pengguna memilih untuk bersembang (Chat instead)");
         const targetUid = uid;
+        closeReportCaseModal();
+        closeCaseModal();
+        closeCaseCallOptions();
+        state.selected = null;
+        renderDetail();
         endAdminCall(true);
         switchToChatForUser(targetUid);
         return;
@@ -8133,6 +8155,11 @@ async function startAdminCall(uid, name, callType = "video", existingCallLogId =
       if (status === "chat_instead") {
         showToast("Pengguna memilih untuk bersembang (Chat instead)");
         const targetUid = uid;
+        closeReportCaseModal();
+        closeCaseModal();
+        closeCaseCallOptions();
+        state.selected = null;
+        renderDetail();
         endAdminCall(true);
         switchToChatForUser(targetUid);
         return;
@@ -8153,6 +8180,13 @@ async function startAdminCall(uid, name, callType = "video", existingCallLogId =
 
 function switchToChatForUser(uid) {
   if (!uid) return;
+
+  // Tutup sebarang modal kemaskini laporan/kes SOS, options modal & panel perincian
+  closeReportCaseModal();
+  closeCaseModal();
+  closeCaseCallOptions();
+  state.selected = null;
+  renderDetail();
 
   // 1. Semak sesi SOS Livechat aktif untuk pengguna ini
   const sosSessions = getSosLivechatSessions();
@@ -8175,6 +8209,7 @@ function switchToChatForUser(uid) {
   // 3. Fallback ke Livechat sokongan biasa
   state.selectedChatUid = uid;
   setActiveView("livechat");
+  claimLivechatThread(uid).catch(() => {});
 }
 
 function endAdminCall(preserveStatus = false) {
