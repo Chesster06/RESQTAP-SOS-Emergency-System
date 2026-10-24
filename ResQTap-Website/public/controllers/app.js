@@ -3660,7 +3660,6 @@ function renderReports() {
           <div class="row-actions table-row-actions" style="display: inline-flex; flex-wrap: nowrap; white-space: nowrap; gap: 6px;">
             <button class="small-button highlight" data-action="manage-report-case" data-report="${escapeHtml(report.key)}" type="button" style="white-space: nowrap; flex-shrink: 0;">${icon("clipboard-edit")}<span>Update Case</span></button>
             <button class="small-button" data-action="view-report" data-report="${escapeHtml(report.key)}" type="button" style="white-space: nowrap; flex-shrink: 0;">${icon("eye")}<span>View</span></button>
-            <button class="small-button" data-action="chat-report-user" data-uid="${escapeHtml(report.senderUid)}" type="button" title="Livechat with reporter" style="white-space: nowrap; flex-shrink: 0;">${icon("messages-square")}<span>Livechat</span></button>
           </div>
         </td>
       </tr>
