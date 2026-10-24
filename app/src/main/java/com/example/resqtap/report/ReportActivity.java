@@ -61,9 +61,17 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.example.resqtap.map.MapTypeBottomSheet;
+import com.example.resqtap.room.FirebaseRoomClient;
+import com.example.resqtap.sos.SosLivechatActivity;
+import com.example.resqtap.call.CallSignalingClient;
+import com.example.resqtap.call.VoiceCallActivity;
+import com.example.resqtap.call.VideoCallActivity;
 import com.example.resqtap.utils.UserPrefs;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.ChipGroup;
+import android.view.LayoutInflater;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -193,6 +201,20 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
     private String currentReportStatus;
     private boolean isShowingProgress = false;
 
+    // Responder Direct Communication Views & Signaling
+    private View btnTopChatAdmin;
+    private View btnTopCallAdmin;
+    private View cardProgressContactAdmin;
+    private View btnProgressChatAdmin;
+    private View btnProgressCallAdmin;
+    private TextView tvProgressResponderSubtitle;
+    private TextView badgeResponderLive;
+    private BottomSheetDialog callWaitDialog;
+    private DatabaseReference userCallRef;
+    private ValueEventListener userCallListener;
+    private DatabaseReference adminCallIncomingRef;
+    private ValueEventListener adminCallIncomingListener;
+
     // SEKSYEN: ONCREATE
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
@@ -244,6 +266,11 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         if (locationTokenSource != null) locationTokenSource.cancel();
         geocoderExecutor.shutdownNow();
         detachActiveReportListener();
+        stopCallListening();
+        if (callWaitDialog != null && callWaitDialog.isShowing()) {
+            callWaitDialog.dismiss();
+            callWaitDialog = null;
+        }
         super.onDestroy();
     }
 
@@ -403,6 +430,27 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         btnNewReportTop = findViewById(R.id.btn_new_report_top);
         btnRefreshProgress = findViewById(R.id.btn_refresh_progress);
         ivRefreshIcon = findViewById(R.id.iv_refresh_icon);
+
+        btnTopChatAdmin = findViewById(R.id.btn_top_chat_admin);
+        btnTopCallAdmin = findViewById(R.id.btn_top_call_admin);
+        cardProgressContactAdmin = findViewById(R.id.card_progress_contact_admin);
+        btnProgressChatAdmin = findViewById(R.id.btn_progress_chat_admin);
+        btnProgressCallAdmin = findViewById(R.id.btn_progress_call_admin);
+        tvProgressResponderSubtitle = findViewById(R.id.tv_progress_responder_subtitle);
+        badgeResponderLive = findViewById(R.id.badge_responder_live);
+
+        if (btnTopChatAdmin != null) {
+            btnTopChatAdmin.setOnClickListener(v -> openAdminChatForReport());
+        }
+        if (btnProgressChatAdmin != null) {
+            btnProgressChatAdmin.setOnClickListener(v -> openAdminChatForReport());
+        }
+        if (btnTopCallAdmin != null) {
+            btnTopCallAdmin.setOnClickListener(v -> showCallOptionsBottomSheet());
+        }
+        if (btnProgressCallAdmin != null) {
+            btnProgressCallAdmin.setOnClickListener(v -> showCallOptionsBottomSheet());
+        }
 
         if (cardActiveReportBanner != null) {
             cardActiveReportBanner.setOnClickListener(v -> {
@@ -1213,6 +1261,15 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         if (reportTitleView != null) {
             reportTitleView.setText(R.string.report_progress_title);
         }
+        if (btnTopChatAdmin != null) {
+            btnTopChatAdmin.setVisibility(View.VISIBLE);
+        }
+        if (btnTopCallAdmin != null) {
+            btnTopCallAdmin.setVisibility(View.VISIBLE);
+        }
+        if (cardProgressContactAdmin != null) {
+            cardProgressContactAdmin.setVisibility(View.VISIBLE);
+        }
         if (btnNewReportTop != null) {
             boolean isResolved = "resolved".equalsIgnoreCase(currentReportStatus);
             btnNewReportTop.setVisibility(isResolved ? View.VISIBLE : View.GONE);
@@ -1237,6 +1294,15 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         isShowingProgress = false;
         if (btnNewReportTop != null) {
             btnNewReportTop.setVisibility(View.GONE);
+        }
+        if (btnTopChatAdmin != null) {
+            btnTopChatAdmin.setVisibility(View.GONE);
+        }
+        if (btnTopCallAdmin != null) {
+            btnTopCallAdmin.setVisibility(View.GONE);
+        }
+        if (cardProgressContactAdmin != null) {
+            cardProgressContactAdmin.setVisibility(View.GONE);
         }
         if (reportProgressScroll != null) reportProgressScroll.setVisibility(View.GONE);
         if (reportScroll != null) reportScroll.setVisibility(View.VISIBLE);
@@ -1349,6 +1415,13 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
             if (tvProgressMessage != null) {
                 tvProgressMessage.setText(R.string.report_step_4_desc);
             }
+            if (tvProgressResponderSubtitle != null) {
+                tvProgressResponderSubtitle.setText("Kes ini telah diselesaikan. Anda masih boleh menghubungi admin.");
+            }
+            if (badgeResponderLive != null) {
+                badgeResponderLive.setText("Resolved");
+                badgeResponderLive.setTextColor(0xFF059669);
+            }
 
             setStepCircle(step1Circle, step1Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
             if (stepLine12 != null) stepLine12.setBackgroundColor(colorDone);
@@ -1373,6 +1446,13 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
             }
             if (tvProgressMessage != null) {
                 tvProgressMessage.setText(R.string.report_step_3_desc);
+            }
+            if (tvProgressResponderSubtitle != null) {
+                tvProgressResponderSubtitle.setText("Admin responder sedang mengendalikan tindakan kecemasan ini.");
+            }
+            if (badgeResponderLive != null) {
+                badgeResponderLive.setText("Responding");
+                badgeResponderLive.setTextColor(0xFFE11D48);
             }
 
             setStepCircle(step1Circle, step1Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
@@ -1400,6 +1480,13 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
             if (tvProgressMessage != null) {
                 tvProgressMessage.setText(R.string.report_step_2_desc);
             }
+            if (tvProgressResponderSubtitle != null) {
+                tvProgressResponderSubtitle.setText("Admin responder sedang menyemak butiran laporan anda.");
+            }
+            if (badgeResponderLive != null) {
+                badgeResponderLive.setText("Reviewing");
+                badgeResponderLive.setTextColor(0xFFD97706);
+            }
 
             setStepCircle(step1Circle, step1Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
             if (stepLine12 != null) stepLine12.setBackgroundColor(colorActive);
@@ -1426,6 +1513,13 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
             if (tvProgressMessage != null) {
                 tvProgressMessage.setText(R.string.report_status_rejected);
             }
+            if (tvProgressResponderSubtitle != null) {
+                tvProgressResponderSubtitle.setText("Laporan ini telah ditutup atau dibatalkan.");
+            }
+            if (badgeResponderLive != null) {
+                badgeResponderLive.setText("Closed");
+                badgeResponderLive.setTextColor(0xFFE11D48);
+            }
             setStepCircle(step1Circle, step1Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
             if (stepLine12 != null) stepLine12.setBackgroundColor(0xFFE11D48);
             setStepCircle(step2Circle, step2Icon, R.drawable.bg_step_circle_pending, R.drawable.ic_close_24, 0xFFE11D48);
@@ -1439,6 +1533,13 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
             }
             if (tvProgressMessage != null) {
                 tvProgressMessage.setText(R.string.report_step_1_desc);
+            }
+            if (tvProgressResponderSubtitle != null) {
+                tvProgressResponderSubtitle.setText("Hubungi admin responder bertugas untuk sebarang bantuan segera.");
+            }
+            if (badgeResponderLive != null) {
+                badgeResponderLive.setText("Online");
+                badgeResponderLive.setTextColor(0xFF059669);
             }
 
             setStepCircle(step1Circle, step1Icon, R.drawable.bg_step_circle_done, R.drawable.ic_check_24, 0xFFFFFFFF);
@@ -2018,6 +2119,193 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
 
     private int dp(int value) {
         return Math.round(value * getResources().getDisplayMetrics().density);
+    }
+
+    // SEKSYEN: DIRECT RESPONDER COMMUNICATION (CALL & CHAT)
+    private void openAdminChatForReport() {
+        String cleanReportId = currentReportId != null ? currentReportId.trim() : "";
+        SosLivechatActivity.launch(this, "", cleanReportId, "Administrator", "");
+    }
+
+    private void showCallOptionsBottomSheet() {
+        BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_ResQTap_BottomSheetDialog);
+        dialog.setCanceledOnTouchOutside(false);
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_sos_call_options, null);
+        dialog.setContentView(view);
+
+        View optVideo = view.findViewById(R.id.option_call_video);
+        View optVoice = view.findViewById(R.id.option_call_voice);
+        View btnClose = view.findViewById(R.id.btn_close_call_options);
+
+        if (optVideo != null) {
+            optVideo.setOnClickListener(v -> {
+                dialog.dismiss();
+                initiateAdminCall("video");
+            });
+        }
+
+        if (optVoice != null) {
+            optVoice.setOnClickListener(v -> {
+                dialog.dismiss();
+                initiateAdminCall("voice");
+            });
+        }
+
+        if (btnClose != null) {
+            btnClose.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        dialog.show();
+    }
+
+    private void initiateAdminCall(String callType) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            Toast.makeText(this, "Sila log masuk untuk membuat panggilan.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String myUid = user.getUid();
+        String myName = UserPrefs.getName(this);
+        if (myName.isEmpty()) myName = user.getDisplayName() != null ? user.getDisplayName() : "User";
+
+        CallSignalingClient.setAwaitingSosResponse(true);
+
+        DatabaseReference rtdb = FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL).getReference();
+
+        Map<String, Object> callReq = new HashMap<>();
+        callReq.put("status", "ringing");
+        callReq.put("callType", callType);
+        callReq.put("alertId", currentReportId != null ? currentReportId : "");
+        callReq.put("roomId", "REPORT");
+        callReq.put("callerUid", myUid);
+        callReq.put("callerName", myName);
+        callReq.put("timestamp", ServerValue.TIMESTAMP);
+
+        rtdb.child("adminCalls").child("incoming").setValue(callReq);
+
+        showCallWaitBottomSheet(callType, myUid);
+    }
+
+    private void showCallWaitBottomSheet(String callType, String myUid) {
+        stopCallListening();
+
+        callWaitDialog = new BottomSheetDialog(this, R.style.Theme_ResQTap_BottomSheetDialog);
+        callWaitDialog.setCanceledOnTouchOutside(false);
+        callWaitDialog.setCancelable(false);
+        BottomSheetBehavior<?> waitBehavior = callWaitDialog.getBehavior();
+        if (waitBehavior != null) {
+            waitBehavior.setHideable(false);
+        }
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_sos_call_options, null);
+        callWaitDialog.setContentView(view);
+
+        TextView tvTitle = view.findViewById(R.id.tv_call_options_title);
+        TextView tvSub = view.findViewById(R.id.tv_call_options_subtitle);
+        View optVideo = view.findViewById(R.id.option_call_video);
+        View optVoice = view.findViewById(R.id.option_call_voice);
+        View btnClose = view.findViewById(R.id.btn_close_call_options);
+
+        if (tvTitle != null) {
+            tvTitle.setText(R.string.sos_call_connecting_title);
+        }
+        if (tvSub != null) {
+            tvSub.setText("voice".equals(callType) ? R.string.sos_call_connecting_wait_voice : R.string.sos_call_connecting_wait_video);
+        }
+        if (optVideo != null) optVideo.setVisibility(View.GONE);
+        if (optVoice != null) optVoice.setVisibility(View.GONE);
+
+        if (btnClose != null) {
+            btnClose.setOnClickListener(v -> {
+                cancelCallRequest();
+                if (callWaitDialog != null) callWaitDialog.dismiss();
+            });
+        }
+
+        callWaitDialog.setOnDismissListener(d -> {
+            CallSignalingClient.setAwaitingSosResponse(false);
+            stopCallListening();
+        });
+        callWaitDialog.show();
+
+        DatabaseReference rtdb = FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL).getReference();
+
+        adminCallIncomingRef = rtdb.child("adminCalls").child("incoming");
+        adminCallIncomingListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!snapshot.exists()) return;
+                String status = snapshot.child("status").getValue(String.class);
+                if ("declined".equalsIgnoreCase(status)) {
+                    stopCallListening();
+                    CallSignalingClient.setAwaitingSosResponse(false);
+                    if (callWaitDialog != null && callWaitDialog.isShowing()) {
+                        callWaitDialog.dismiss();
+                    }
+                    Toast.makeText(ReportActivity.this, R.string.sos_call_admin_busy, Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        };
+        adminCallIncomingRef.addValueEventListener(adminCallIncomingListener);
+
+        if (myUid != null && !myUid.isEmpty()) {
+            userCallRef = rtdb.child("userCalls").child(myUid).child("currentCall");
+
+            userCallListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (!snapshot.exists()) return;
+                    String status = snapshot.child("status").getValue(String.class);
+                    String callId = snapshot.child("callId").getValue(String.class);
+                    String serverCallType = snapshot.child("callType").getValue(String.class);
+                    if (serverCallType == null || serverCallType.isEmpty()) serverCallType = callType;
+
+                    if ("ringing".equalsIgnoreCase(status) && callId != null && !callId.isEmpty()) {
+                        CallSignalingClient.setAwaitingSosResponse(false);
+                        stopCallListening();
+                        if (callWaitDialog != null && callWaitDialog.isShowing()) {
+                            callWaitDialog.dismiss();
+                        }
+
+                        CallSignalingClient.getInstance().acceptCall(myUid, callId);
+
+                        Intent intent = new Intent(ReportActivity.this, "voice".equalsIgnoreCase(serverCallType) ? VoiceCallActivity.class : VideoCallActivity.class);
+                        intent.putExtra("callId", callId);
+                        intent.putExtra("callerName", "Admin Responder");
+                        intent.putExtra("callType", serverCallType);
+                        startActivity(intent);
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {}
+            };
+            userCallRef.addValueEventListener(userCallListener);
+        }
+    }
+
+    private void cancelCallRequest() {
+        stopCallListening();
+        CallSignalingClient.setAwaitingSosResponse(false);
+        try {
+            FirebaseDatabase.getInstance(FirebaseRoomClient.DATABASE_URL).getReference()
+                    .child("adminCalls").child("incoming").removeValue();
+        } catch (Exception ignored) {}
+    }
+
+    private void stopCallListening() {
+        if (userCallRef != null && userCallListener != null) {
+            userCallRef.removeEventListener(userCallListener);
+            userCallListener = null;
+            userCallRef = null;
+        }
+        if (adminCallIncomingRef != null && adminCallIncomingListener != null) {
+            adminCallIncomingRef.removeEventListener(adminCallIncomingListener);
+            adminCallIncomingListener = null;
+            adminCallIncomingRef = null;
+        }
     }
 
     private static final class AttachmentInfo {

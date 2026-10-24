@@ -50,21 +50,57 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@id/btn_back" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_new_report_top"
-            style="@style/Widget.ResQTap.MapControlButton"
-            android:layout_width="52dp"
+        <LinearLayout
+            android:id="@+id/layout_report_top_actions"
+            android:layout_width="wrap_content"
             android:layout_height="52dp"
-            android:contentDescription="@string/report_action_new"
-            android:visibility="gone"
-            app:icon="@drawable/ic_add"
-            app:iconPadding="0dp"
-            app:iconSize="24dp"
-            app:iconTint="@color/text_primary"
+            android:gravity="center_vertical|end"
+            android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="@id/btn_back"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/btn_back"
-            app:strokeWidth="0dp" />
+            app:layout_constraintTop_toTopOf="@id/btn_back">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_top_chat_admin"
+                style="@style/Widget.ResQTap.MapControlButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginEnd="6dp"
+                android:contentDescription="Chat Admin"
+                android:visibility="gone"
+                app:icon="@drawable/ic_chat_bubble_modern"
+                app:iconPadding="0dp"
+                app:iconSize="20dp"
+                app:iconTint="@color/text_primary"
+                app:strokeWidth="0dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_top_call_admin"
+                style="@style/Widget.ResQTap.MapControlButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginEnd="6dp"
+                android:contentDescription="Call Admin"
+                android:visibility="gone"
+                app:icon="@drawable/ic_phone"
+                app:iconPadding="0dp"
+                app:iconSize="20dp"
+                app:iconTint="#16A34A"
+                app:strokeWidth="0dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_new_report_top"
+                style="@style/Widget.ResQTap.MapControlButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:contentDescription="@string/report_action_new"
+                android:visibility="gone"
+                app:icon="@drawable/ic_add"
+                app:iconPadding="0dp"
+                app:iconSize="22dp"
+                app:iconTint="@color/text_primary"
+                app:strokeWidth="0dp" />
+        </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -1010,6 +1046,125 @@
                             android:layout_height="wrap_content"
                             android:orientation="horizontal" />
                     </HorizontalScrollView>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Contact Responder Card (Chat & Call Admin) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_progress_contact_admin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                app:cardBackgroundColor="@color/panel"
+                app:cardCornerRadius="22dp"
+                app:cardElevation="3dp"
+                app:strokeColor="#11000000"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="18dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Emergency Responder"
+                                android:textColor="@color/text_primary"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tv_progress_responder_subtitle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="Hubungi admin responder bertugas untuk kes ini"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/badge_responder_live"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_report_status_pill"
+                            android:paddingStart="10dp"
+                            android:paddingTop="4dp"
+                            android:paddingEnd="10dp"
+                            android:paddingBottom="4dp"
+                            android:text="Online"
+                            android:textColor="#059669"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:orientation="horizontal">
+
+                        <!-- Chat Button -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_progress_chat_admin"
+                            android:layout_width="0dp"
+                            android:layout_height="50dp"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="6dp"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp"
+                            android:text="Chat Admin"
+                            android:textAllCaps="false"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            app:backgroundTint="#E11D48"
+                            app:cornerRadius="14dp"
+                            app:icon="@drawable/ic_chat_bubble_modern"
+                            app:iconGravity="textStart"
+                            app:iconPadding="8dp"
+                            app:iconSize="18dp"
+                            app:iconTint="#FFFFFF"
+                            app:strokeWidth="0dp" />
+
+                        <!-- Call Button -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_progress_call_admin"
+                            android:layout_width="0dp"
+                            android:layout_height="50dp"
+                            android:layout_weight="1"
+                            android:layout_marginStart="6dp"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp"
+                            android:text="Call Admin"
+                            android:textAllCaps="false"
+                            android:textColor="#16A34A"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            app:backgroundTint="#DCFCE7"
+                            app:cornerRadius="14dp"
+                            app:icon="@drawable/ic_phone"
+                            app:iconGravity="textStart"
+                            app:iconPadding="8dp"
+                            app:iconSize="18dp"
+                            app:iconTint="#16A34A"
+                            app:strokeColor="#BBF7D0"
+                            app:strokeWidth="1dp" />
+                    </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
