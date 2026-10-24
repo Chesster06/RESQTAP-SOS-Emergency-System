@@ -3524,10 +3524,10 @@ function renderUsers() {
         <td>${roomCount}</td>
         <td>${pill(live ? "Online" : "Offline", live ? "good" : "neutral")}</td>
         <td>${user.lastSeen ? escapeHtml(ageLabel(user.lastSeen)) : '<span class="muted">Never</span>'}</td>
-        <td>
-          <div class="row-actions">
-            <button class="small-button" data-action="view-user" data-uid="${escapeHtml(user.uid)}" data-force-profile="true" type="button">${icon("eye")}<span>View</span></button>
-            <button class="small-button danger" data-action="delete-user" data-uid="${escapeHtml(user.uid)}" type="button">${icon("trash-2")}<span>Delete</span></button>
+        <td class="table-actions-cell" style="white-space: nowrap; width: 1%; text-align: right;">
+          <div class="row-actions table-row-actions" style="display: inline-flex; flex-wrap: nowrap; white-space: nowrap; gap: 6px;">
+            <button class="small-button" data-action="view-user" data-uid="${escapeHtml(user.uid)}" data-force-profile="true" type="button" style="white-space: nowrap; flex-shrink: 0;">${icon("eye")}<span>View</span></button>
+            <button class="small-button danger" data-action="delete-user" data-uid="${escapeHtml(user.uid)}" type="button" style="white-space: nowrap; flex-shrink: 0;">${icon("trash-2")}<span>Delete</span></button>
           </div>
         </td>
       </tr>
@@ -3561,10 +3561,10 @@ function renderRooms() {
         <td>${pill(room.liveCount, room.liveCount ? "good" : "")}</td>
         <td>${pill(activeAlerts, activeAlerts ? "alert" : "")}</td>
         <td>${escapeHtml(ageLabel(room.updatedAt))}</td>
-        <td>
-          <div class="row-actions">
-            <button class="small-button" data-action="view-room" data-room="${escapeHtml(room.code)}" type="button">${icon("eye")}<span>View</span></button>
-            <button class="small-button danger" data-action="delete-room" data-room="${escapeHtml(room.code)}" type="button">${icon("trash-2")}<span>Delete</span></button>
+        <td class="table-actions-cell" style="white-space: nowrap; width: 1%; text-align: right;">
+          <div class="row-actions table-row-actions" style="display: inline-flex; flex-wrap: nowrap; white-space: nowrap; gap: 6px;">
+            <button class="small-button" data-action="view-room" data-room="${escapeHtml(room.code)}" type="button" style="white-space: nowrap; flex-shrink: 0;">${icon("eye")}<span>View</span></button>
+            <button class="small-button danger" data-action="delete-room" data-room="${escapeHtml(room.code)}" type="button" style="white-space: nowrap; flex-shrink: 0;">${icon("trash-2")}<span>Delete</span></button>
           </div>
         </td>
       </tr>
@@ -3603,11 +3603,11 @@ function renderSos() {
         </td>
         <td>${escapeHtml(formatDate(alert.createdAt))}</td>
         <td>${escapeHtml(ageLabel(alert.createdAt))}</td>
-        <td>
-          <div class="row-actions">
-            <button class="small-button" data-action="call-sos" data-uid="${escapeHtml(alert.senderUid)}" data-name="${escapeHtml(alert.senderName)}" type="button">${icon("phone")}<span>Call</span></button>
-            <button class="small-button" data-action="view-sos" data-room="${escapeHtml(alert.roomId)}" data-alert="${escapeHtml(alert.key)}" type="button">${icon("eye")}<span>View</span></button>
-            ${canCancel ? `<button class="small-button danger" data-action="cancel-sos" data-room="${escapeHtml(alert.roomId)}" data-alert="${escapeHtml(alert.key)}" type="button">${icon("circle-x")}<span>Cancel</span></button>` : ""}
+        <td class="table-actions-cell" style="white-space: nowrap; width: 1%; text-align: right;">
+          <div class="row-actions table-row-actions" style="display: inline-flex; flex-wrap: nowrap; white-space: nowrap; gap: 6px;">
+            <button class="small-button" data-action="call-sos" data-uid="${escapeHtml(alert.senderUid)}" data-name="${escapeHtml(alert.senderName)}" type="button" style="white-space: nowrap; flex-shrink: 0;">${icon("phone")}<span>Call</span></button>
+            <button class="small-button" data-action="view-sos" data-room="${escapeHtml(alert.roomId)}" data-alert="${escapeHtml(alert.key)}" type="button" style="white-space: nowrap; flex-shrink: 0;">${icon("eye")}<span>View</span></button>
+            ${canCancel ? `<button class="small-button danger" data-action="cancel-sos" data-room="${escapeHtml(alert.roomId)}" data-alert="${escapeHtml(alert.key)}" type="button" style="white-space: nowrap; flex-shrink: 0;">${icon("circle-x")}<span>Cancel</span></button>` : ""}
           </div>
         </td>
       </tr>
@@ -3656,11 +3656,11 @@ function renderReports() {
           </div>
         </td>
         <td>${escapeHtml(formatDate(report.createdAt))}</td>
-        <td>
-          <div class="row-actions">
-            <button class="small-button highlight" data-action="manage-report-case" data-report="${escapeHtml(report.key)}" type="button">${icon("clipboard-edit")}<span>Update Case</span></button>
-            <button class="small-button" data-action="view-report" data-report="${escapeHtml(report.key)}" type="button">${icon("eye")}<span>View</span></button>
-            <button class="small-button" data-action="chat-report-user" data-uid="${escapeHtml(report.senderUid)}" type="button" title="Livechat with reporter">${icon("messages-square")}<span>Livechat</span></button>
+        <td class="table-actions-cell" style="white-space: nowrap; width: 1%; text-align: right;">
+          <div class="row-actions table-row-actions" style="display: inline-flex; flex-wrap: nowrap; white-space: nowrap; gap: 6px;">
+            <button class="small-button highlight" data-action="manage-report-case" data-report="${escapeHtml(report.key)}" type="button" style="white-space: nowrap; flex-shrink: 0;">${icon("clipboard-edit")}<span>Update Case</span></button>
+            <button class="small-button" data-action="view-report" data-report="${escapeHtml(report.key)}" type="button" style="white-space: nowrap; flex-shrink: 0;">${icon("eye")}<span>View</span></button>
+            <button class="small-button" data-action="chat-report-user" data-uid="${escapeHtml(report.senderUid)}" type="button" title="Livechat with reporter" style="white-space: nowrap; flex-shrink: 0;">${icon("messages-square")}<span>Livechat</span></button>
           </div>
         </td>
       </tr>
@@ -3737,9 +3737,9 @@ function renderNotices() {
         <td>${escapeHtml(notification.roomId || "-")}</td>
         <td>${escapeHtml(notification.sentAt ? formatDate(notification.sentAt) : "-")}</td>
         <td>${escapeHtml(notification.source)}</td>
-        <td>
-          <div class="row-actions">
-            ${notification.canDelete ? `<button class="small-button danger" data-action="delete-notification" data-notice="${escapeHtml(notification.id)}" type="button">${icon("trash-2")}<span>Delete</span></button>` : ""}
+        <td class="table-actions-cell" style="white-space: nowrap; width: 1%; text-align: right;">
+          <div class="row-actions table-row-actions" style="display: inline-flex; flex-wrap: nowrap; white-space: nowrap; gap: 6px;">
+            ${notification.canDelete ? `<button class="small-button danger" data-action="delete-notification" data-notice="${escapeHtml(notification.id)}" type="button" style="white-space: nowrap; flex-shrink: 0;">${icon("trash-2")}<span>Delete</span></button>` : ""}
           </div>
         </td>
       </tr>
