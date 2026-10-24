@@ -213,8 +213,8 @@
     },
     "calls": {
       "$callId": {
-        ".read": "auth != null && (root.child('admins').child(auth.uid).val() === true || root.child('admins').child(auth.uid).child('active').val() === true || data.child('callerUid').val() === auth.uid || data.child('targetUid').val() === auth.uid)",
-        ".write": "auth != null && (root.child('admins').child(auth.uid).val() === true || root.child('admins').child(auth.uid).child('active').val() === true || (!data.exists() && newData.child('callerUid').val() === auth.uid) || data.child('callerUid').val() === auth.uid || data.child('targetUid').val() === auth.uid)"
+        ".read": "auth != null",
+        ".write": "auth != null"
       }
     },
     "registeredEmails": {
@@ -224,8 +224,8 @@
       }
     },
     "adminCalls": {
-      ".read": "auth != null && (root.child('admins').child(auth.uid).val() === true || root.child('admins').child(auth.uid).child('active').val() === true)",
-      ".write": "auth != null && (root.child('admins').child(auth.uid).val() === true || root.child('admins').child(auth.uid).child('active').val() === true)"
+      ".read": "auth != null",
+      ".write": "auth != null"
     },
     "admin_audit_logs": {
       ".read": "auth != null && (root.child('admins').child(auth.uid).val() === true || root.child('admins').child(auth.uid).child('active').val() === true)",

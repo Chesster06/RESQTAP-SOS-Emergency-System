@@ -7973,6 +7973,8 @@ async function startAdminCall(uid, name, callType = "video", existingCallLogId =
     await update(ref(db, "calls/" + vcCurrentCallId), {
       offer: { type: offer.type, sdp: offer.sdp },
       callerUid: callerUid,
+      targetUid: vcTargetUid,
+      calleeUid: vcTargetUid,
       callerName: "ResQTap",
       callerPhotoUrl: "",
       callType: vcCurrentCallType,
