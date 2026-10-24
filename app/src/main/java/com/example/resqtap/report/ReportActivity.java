@@ -2118,8 +2118,10 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
         Map<String, Object> callReq = new HashMap<>();
         callReq.put("status", "ringing");
         callReq.put("callType", callType);
-        callReq.put("alertId", currentReportId != null ? currentReportId : "");
-        callReq.put("roomId", "REPORT");
+        callReq.put("reportId", currentReportId != null ? currentReportId : "");
+        callReq.put("alertId", "");
+        callReq.put("roomId", "");
+        callReq.put("isReportCall", true);
         callReq.put("callerUid", myUid);
         callReq.put("callerName", myName);
         callReq.put("timestamp", ServerValue.TIMESTAMP);

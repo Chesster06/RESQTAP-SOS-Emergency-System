@@ -1489,7 +1489,12 @@ function startDataListeners() {
     state.users = merged;
   });
   subscribe("rooms", (value) => {
-    state.rooms = asRecord(value);
+    const rawRooms = asRecord(value);
+    if (rawRooms["REPORT"]) {
+      delete rawRooms["REPORT"];
+      remove(ref(db, "rooms/REPORT")).catch(() => {});
+    }
+    state.rooms = rawRooms;
   });
   subscribe("roomTombstones", (value) => {
     state.roomTombstones = asRecord(value);
@@ -1695,8 +1700,10 @@ function isCancelled(alert) {
 function getSosAlerts() {
   const roomAlerts = [];
   entries(state.rooms).forEach(([roomId, room]) => {
+    if (!roomId || roomId === "REPORT" || roomId.startsWith("REPORT")) return;
     entries(asRecord(room).sosAlerts).forEach(([alertId, alertValue]) => {
       const alert = asRecord(alertValue);
+      if (!alert.senderUid && !alert.fromUid && !alert.lat && !alert.type && !alert.status) return;
       const createdAt = alertCreatedAt(alert);
       const senderUid = text(alert.senderUid || alert.fromUid).trim();
       const active = !isCancelled(alert);
@@ -2945,6 +2952,9 @@ function handleAdminIncomingCall(data) {
         acceptBtn.onclick = async () => {
           alertEl.classList.add("hidden");
           callRingtoneSound.stop();
+          if (typeof sosAlarmSound !== "undefined" && sosAlarmSound && typeof sosAlarmSound.stop === "function") {
+            sosAlarmSound.stop();
+          }
           const logId = data.callLogId || `call_${data.timestamp || Date.now()}`;
           vcActiveCallLogId = logId;
           vcActiveCallStartTime = Date.now();
@@ -2953,11 +2963,21 @@ function handleAdminIncomingCall(data) {
               status: "answered",
               answeredAt: serverTimestamp()
             });
-            if (data.roomId && data.alertId) {
+            const isRealSosAlert = data.roomId && data.alertId && data.roomId !== "REPORT" && !data.roomId.startsWith("REPORT") && data.roomId !== "-";
+            if (isRealSosAlert) {
               await update(ref(db, `rooms/${data.roomId}/sosAlerts/${data.alertId}/callRequest`), {
                 status: "answered",
                 answeredAt: serverTimestamp()
               });
+              await update(ref(db, `rooms/${data.roomId}/sosAlerts/${data.alertId}`), {
+                served: true,
+                servedAt: serverTimestamp(),
+                servedBy: state.currentUser ? state.currentUser.uid : "admin",
+                servedByName: "ResQTap Support (Admin)"
+              }).catch(() => {});
+              if (state.servedCases) {
+                state.servedCases.add(data.alertId);
+              }
             }
             await update(ref(db, `call_logs/${logId}`), {
               id: logId,
@@ -2967,11 +2987,11 @@ function handleAdminIncomingCall(data) {
               calleeUid: state.currentUser ? state.currentUser.uid : "admin",
               calleeName: "ResQTap Support (Admin)",
               status: "answered",
-              roomId: data.roomId || "-",
-              alertId: data.alertId || "-",
+              roomId: isRealSosAlert ? data.roomId : "-",
+              alertId: isRealSosAlert ? data.alertId : (data.reportId || "-"),
               timestamp: callTime,
               answeredAt: Date.now(),
-              source: "adminCalls/incoming"
+              source: data.isReportCall ? "report_call" : "adminCalls/incoming"
             });
           } catch (e) {}
           startAdminCall(data.callerUid, callerName, data.callType || "video", logId);
@@ -2988,7 +3008,8 @@ function handleAdminIncomingCall(data) {
               status: "declined",
               declinedAt: serverTimestamp()
             });
-            if (data.roomId && data.alertId) {
+            const isRealSosAlert = data.roomId && data.alertId && data.roomId !== "REPORT" && !data.roomId.startsWith("REPORT") && data.roomId !== "-";
+            if (isRealSosAlert) {
               await update(ref(db, `rooms/${data.roomId}/sosAlerts/${data.alertId}/callRequest`), {
                 status: "declined",
                 declinedAt: serverTimestamp()
@@ -3002,12 +3023,12 @@ function handleAdminIncomingCall(data) {
               calleeUid: state.currentUser ? state.currentUser.uid : "admin",
               calleeName: "ResQTap Support (Admin)",
               status: "declined",
-              roomId: data.roomId || "-",
-              alertId: data.alertId || "-",
+              roomId: isRealSosAlert ? data.roomId : "-",
+              alertId: isRealSosAlert ? data.alertId : (data.reportId || "-"),
               timestamp: callTime,
               declinedAt: Date.now(),
               duration: 0,
-              source: "adminCalls/incoming"
+              source: data.isReportCall ? "report_call" : "adminCalls/incoming"
             });
           } catch (e) {}
         };
@@ -7938,6 +7959,9 @@ async function startAdminCall(uid, name, callType = "video", existingCallLogId =
   if (caseOptionsEl) caseOptionsEl.classList.add("hidden");
   const incomingAlertEl = document.getElementById("adminIncomingCallAlert");
   if (incomingAlertEl) incomingAlertEl.classList.add("hidden");
+  if (typeof sosAlarmSound !== "undefined" && sosAlarmSound && typeof sosAlarmSound.stop === "function") {
+    sosAlarmSound.stop();
+  }
 
   const isVoiceCall = callType === "voice";
   const displayName = name || "User";
