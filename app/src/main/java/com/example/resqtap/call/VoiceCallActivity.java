@@ -175,13 +175,17 @@ public class VoiceCallActivity extends BaseActivity implements WebRTCClient.WebR
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (!snapshot.exists()) return;
                 String sdp = snapshot.child("sdp").getValue(String.class);
-                if (sdp != null) {
+                if (sdp != null && webRTCClient != null) {
                     SessionDescription description = new SessionDescription(SessionDescription.Type.OFFER, sdp);
-                    webRTCClient.setRemoteDescription(description);
-                    webRTCClient.createAnswer(new WebRTCClient.SimpleSdpObserver() {
+                    webRTCClient.setRemoteDescriptionAndCreateAnswer(description, new WebRTCClient.AnswerCallback() {
                         @Override
-                        public void onCreateSuccess(SessionDescription sessionDescription) {
-                            CallSignalingClient.getInstance().sendAnswer(callId, sessionDescription.description);
+                        public void onAnswerCreated(SessionDescription answer) {
+                            CallSignalingClient.getInstance().sendAnswer(callId, answer.description);
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            android.util.Log.e("VoiceCallActivity", "Error setting offer and creating voice answer: " + error);
                         }
                     });
                 }
@@ -202,7 +206,7 @@ public class VoiceCallActivity extends BaseActivity implements WebRTCClient.WebR
                 String sdpMid = snapshot.child("sdpMid").getValue(String.class);
                 Integer sdpMLineIndex = snapshot.child("sdpMLineIndex").getValue(Integer.class);
                 String candidate = snapshot.child("candidate").getValue(String.class);
-                if (sdpMid != null && sdpMLineIndex != null && candidate != null) {
+                if (sdpMid != null && sdpMLineIndex != null && candidate != null && !candidate.trim().isEmpty()) {
                     webRTCClient.addIceCandidate(new IceCandidate(sdpMid, sdpMLineIndex, candidate));
                 }
             }
@@ -281,7 +285,9 @@ public class VoiceCallActivity extends BaseActivity implements WebRTCClient.WebR
     /** Hantar calon ICE tempatan ke Firebase RTDB untuk bina laluan P2P. */
     @Override
     public void onIceCandidate(IceCandidate candidate) {
-        CallSignalingClient.getInstance().sendIceCandidate(callId, "calleeCandidates", candidate.sdpMid, candidate.sdpMLineIndex, candidate.sdp);
+        if (candidate != null && candidate.sdp != null && !candidate.sdp.trim().isEmpty()) {
+            CallSignalingClient.getInstance().sendIceCandidate(callId, "calleeCandidates", candidate.sdpMid, candidate.sdpMLineIndex, candidate.sdp);
+        }
     }
 
     /** Pantau status sambungan WebRTC (Connected, Failed, Closed). */

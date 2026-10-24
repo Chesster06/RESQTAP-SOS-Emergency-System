@@ -7911,9 +7911,29 @@ async function startAdminCall(uid, name, callType = "video", existingCallLogId =
       elsVc.localVideo.srcObject = vcLocalStream;
     }
 
-    vcPeerConnection = new RTCPeerConnection({
-      iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
-    });
+    const iceServers = [
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
+      { urls: "stun:stun2.l.google.com:19302" },
+      { urls: "stun:stun.services.mozilla.com" },
+      {
+        urls: "turn:openrelay.metered.ca:80",
+        username: "openrelayproject",
+        credential: "openrelayproject"
+      },
+      {
+        urls: "turn:openrelay.metered.ca:443",
+        username: "openrelayproject",
+        credential: "openrelayproject"
+      },
+      {
+        urls: "turn:openrelay.metered.ca:443?transport=tcp",
+        username: "openrelayproject",
+        credential: "openrelayproject"
+      }
+    ];
+
+    vcPeerConnection = new RTCPeerConnection({ iceServers });
 
     vcLocalStream.getTracks().forEach(track => {
       vcPeerConnection.addTrack(track, vcLocalStream);
@@ -7921,6 +7941,7 @@ async function startAdminCall(uid, name, callType = "video", existingCallLogId =
 
     vcPeerConnection.ontrack = (event) => {
       if (elsVc.overlay) elsVc.overlay.classList.add("hidden");
+      if (elsVc.status) elsVc.status.textContent = "Connected";
       if (!vcRemoteStream) {
         vcRemoteStream = new MediaStream();
         if (elsVc.remoteVideo) elsVc.remoteVideo.srcObject = vcRemoteStream;
@@ -7935,7 +7956,7 @@ async function startAdminCall(uid, name, callType = "video", existingCallLogId =
     vcCurrentCallId = callRef.key;
 
     vcPeerConnection.onicecandidate = (event) => {
-      if (event.candidate && vcCurrentCallId) {
+      if (event.candidate && event.candidate.candidate && vcCurrentCallId) {
         push(ref(db, "calls/" + vcCurrentCallId + "/callerCandidates"), {
           candidate: event.candidate.candidate,
           sdpMid: event.candidate.sdpMid,
@@ -7967,11 +7988,23 @@ async function startAdminCall(uid, name, callType = "video", existingCallLogId =
       timestamp: serverTimestamp()
     });
 
-    const answerUnsub = onValue(ref(db, "calls/" + vcCurrentCallId + "/answer"), (snapshot) => {
+    const queuedCalleeCandidates = [];
+    let isRemoteAnswerSet = false;
+
+    const answerUnsub = onValue(ref(db, "calls/" + vcCurrentCallId + "/answer"), async (snapshot) => {
       const data = snapshot.val();
       if (data && data.sdp && vcPeerConnection && !vcPeerConnection.currentRemoteDescription) {
-        const rtcDescription = new RTCSessionDescription(data);
-        vcPeerConnection.setRemoteDescription(rtcDescription).catch(e => console.warn("Failed to set remote answer:", e));
+        try {
+          const rtcDescription = new RTCSessionDescription(data);
+          await vcPeerConnection.setRemoteDescription(rtcDescription);
+          isRemoteAnswerSet = true;
+          while (queuedCalleeCandidates.length > 0) {
+            const cand = queuedCalleeCandidates.shift();
+            try { await vcPeerConnection.addIceCandidate(cand); } catch(e) {}
+          }
+        } catch(e) {
+          console.warn("Failed to set remote answer:", e);
+        }
       }
     });
     vcUnsubscribers.push(answerUnsub);
@@ -8012,15 +8045,23 @@ async function startAdminCall(uid, name, callType = "video", existingCallLogId =
     vcUnsubscribers.push(micUnsub);
 
     const processedCandidates = new Set();
-    const iceUnsub = onValue(ref(db, "calls/" + vcCurrentCallId + "/calleeCandidates"), (snapshot) => {
-      snapshot.forEach(childSnapshot => {
+    const iceUnsub = onValue(ref(db, "calls/" + vcCurrentCallId + "/calleeCandidates"), async (snapshot) => {
+      snapshot.forEach(async childSnapshot => {
         const key = childSnapshot.key;
         if (processedCandidates.has(key)) return;
         processedCandidates.add(key);
         const data = childSnapshot.val();
         if (data && data.candidate && vcPeerConnection) {
-          const candidate = new RTCIceCandidate(data);
-          vcPeerConnection.addIceCandidate(candidate).catch(() => {});
+          try {
+            const candidate = new RTCIceCandidate(data);
+            if (isRemoteAnswerSet && vcPeerConnection.currentRemoteDescription) {
+              await vcPeerConnection.addIceCandidate(candidate);
+            } else {
+              queuedCalleeCandidates.push(candidate);
+            }
+          } catch (e) {
+            console.warn("Error adding ICE candidate:", e);
+          }
         }
       });
     });
@@ -8029,7 +8070,10 @@ async function startAdminCall(uid, name, callType = "video", existingCallLogId =
     vcPeerConnection.onconnectionstatechange = () => {
       if (!vcPeerConnection) return;
       const connState = vcPeerConnection.connectionState;
-      if (connState === "closed") {
+      if (connState === "connected") {
+        if (elsVc.overlay) elsVc.overlay.classList.add("hidden");
+        if (elsVc.status) elsVc.status.textContent = "Connected";
+      } else if (connState === "closed") {
         endAdminCall();
       } else if (connState === "disconnected" || connState === "failed") {
         setTimeout(() => {
@@ -8037,14 +8081,17 @@ async function startAdminCall(uid, name, callType = "video", existingCallLogId =
             showToast("Panggilan telah ditamatkan");
             endAdminCall();
           }
-        }, 2000);
+        }, 3000);
       }
     };
 
     vcPeerConnection.oniceconnectionstatechange = () => {
       if (!vcPeerConnection) return;
       const iceState = vcPeerConnection.iceConnectionState;
-      if (iceState === "closed") {
+      if (iceState === "connected" || iceState === "completed") {
+        if (elsVc.overlay) elsVc.overlay.classList.add("hidden");
+        if (elsVc.status) elsVc.status.textContent = "Connected";
+      } else if (iceState === "closed") {
         endAdminCall();
       } else if (iceState === "disconnected" || iceState === "failed") {
         setTimeout(() => {
@@ -8052,7 +8099,7 @@ async function startAdminCall(uid, name, callType = "video", existingCallLogId =
             showToast("Panggilan telah ditamatkan");
             endAdminCall();
           }
-        }, 2000);
+        }, 3000);
       }
     };
 

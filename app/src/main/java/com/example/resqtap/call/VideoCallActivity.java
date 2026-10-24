@@ -212,33 +212,33 @@ public class VideoCallActivity extends BaseActivity implements WebRTCClient.WebR
     /** Dengar tawaran SDP Offer dari pemanggil melalui RTDB. */
     private void listenForOffer() {
         offerListener = new ValueEventListener() {
-            /** Callback apabila data Firebase Realtime Database berubah. */
-    @Override
+            @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (!snapshot.exists()) return;
                 String sdp = snapshot.child("sdp").getValue(String.class);
-                if (sdp != null) {
+                if (sdp != null && webRTCClient != null) {
                     SessionDescription description = new SessionDescription(SessionDescription.Type.OFFER, sdp);
-                    webRTCClient.setRemoteDescription(description);
-                    webRTCClient.createAnswer(new WebRTCClient.SimpleSdpObserver() {
-                        /** Callback apabila SDP Offer/Answer berjaya dicipta. */
-    @Override
-                        public void onCreateSuccess(SessionDescription sessionDescription) {
-                            CallSignalingClient.getInstance().sendAnswer(callId, sessionDescription.description);
+                    webRTCClient.setRemoteDescriptionAndCreateAnswer(description, new WebRTCClient.AnswerCallback() {
+                        @Override
+                        public void onAnswerCreated(SessionDescription answer) {
+                            CallSignalingClient.getInstance().sendAnswer(callId, answer.description);
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            android.util.Log.e("VideoCallActivity", "Error setting offer and creating answer: " + error);
                         }
                     });
                 }
             }
 
-            /** Callback sekiranya operasi Firebase dibatalkan atau gagal. */
-    @Override
+            @Override
             public void onCancelled(@NonNull DatabaseError error) {}
         };
         CallSignalingClient.getInstance().listenForOffer(callId, offerListener);
 
         cameraStateListener = new ValueEventListener() {
-            /** Callback apabila data Firebase Realtime Database berubah. */
-    @Override
+            @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
                     Boolean enabled = snapshot.getValue(Boolean.class);
@@ -247,8 +247,8 @@ public class VideoCallActivity extends BaseActivity implements WebRTCClient.WebR
                     }
                 }
             }
-            /** Callback sekiranya operasi Firebase dibatalkan atau gagal. */
-    @Override
+
+            @Override
             public void onCancelled(@NonNull DatabaseError error) {}
         };
         CallSignalingClient.getInstance().listenForCameraState(callId, "caller", cameraStateListener);
@@ -260,15 +260,14 @@ public class VideoCallActivity extends BaseActivity implements WebRTCClient.WebR
     /** Dengar maklumat ICE Candidates untuk bina sambungan P2P. */
     private void listenForIceCandidates() {
         iceCandidateListener = new ChildEventListener() {
-            /** Kendalikan rekod baharu yang ditambah ke senarai RTDB. */
-    @Override
+            @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, String previousChildName) {
-                if (!snapshot.exists()) return;
+                if (!snapshot.exists() || webRTCClient == null) return;
                 String sdpMid = snapshot.child("sdpMid").getValue(String.class);
                 Integer sdpMLineIndex = snapshot.child("sdpMLineIndex").getValue(Integer.class);
                 String candidate = snapshot.child("candidate").getValue(String.class);
 
-                if (sdpMid != null && sdpMLineIndex != null && candidate != null) {
+                if (sdpMid != null && sdpMLineIndex != null && candidate != null && !candidate.trim().isEmpty()) {
                     IceCandidate iceCandidate = new IceCandidate(sdpMid, sdpMLineIndex, candidate);
                     webRTCClient.addIceCandidate(iceCandidate);
                 }
@@ -292,7 +291,10 @@ public class VideoCallActivity extends BaseActivity implements WebRTCClient.WebR
     @Override
     public void onAddRemoteStream(VideoTrack videoTrack) {
         runOnUiThread(() -> {
-            findViewById(R.id.connecting_overlay).setVisibility(View.GONE);
+            View connectingOverlay = findViewById(R.id.connecting_overlay);
+            if (connectingOverlay != null) {
+                connectingOverlay.setVisibility(View.GONE);
+            }
             videoTrack.addSink(remoteVideoView);
         });
     }
@@ -307,14 +309,22 @@ public class VideoCallActivity extends BaseActivity implements WebRTCClient.WebR
     /** Hantar calon ICE tempatan ke Firebase RTDB untuk bina laluan P2P. */
     @Override
     public void onIceCandidate(IceCandidate candidate) {
-
-        CallSignalingClient.getInstance().sendIceCandidate(callId, "calleeCandidates", candidate.sdpMid, candidate.sdpMLineIndex, candidate.sdp);
+        if (candidate != null && candidate.sdp != null && !candidate.sdp.trim().isEmpty()) {
+            CallSignalingClient.getInstance().sendIceCandidate(callId, "calleeCandidates", candidate.sdpMid, candidate.sdpMLineIndex, candidate.sdp);
+        }
     }
 
     /** Pantau status sambungan WebRTC (Connected, Failed, Closed). */
     @Override
     public void onConnectionStateChange(PeerConnection.PeerConnectionState state) {
-        if (state == PeerConnection.PeerConnectionState.DISCONNECTED ||
+        if (state == PeerConnection.PeerConnectionState.CONNECTED) {
+            runOnUiThread(() -> {
+                View connectingOverlay = findViewById(R.id.connecting_overlay);
+                if (connectingOverlay != null) {
+                    connectingOverlay.setVisibility(View.GONE);
+                }
+            });
+        } else if (state == PeerConnection.PeerConnectionState.DISCONNECTED ||
             state == PeerConnection.PeerConnectionState.FAILED ||
             state == PeerConnection.PeerConnectionState.CLOSED) {
             remoteEnded = true;

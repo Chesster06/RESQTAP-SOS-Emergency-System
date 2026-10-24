@@ -45,6 +45,14 @@ public class WebRTCClient {
 
     private final WebRTCListener listener;
 
+    public interface AnswerCallback {
+        void onAnswerCreated(SessionDescription answer);
+        void onError(String error);
+    }
+
+    private final List<IceCandidate> queuedCandidates = new ArrayList<>();
+    private boolean isRemoteDescriptionSet = false;
+
     public interface WebRTCListener {
         void onLocalStream(VideoTrack videoTrack);
         void onAddRemoteStream(VideoTrack videoTrack);
@@ -182,58 +190,82 @@ public class WebRTCClient {
     public void call() {
         List<PeerConnection.IceServer> iceServers = new ArrayList<>();
         iceServers.add(PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer());
+        iceServers.add(PeerConnection.IceServer.builder("stun:stun1.l.google.com:19302").createIceServer());
+        iceServers.add(PeerConnection.IceServer.builder("stun:stun2.l.google.com:19302").createIceServer());
+        iceServers.add(PeerConnection.IceServer.builder("stun:stun.services.mozilla.com").createIceServer());
+        iceServers.add(PeerConnection.IceServer.builder("turn:openrelay.metered.ca:80")
+                .setUsername("openrelayproject")
+                .setPassword("openrelayproject")
+                .createIceServer());
+        iceServers.add(PeerConnection.IceServer.builder("turn:openrelay.metered.ca:443")
+                .setUsername("openrelayproject")
+                .setPassword("openrelayproject")
+                .createIceServer());
+        iceServers.add(PeerConnection.IceServer.builder("turn:openrelay.metered.ca:443?transport=tcp")
+                .setUsername("openrelayproject")
+                .setPassword("openrelayproject")
+                .createIceServer());
 
         PeerConnection.RTCConfiguration rtcConfig = new PeerConnection.RTCConfiguration(iceServers);
         rtcConfig.sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN;
+        rtcConfig.continualGatheringPolicy = PeerConnection.ContinualGatheringPolicy.GATHER_CONTINUALLY;
 
         peerConnection = peerConnectionFactory.createPeerConnection(rtcConfig, new PeerConnection.Observer() {
-            /** Pantau perubahan fasa pensinyalan WebRTC. */
-    @Override
+            @Override
             public void onSignalingChange(PeerConnection.SignalingState signalingState) {}
 
-            /** Pantau status sambungan rangkaian ICE. */
-    @Override
-            public void onIceConnectionChange(PeerConnection.IceConnectionState iceConnectionState) {}
+            @Override
+            public void onIceConnectionChange(PeerConnection.IceConnectionState iceConnectionState) {
+                if (iceConnectionState == PeerConnection.IceConnectionState.CONNECTED ||
+                        iceConnectionState == PeerConnection.IceConnectionState.COMPLETED) {
+                    if (listener != null) listener.onConnectionStateChange(PeerConnection.PeerConnectionState.CONNECTED);
+                } else if (iceConnectionState == PeerConnection.IceConnectionState.FAILED) {
+                    if (listener != null) listener.onConnectionStateChange(PeerConnection.PeerConnectionState.FAILED);
+                } else if (iceConnectionState == PeerConnection.IceConnectionState.DISCONNECTED) {
+                    if (listener != null) listener.onConnectionStateChange(PeerConnection.PeerConnectionState.DISCONNECTED);
+                } else if (iceConnectionState == PeerConnection.IceConnectionState.CLOSED) {
+                    if (listener != null) listener.onConnectionStateChange(PeerConnection.PeerConnectionState.CLOSED);
+                }
+            }
 
-    @Override
+            @Override
             public void onConnectionChange(PeerConnection.PeerConnectionState newState) {
                 if (listener != null) listener.onConnectionStateChange(newState);
             }
 
-    @Override
+            @Override
             public void onIceConnectionReceivingChange(boolean b) {}
 
-    @Override
+            @Override
             public void onIceGatheringChange(PeerConnection.IceGatheringState iceGatheringState) {}
 
-            /** Hantar calon ICE tempatan ke Firebase RTDB untuk bina laluan P2P. */
-    @Override
+            @Override
             public void onIceCandidate(IceCandidate iceCandidate) {
                 if (listener != null) listener.onIceCandidate(iceCandidate);
             }
 
-    @Override
+            @Override
             public void onIceCandidatesRemoved(IceCandidate[] iceCandidates) {}
 
-    @Override
+            @Override
             public void onAddStream(MediaStream mediaStream) {
                 if (mediaStream.videoTracks.size() > 0) {
                     if (listener != null) listener.onAddRemoteStream(mediaStream.videoTracks.get(0));
                 }
             }
 
-    @Override
+            @Override
             public void onRemoveStream(MediaStream mediaStream) {
                 if (listener != null) listener.onRemoveRemoteStream();
             }
 
-    @Override
+            @Override
             public void onDataChannel(DataChannel dataChannel) {}
 
-    @Override
+            @Override
             public void onRenegotiationNeeded() {}
 
-    @Override
+            @Override
             public void onAddTrack(org.webrtc.RtpReceiver rtpReceiver, MediaStream[] mediaStreams) {
                 if (rtpReceiver.track() instanceof VideoTrack) {
                     if (listener != null) listener.onAddRemoteStream((VideoTrack) rtpReceiver.track());
@@ -241,15 +273,92 @@ public class WebRTCClient {
             }
         });
 
+        java.util.List<String> streamIds = java.util.Collections.singletonList("ARDAMS");
         if (localVideoTrack != null && peerConnection != null) {
-            peerConnection.addTrack(localVideoTrack);
+            peerConnection.addTrack(localVideoTrack, streamIds);
         }
         if (localAudioTrack != null && peerConnection != null) {
-            peerConnection.addTrack(localAudioTrack);
+            peerConnection.addTrack(localAudioTrack, streamIds);
         }
     }
 
-    /** Tetapkan SessionDescription jauh (Offer atau Answer daripada pihak lawan). */
+    /**
+     * Memproses SDP Offer daripada pemanggil secara bersiri:
+     * 1. setRemoteDescription
+     * 2. drain ICE candidates yang tertunggak
+     * 3. createAnswer
+     * 4. setLocalDescription dengan answer
+     * 5. hantar answer kepada pemanggil
+     */
+    public void setRemoteDescriptionAndCreateAnswer(SessionDescription sdp, AnswerCallback callback) {
+        if (peerConnection == null) {
+            if (callback != null) callback.onError("peerConnection is null");
+            return;
+        }
+
+        peerConnection.setRemoteDescription(new SimpleSdpObserver() {
+            @Override
+            public void onSetSuccess() {
+                android.util.Log.d("WebRTCClient", "setRemoteDescription SUCCESS. Draining candidates and creating answer...");
+                drainQueuedCandidates();
+
+                MediaConstraints constraints = new MediaConstraints();
+                peerConnection.createAnswer(new SimpleSdpObserver() {
+                    @Override
+                    public void onCreateSuccess(SessionDescription answer) {
+                        android.util.Log.d("WebRTCClient", "createAnswer SUCCESS. Setting local description...");
+                        peerConnection.setLocalDescription(new SimpleSdpObserver() {
+                            @Override
+                            public void onSetSuccess() {
+                                android.util.Log.d("WebRTCClient", "setLocalDescription SUCCESS. Dispatching answer to signaling...");
+                                if (callback != null) {
+                                    callback.onAnswerCreated(answer);
+                                }
+                            }
+
+                            @Override
+                            public void onSetFailure(String error) {
+                                android.util.Log.e("WebRTCClient", "setLocalDescription FAILURE: " + error);
+                                if (callback != null) callback.onError("setLocalDescription failed: " + error);
+                            }
+                        }, answer);
+                    }
+
+                    @Override
+                    public void onCreateFailure(String error) {
+                        android.util.Log.e("WebRTCClient", "createAnswer FAILURE: " + error);
+                        if (callback != null) callback.onError("createAnswer failed: " + error);
+                    }
+                }, constraints);
+            }
+
+            @Override
+            public void onSetFailure(String error) {
+                android.util.Log.e("WebRTCClient", "setRemoteDescription FAILURE: " + error);
+                if (callback != null) callback.onError("setRemoteDescription failed: " + error);
+            }
+        }, sdp);
+    }
+
+    public synchronized void addIceCandidate(IceCandidate candidate) {
+        if (candidate == null) return;
+        if (peerConnection != null && isRemoteDescriptionSet) {
+            peerConnection.addIceCandidate(candidate);
+        } else {
+            queuedCandidates.add(candidate);
+        }
+    }
+
+    private synchronized void drainQueuedCandidates() {
+        isRemoteDescriptionSet = true;
+        if (peerConnection != null) {
+            for (IceCandidate c : queuedCandidates) {
+                peerConnection.addIceCandidate(c);
+            }
+            queuedCandidates.clear();
+        }
+    }
+
     public void setRemoteDescription(SessionDescription sdp) {
         if (peerConnection != null) {
             peerConnection.setRemoteDescription(new SimpleSdpObserver(), sdp);
@@ -259,20 +368,12 @@ public class WebRTCClient {
     public void createAnswer(org.webrtc.SdpObserver observer) {
         if (peerConnection != null) {
             peerConnection.createAnswer(new SimpleSdpObserver() {
-                /** Callback apabila SDP Offer/Answer berjaya dicipta. */
-    @Override
+                @Override
                 public void onCreateSuccess(SessionDescription sessionDescription) {
                     peerConnection.setLocalDescription(new SimpleSdpObserver(), sessionDescription);
                     observer.onCreateSuccess(sessionDescription);
                 }
             }, new MediaConstraints());
-        }
-    }
-
-    /** Masukkan ICE candidate daripada pihak lawan untuk pembinaan laluan rangkaian P2P. */
-    public void addIceCandidate(IceCandidate candidate) {
-        if (peerConnection != null) {
-            peerConnection.addIceCandidate(candidate);
         }
     }
 
@@ -293,6 +394,11 @@ public class WebRTCClient {
     // 6. TEARDOWN & CLEANUP MEMORY
     /** Tutup sambungan PeerConnection, lepaskan kamera, dan bersihkan semua sumber media. */
     public void close() {
+        synchronized (this) {
+            queuedCandidates.clear();
+            isRemoteDescriptionSet = false;
+        }
+
         if (videoCapturer != null) {
             try {
                 videoCapturer.stopCapture();
