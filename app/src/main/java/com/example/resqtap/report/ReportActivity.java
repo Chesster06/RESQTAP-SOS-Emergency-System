@@ -1476,22 +1476,8 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
     }
 
     private void updateCategoryIcon(String category) {
-        if (imgProgressCategoryIcon == null) return;
-        if ("fire".equals(category)) {
-            imgProgressCategoryIcon.setImageResource(R.drawable.ic_flash_on_24);
-            imgProgressCategoryIcon.setColorFilter(0xFFFF5722);
-        } else if ("medical_aid".equals(category)) {
-            imgProgressCategoryIcon.setImageResource(R.drawable.ic_medical_cross);
-            imgProgressCategoryIcon.setColorFilter(0xFFE91E63);
-        } else if ("humanitarian_aid".equals(category)) {
-            imgProgressCategoryIcon.setImageResource(R.drawable.ic_heart_health);
-            imgProgressCategoryIcon.setColorFilter(0xFF4CAF50);
-        } else if ("sea_emergency".equals(category)) {
-            imgProgressCategoryIcon.setImageResource(R.drawable.ic_alt_route);
-            imgProgressCategoryIcon.setColorFilter(0xFF0284C7);
-        } else {
-            imgProgressCategoryIcon.setImageResource(R.drawable.ic_ios_security);
-            imgProgressCategoryIcon.setColorFilter(0xFFE60067);
+        if (imgProgressCategoryIcon != null) {
+            imgProgressCategoryIcon.setVisibility(View.GONE);
         }
     }
 

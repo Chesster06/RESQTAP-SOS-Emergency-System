@@ -939,17 +939,16 @@
 
                         <ImageView
                             android:id="@+id/img_progress_category_icon"
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
                             android:contentDescription="@null"
-                            android:src="@drawable/ic_ios_security"
-                            app:tint="@color/brand_primary" />
+                            android:visibility="gone" />
 
                         <TextView
                             android:id="@+id/tv_progress_category"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="10dp"
+                            android:layout_marginStart="0dp"
                             android:text="Category"
                             android:textColor="@color/text_primary"
                             android:textSize="14sp"

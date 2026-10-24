@@ -3196,7 +3196,7 @@ function updateSosAlarmSystem() {
     banner.id = "sosAlarmBanner";
     banner.className = "sos-alarm-banner hidden";
     banner.innerHTML = `
-      <div class="sos-alarm-icon">🚨</div>
+      <div class="sos-alarm-icon"><i data-lucide="bell-ring" style="width:20px;height:20px;"></i></div>
       <div class="sos-alarm-text">
         <span class="sos-alarm-title">EMERGENCY SOS ACTIVE</span>
         <span class="sos-alarm-subtitle" id="sosAlarmSubtitle">-</span>
@@ -8655,7 +8655,7 @@ elsVc.sendMessageBtn.addEventListener("click", (e) => {
           Status: <strong>${st}</strong><br>
           Battery: <strong>${escapeHtml(bat)}</strong><br>
           Last seen: ${escapeHtml(ago)}
-          ${hasSos ? "<br><strong style='color:#ef4444;'>🚨 Active SOS</strong>" : ""}
+          ${hasSos ? "<br><strong style='color:#ef4444;'>Active SOS</strong>" : ""}
         </div>`;
         upsert(key, lat, lng, { type: it, photo, uid, name: nm }, popup, () => {
           if (hasSos) {
@@ -8709,7 +8709,7 @@ elsVc.sendMessageBtn.addEventListener("click", (e) => {
         const popup = `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
           <div style="width:38px;height:38px;border-radius:50%;overflow:hidden;border:2.5px solid #ef4444;flex-shrink:0;background:#FFE4EE;box-shadow:0 2px 6px rgba(0,0,0,.15);">${avatarSnippet}</div>
           <div>
-            <strong style="color:#ef4444;font-size:0.9rem;display:block;">🚨 ACTIVE SOS</strong>
+            <strong style="color:#ef4444;font-size:0.9rem;display:block;">ACTIVE SOS</strong>
             <strong style="font-size:0.85rem;color:#0f172a;">${sn}</strong>
           </div>
         </div>
