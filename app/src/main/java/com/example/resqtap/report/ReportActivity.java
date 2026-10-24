@@ -2067,7 +2067,11 @@ public class ReportActivity extends BaseActivity implements OnMapReadyCallback {
     // SEKSYEN: DIRECT RESPONDER COMMUNICATION (CALL & CHAT)
     private void openAdminChatForReport() {
         String cleanReportId = currentReportId != null ? currentReportId.trim() : "";
-        SosLivechatActivity.launch(this, "", cleanReportId, "Administrator", "");
+        String cat = tvProgressCategory != null ? tvProgressCategory.getText().toString().trim() : "";
+        Intent intent = new Intent(this, com.example.resqtap.chat.LivechatActivity.class);
+        intent.putExtra("reportId", cleanReportId);
+        intent.putExtra("reportCategory", cat);
+        startActivity(intent);
     }
 
     private void showCallOptionsBottomSheet() {

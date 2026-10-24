@@ -40,7 +40,7 @@ public class SupportActivity extends BaseActivity {
         View livechat = findViewById(R.id.card_livechat_entry);
         if (livechat != null) {
             livechat.setOnClickListener(v -> {
-                Intent intent = new Intent(this, com.example.resqtap.chat.ChatActivity.class);
+                Intent intent = new Intent(this, com.example.resqtap.chat.LivechatActivity.class);
                 startActivity(intent);
             });
         }

@@ -111,16 +111,92 @@ public class LivechatActivity extends BaseActivity {
     private String userName = "";
     private String userEmail = "";
     private String currentTopic = "";
+    private String reportId = "";
 
     // SEKSYEN: ONCREATE
     /** Inisialisasi aktiviti, bind view UI, dan setup listener. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ThemeUtils.applySavedNightMode(this);
         super.onCreate(savedInstanceState);
-        String room = UserPrefs.getActiveSosProgressRoom(this);
-        String alertId = UserPrefs.getActiveSosProgressAlert(this);
-        com.example.resqtap.sos.SosLivechatActivity.launch(this, room, alertId, "", "");
-        finish();
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_livechat);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
+        pickAttachment = registerForActivityResult(
+                new ActivityResultContracts.OpenDocument(),
+                uri -> {
+                    if (uri == null) return;
+                    try {
+                        getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    } catch (Exception ignored) {
+                    }
+                    setSelectedAttachment(uri);
+                }
+        );
+        takeCameraPhoto = registerForActivityResult(
+                new ActivityResultContracts.TakePicturePreview(),
+                bitmap -> {
+                    if (bitmap == null) return;
+                    setSelectedCameraAttachment(bitmap);
+                }
+        );
+
+        View back = findViewById(R.id.btn_back);
+        if (back != null) back.setOnClickListener(v -> finish());
+
+        startForm = findViewById(R.id.livechat_start_form);
+        chatCard = findViewById(R.id.card_livechat);
+        composerWrap = findViewById(R.id.livechat_composer_wrap);
+        messagesContainer = findViewById(R.id.livechat_messages);
+        messagesScroll = findViewById(R.id.livechat_scroll);
+        statusView = findViewById(R.id.livechat_status);
+        topicTitleView = findViewById(R.id.livechat_topic_title);
+        composerAttachmentLabel = findViewById(R.id.livechat_composer_attachment_label);
+        topicInput = findViewById(R.id.livechat_topic_input);
+        initialMessageInput = findViewById(R.id.livechat_initial_message_input);
+        inputView = findViewById(R.id.livechat_input);
+        startButton = findViewById(R.id.livechat_start_button);
+        sendButton = findViewById(R.id.livechat_send);
+        attachButton = findViewById(R.id.livechat_attach);
+
+        TextView headerTitle = findViewById(R.id.title);
+        TextView headerDesc = findViewById(R.id.desc);
+
+        String repId = getIntent().getStringExtra("reportId");
+        String repCategory = getIntent().getStringExtra("reportCategory");
+
+        if (repId != null && !repId.trim().isEmpty()) {
+            reportId = repId.trim();
+            if (headerTitle != null) headerTitle.setText("Report Livechat");
+            String cleanRepId = reportId.length() > 8 ? reportId.substring(0, 8) : reportId;
+            if (headerDesc != null) headerDesc.setText("Perbualan langsung berkenaan Laporan #" + cleanRepId);
+            currentTopic = "Laporan #" + cleanRepId + (repCategory != null && !repCategory.isEmpty() ? " - " + repCategory : "");
+            if (topicInput != null) {
+                topicInput.setText(currentTopic);
+                topicInput.setEnabled(false);
+            }
+        }
+
+        if (startButton != null) startButton.setOnClickListener(v -> startSupportSession());
+        if (sendButton != null) sendButton.setOnClickListener(v -> sendSupportMessage());
+        if (attachButton != null) attachButton.setOnClickListener(v -> chooseAttachment());
+        if (inputView != null) {
+            inputView.setOnEditorActionListener((v, actionId, event) -> {
+                if (actionId == EditorInfo.IME_ACTION_SEND) {
+                    sendSupportMessage();
+                    return true;
+                }
+                return false;
+            });
+        }
+
+        showInitialSupportState();
+        setupLivechat();
     }
 
     // SEKSYEN: ONDESTROY
@@ -492,6 +568,10 @@ public class LivechatActivity extends BaseActivity {
         updates.put("meta/lastMessage", lastMessage);
         updates.put("meta/lastSender", "user");
         updates.put("meta/updatedAt", ServerValue.TIMESTAMP);
+        if (reportId != null && !reportId.trim().isEmpty()) {
+            updates.put("meta/reportId", reportId.trim());
+            updates.put("meta/isReportChat", true);
+        }
         return updates;
     }
 
@@ -504,6 +584,9 @@ public class LivechatActivity extends BaseActivity {
         message.put("senderName", "ResQTap Support");
         message.put("createdAt", ServerValue.TIMESTAMP);
         message.put("source", "auto-support");
+        if (reportId != null && !reportId.trim().isEmpty()) {
+            message.put("reportId", reportId.trim());
+        }
         return message;
     }
 

@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=admin-profile-v17">
+  <link rel="stylesheet" href="/styles.css?v=sep-livechat-v3">
   <!-- Leaflet.js: open-source map library for Live Map view -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css"/>
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
@@ -481,9 +481,9 @@
         </button>
 
         <span class="nav-group-label">Communication</span>
-        <button class="nav-button" data-view="livechat" data-label="Ticket" type="button">
+        <button class="nav-button" data-view="livechat" data-label="Report Livechat" type="button">
           <i data-lucide="messages-square" aria-hidden="true"></i>
-          <span>Ticket</span>
+          <span>Report Livechat</span>
         </button>
         <button class="nav-button" data-view="rooms" data-label="Channels" type="button">
           <i data-lucide="message-square" aria-hidden="true"></i>
@@ -931,7 +931,7 @@
       <section id="livechatView" class="view-section hidden">
         <div class="panel livechat-panel">
           <div class="panel-header">
-            <h3>Ticket</h3>
+            <h3>Report Livechat</h3>
             <span id="livechatCount" class="muted"></span>
           </div>
           <div class="livechat-layout">
@@ -941,8 +941,8 @@
             <section class="livechat-conversation" aria-label="Selected livechat conversation">
               <div class="livechat-conversation-header">
                 <div>
-                  <h3 id="livechatSelectedTitle">Select a conversation</h3>
-                  <span id="livechatSelectedSubtitle" class="muted">App users will appear here after they send a message.</span>
+                  <h3 id="livechatSelectedTitle">Select Report Conversation</h3>
+                  <span id="livechatSelectedSubtitle" class="muted">Report discussions and user inquiries appear here.</span>
                 </div>
                 <div class="livechat-header-actions">
                   <button id="livechatCallVideoBtn" class="secondary-button slim icon-button" type="button" disabled title="Start video call with user">
@@ -970,7 +970,7 @@
                 </div>
               </div>
               <form id="livechatReplyForm" class="livechat-reply-form">
-                <textarea id="livechatReplyInput" maxlength="1000" placeholder="Type admin reply" disabled></textarea>
+                <textarea id="livechatReplyInput" maxlength="1000" placeholder="Type admin reply for this report..." disabled></textarea>
                 <div class="livechat-reply-actions">
                   <div class="livechat-attach-wrap">
                     <button id="livechatAttachButton" class="livechat-attach-button" type="button" aria-label="Attach file" aria-expanded="false" disabled>
@@ -1631,7 +1631,7 @@
     </div>
   </div>
 
-  <script type="module" src="/app.js?v=admin-profile-v17"></script>
+  <script type="module" src="/app.js?v=sep-livechat-v3"></script>
 </body>
 </html>
 

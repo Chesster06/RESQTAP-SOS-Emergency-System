@@ -2324,6 +2324,8 @@ function getSupportThreads() {
     const lastSender = text(meta.lastSender || last.sender).trim();
     const lastAttachment = asRecord(last.attachment);
     const topic = text(meta.topic || last.topic).trim();
+    const reportId = text(meta.reportId).trim();
+    const isReportChat = Boolean(meta.isReportChat || reportId);
     const lastMessage = text(meta.lastMessage || last.text).trim()
       || (lastAttachment.downloadUrl ? `Attachment: ${text(lastAttachment.name || "file")}` : "");
 
@@ -2334,6 +2336,8 @@ function getSupportThreads() {
       name,
       email,
       topic,
+      reportId,
+      isReportChat,
       publicId: text(meta.publicId || user.publicId).trim(),
       photoUrl: text(user.photoUrl || meta.photoUrl).trim(),
       photoB64: text(user.photoB64 || meta.photoB64).trim(),
@@ -3655,6 +3659,7 @@ function renderReports() {
           <div class="row-actions">
             <button class="small-button highlight" data-action="manage-report-case" data-report="${escapeHtml(report.key)}" type="button">${icon("clipboard-edit")}<span>Update Case</span></button>
             <button class="small-button" data-action="view-report" data-report="${escapeHtml(report.key)}" type="button">${icon("eye")}<span>View</span></button>
+            <button class="small-button" data-action="chat-report-user" data-uid="${escapeHtml(report.senderUid)}" type="button" title="Livechat with reporter">${icon("messages-square")}<span>Livechat</span></button>
           </div>
         </td>
       </tr>
@@ -3871,10 +3876,11 @@ function getSosLivechatSessions() {
     finalSessions.push(r);
   });
 
-  // Integrasi sesi SOS Livechat terus daripada laluan sosChats
+  // Integrasi sesi SOS Livechat terus daripada laluan sosChats (Asingkan: Abaikan sebarang sesi sembang laporan)
   entries(state.sosChats).forEach(([chatKey, rawChat]) => {
     const chatRec = asRecord(rawChat);
     const meta = asRecord(chatRec.meta);
+    if (meta.isReportChat || meta.reportId) return; // Asingkan sembang laporan dari SOS livechat
     const rawMessages = asRecord(chatRec.messages);
     const messages = entries(rawMessages).map(([id, m]) => {
       const val = asRecord(m);
@@ -4265,6 +4271,7 @@ function renderLivechat() {
           <span class="livechat-thread-head">
             <strong>${escapeHtml(thread.name)}</strong>
             ${pill(chatStatusLabel(thread.status), chatStatusTone(thread.status))}
+            ${thread.isReportChat ? `<span class="pill good" style="font-size:10px; padding:2px 6px;">REPORT</span>` : ""}
           </span>
           ${thread.topic ? `<span class="cell-meta">${escapeHtml(thread.topic)}</span>` : ""}
           <span>${escapeHtml(thread.lastMessage || "No messages yet")}</span>
@@ -5038,6 +5045,7 @@ function renderReportDetail(reportKey) {
       ${kv("UID", report.senderUid)}
       ${kv("Public ID", report.publicId)}
       ${report.senderUid ? `<button class="secondary-button icon-button" data-action="view-user" data-uid="${escapeHtml(report.senderUid)}" data-force-profile="true" type="button">${icon("user-round")}<span>Open reporter</span></button>` : ""}
+      ${report.senderUid ? `<button class="secondary-button icon-button" data-action="chat-report-user" data-uid="${escapeHtml(report.senderUid)}" type="button">${icon("messages-square")}<span>Report Livechat</span></button>` : ""}
       ${report.senderUid ? `<button class="secondary-button icon-button" data-action="call-reporter" data-uid="${escapeHtml(report.senderUid)}" data-name="${escapeHtml(report.senderName || report.senderEmail || "Reporter")}" type="button">${icon("phone-call")}<span>Call Reporter</span></button>` : ""}
     </section>
     <section class="detail-section">
@@ -6912,6 +6920,14 @@ function handleAction(button) {
     }
     if (action === "close-attachment-viewer") {
       closeAttachmentViewer();
+      return;
+    }
+    if (action === "chat-report-user") {
+      state.selectedChatUid = uid;
+      state.activeView = "livechat";
+      closeDetail();
+      renderLivechat();
+      renderNavigation();
       return;
     }
     if (action === "call-sos") {
