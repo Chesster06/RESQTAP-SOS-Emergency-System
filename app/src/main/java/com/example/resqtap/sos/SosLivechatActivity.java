@@ -183,6 +183,25 @@ public class SosLivechatActivity extends BaseActivity {
         typingIndicatorContainer = findViewById(R.id.typing_indicator_container);
         etInput = findViewById(R.id.et_sos_chat_input);
         btnSend = findViewById(R.id.btn_sos_chat_send);
+        View btnDeleteChat = findViewById(R.id.btn_delete_sos_chat);
+        if (btnDeleteChat != null) {
+            btnDeleteChat.setOnClickListener(v -> confirmDeleteChat());
+        }
+    }
+
+    private void confirmDeleteChat() {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Padam Chat SOS")
+                .setMessage("Adakah anda pasti ingin memadam semua mesej dalam sesi ini?")
+                .setPositiveButton("Padam", (dialog, which) -> {
+                    if (chatRef != null) {
+                        chatRef.child("messages").removeValue();
+                        chatRef.child("meta").child("lastMessage").setValue("");
+                        Toast.makeText(this, "Perbualan telah dipadam", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Batal", null)
+                .show();
     }
 
     private void setupListeners() {
@@ -362,7 +381,7 @@ public class SosLivechatActivity extends BaseActivity {
             String timeStr = createdAt != null && createdAt > 0 ? sdf.format(new Date(createdAt)) : "";
 
             boolean isMe = "user".equalsIgnoreCase(sender);
-            addMessageBubble(text, senderName, timeStr, isMe);
+            addMessageBubble(key, text, senderName, timeStr, isMe);
         }
 
         // Scroll ke bawah
@@ -373,7 +392,7 @@ public class SosLivechatActivity extends BaseActivity {
         }, 80);
     }
 
-    private void addMessageBubble(String text, String senderName, String timeStr, boolean isMe) {
+    private void addMessageBubble(String messageKey, String text, String senderName, String timeStr, boolean isMe) {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
@@ -436,6 +455,20 @@ public class SosLivechatActivity extends BaseActivity {
         }
 
         row.addView(bubble);
+        bubble.setOnLongClickListener(v -> {
+            new androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Padam Mesej")
+                    .setMessage("Adakah anda pasti ingin memadam mesej ini?")
+                    .setPositiveButton("Padam", (dialog, which) -> {
+                        if (chatRef != null && messageKey != null) {
+                            chatRef.child("messages").child(messageKey).removeValue();
+                            Toast.makeText(this, "Mesej dipadam", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNegativeButton("Batal", null)
+                    .show();
+            return true;
+        });
         messagesContainer.addView(row);
     }
 

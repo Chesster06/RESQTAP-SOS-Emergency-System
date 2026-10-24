@@ -165,6 +165,7 @@ const els = {
   soslivechatCallVoiceBtn: document.getElementById("soslivechatCallVoiceBtn"),
   soslivechatViewAlertBtn: document.getElementById("soslivechatViewAlertBtn"),
   soslivechatClearBtn: document.getElementById("soslivechatClearBtn"),
+  soslivechatDeleteBtn: document.getElementById("soslivechatDeleteBtn"),
   livechatCount: document.getElementById("livechatCount"),
   livechatThreadList: document.getElementById("livechatThreadList"),
   livechatSelectedTitle: document.getElementById("livechatSelectedTitle"),
@@ -4013,7 +4014,12 @@ function renderSosLivechat() {
             <span style="font-size:12.5px; opacity:0.9;">${escapeHtml(session.lastMessage || "No messages sent yet")}</span>
             <span class="cell-meta">${escapeHtml(ageLabel(session.updatedAt))} • ${session.messageCount} msg</span>
           </span>
-          ${session.active ? `<span class="livechat-unread" style="background:#e11d48;" aria-label="Active SOS session"></span>` : ""}
+          <span style="display:flex; flex-direction:column; align-items:flex-end; justify-content:space-between; gap:4px; align-self:stretch;">
+            ${session.active ? `<span class="livechat-unread" style="background:#e11d48;" aria-label="Active SOS session"></span>` : `<span></span>`}
+            <span class="small-icon-delete" data-action="delete-sos-session-quick" data-session-id="${escapeHtml(session.sessionId)}" title="Padam sesi ini" role="button" tabindex="0">
+              ${icon("trash-2")}
+            </span>
+          </span>
         </button>
       `;
     }).join("") : `<div class="livechat-empty inline"><strong>No SOS Chat Sessions</strong><span>Active and resolved SOS cases will appear here.</span></div>`;
@@ -4038,6 +4044,7 @@ function renderSosLivechat() {
     if (els.soslivechatCallVoiceBtn) els.soslivechatCallVoiceBtn.disabled = true;
     if (els.soslivechatViewAlertBtn) els.soslivechatViewAlertBtn.disabled = true;
     if (els.soslivechatClearBtn) els.soslivechatClearBtn.disabled = true;
+    if (els.soslivechatDeleteBtn) els.soslivechatDeleteBtn.disabled = true;
     return;
   }
 
@@ -4070,9 +4077,15 @@ function renderSosLivechat() {
     };
   }
   if (els.soslivechatClearBtn) {
-    els.soslivechatClearBtn.disabled = !selectedSession.messages || selectedSession.messages.length === 0;
+    els.soslivechatClearBtn.disabled = false;
     els.soslivechatClearBtn.onclick = () => {
       clearSosLivechatMessages(selectedSession);
+    };
+  }
+  if (els.soslivechatDeleteBtn) {
+    els.soslivechatDeleteBtn.disabled = false;
+    els.soslivechatDeleteBtn.onclick = () => {
+      deleteSosLivechatSession(selectedSession);
     };
   }
 
@@ -4101,7 +4114,12 @@ function renderSosLivechat() {
         return `
           <div class="livechat-message ${msgClass}">
             <div class="livechat-bubble" style="${!isAdmin ? "background:#FFE4EE !important; color:#9F1239 !important; border:1px solid #FECDD3 !important;" : ""}">
-              <span class="livechat-sender" style="font-weight:700; ${!isAdmin ? "color:#E11D48 !important;" : ""}">${escapeHtml(senderName)}</span>
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                <span class="livechat-sender" style="font-weight:700; ${!isAdmin ? "color:#E11D48 !important;" : ""}">${escapeHtml(senderName)}</span>
+                <span class="msg-delete-btn" data-action="delete-sos-msg" data-msg-id="${escapeHtml(m.id)}" title="Padam mesej" role="button" tabindex="0">
+                  ${icon("trash-2")}
+                </span>
+              </div>
               <p style="margin:4px 0 6px 0; font-size:14.5px; line-height:1.45; word-break:break-word;">${escapeHtml(m.text)}</p>
               <time style="font-size:11px; opacity:0.75; display:block; text-align:right;">${escapeHtml(timeStr)}</time>
             </div>
@@ -4155,6 +4173,85 @@ async function clearSosLivechatMessages(sessionParam) {
   } catch (err) {
     console.error("Error clearing SOS chat messages:", err);
     showToast("Gagal memadam mesej: " + (err.message || err));
+  }
+}
+
+async function deleteSosLivechatSession(sessionParam) {
+  const allSessions = getSosLivechatSessions();
+  const session = sessionParam || allSessions.find((s) => s.sessionId === state.selectedSosSessionId || (s.allSessionIds && s.allSessionIds.includes(state.selectedSosSessionId)));
+  if (!session) {
+    showToast("Sesi SOS Livechat tidak dijumpai.");
+    return;
+  }
+
+  const name = session.senderName || "Mangsa";
+  if (!window.confirm(`Padam sesi SOS Livechat untuk "${name}"? Seluruh perbualan dan rekod sesi ini akan dipadamkan daripada pangkalan data.`)) {
+    return;
+  }
+
+  try {
+    const updates = {};
+    const chatKey = session.chatKey || session.senderUid;
+    if (chatKey) {
+      updates[`sosChats/${chatKey}`] = null;
+    }
+    if (session.senderUid) {
+      updates[`sosChats/${session.senderUid}`] = null;
+    }
+    if (session.allAlerts && session.allAlerts.length) {
+      session.allAlerts.forEach((item) => {
+        if (item.chatKey) {
+          updates[`sosChats/${item.chatKey}`] = null;
+        } else if (item.roomId && item.alertId && item.roomId !== "DIRECT") {
+          updates[`rooms/${item.roomId}/sosAlerts/${item.alertId}/chat`] = null;
+        }
+      });
+    } else if (session.roomId && session.alertId && session.roomId !== "DIRECT") {
+      updates[`rooms/${session.roomId}/sosAlerts/${session.alertId}/chat`] = null;
+    }
+
+    await update(ref(db), updates);
+    state.selectedSosSessionId = "";
+    showToast(`Sesi SOS Livechat (${name}) telah berjaya dipadam.`);
+    renderSosLivechat();
+  } catch (err) {
+    console.error("Gagal memadam sesi SOS Livechat:", err);
+    showToast("Gagal memadam sesi: " + (err.message || err));
+  }
+}
+
+async function deleteSingleSosMessage(msgId) {
+  if (!msgId) return;
+  const allSessions = getSosLivechatSessions();
+  const session = allSessions.find((s) => s.sessionId === state.selectedSosSessionId || (s.allSessionIds && s.allSessionIds.includes(state.selectedSosSessionId)));
+  if (!session) return;
+
+  if (!window.confirm("Padam mesej ini?")) return;
+
+  try {
+    const updates = {};
+    const chatKey = session.chatKey || session.senderUid;
+    if (chatKey) {
+      updates[`sosChats/${chatKey}/messages/${msgId}`] = null;
+    }
+    if (session.allAlerts && session.allAlerts.length) {
+      session.allAlerts.forEach((item) => {
+        if (item.chatKey) {
+          updates[`sosChats/${item.chatKey}/messages/${msgId}`] = null;
+        } else if (item.roomId && item.alertId && item.roomId !== "DIRECT") {
+          updates[`rooms/${item.roomId}/sosAlerts/${item.alertId}/chat/messages/${msgId}`] = null;
+        }
+      });
+    } else if (session.roomId && session.alertId && session.roomId !== "DIRECT") {
+      updates[`rooms/${session.roomId}/sosAlerts/${session.alertId}/chat/messages/${msgId}`] = null;
+    }
+
+    await update(ref(db), updates);
+    showToast("Mesej telah dipadam.");
+    renderSosLivechat();
+  } catch (err) {
+    console.error("Gagal memadam mesej:", err);
+    showToast("Gagal memadam: " + (err.message || err));
   }
 }
 
@@ -4277,7 +4374,12 @@ function renderLivechat() {
           <span>${escapeHtml(thread.lastMessage || "No messages yet")}</span>
           <span class="cell-meta">${escapeHtml(thread.email || thread.uid)} - ${escapeHtml(ageLabel(thread.updatedAt))}</span>
         </span>
-        ${thread.unread ? `<span class="livechat-unread" aria-label="Unread user reply"></span>` : ""}
+        <span style="display:flex; flex-direction:column; align-items:flex-end; justify-content:space-between; gap:4px; align-self:stretch;">
+          ${thread.unread ? `<span class="livechat-unread" aria-label="Unread user reply"></span>` : `<span></span>`}
+          <span class="small-icon-delete" data-action="delete-support-thread-quick" data-uid="${escapeHtml(thread.uid)}" title="Padam perbualan ini" role="button" tabindex="0">
+            ${icon("trash-2")}
+          </span>
+        </span>
       </button>
     `;
   }).join("") : `<div class="livechat-empty inline"><strong>No livechat threads</strong><span>App users will appear after sending a message.</span></div>`;
@@ -4331,7 +4433,7 @@ function renderLivechat() {
   ].filter(Boolean).join(" - ");
   const isResolved = text(selectedThread.status).toLowerCase() === "resolved";
   els.resolveChatButton.disabled = isResolved;
-  els.deleteChatButton.disabled = !isResolved;
+  els.deleteChatButton.disabled = false;
   if (els.livechatCallVideoBtn) {
     els.livechatCallVideoBtn.disabled = false;
     els.livechatCallVideoBtn.onclick = () => {
@@ -4378,10 +4480,20 @@ function renderLivechat() {
 
     const msgClass = fromAdmin ? "from-admin" : (fromSystem ? "from-system" : (fromAi ? "from-ai" : "from-user"));
 
+    const canDeleteMsg = Boolean(message.id);
+    const deleteBtnHtml = canDeleteMsg ? `
+      <span class="msg-delete-btn" data-action="delete-livechat-msg" data-msg-id="${escapeHtml(message.id)}" title="Padam mesej" role="button" tabindex="0">
+        ${icon("trash-2")}
+      </span>
+    ` : "";
+
     return `
       <div class="livechat-message ${msgClass}">
         <div class="livechat-bubble">
-          <span class="livechat-sender">${escapeHtml(sender)}${badgeHtml}</span>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+            <span class="livechat-sender">${escapeHtml(sender)}${badgeHtml}</span>
+            ${deleteBtnHtml}
+          </div>
           ${message.text ? `<p>${escapeHtml(message.text)}</p>` : ""}
           ${attachmentHtml}
           <time>${escapeHtml(message.createdAt ? formatDate(message.createdAt) : "-")}</time>
@@ -5501,20 +5613,39 @@ async function claimLivechatThread(uid) {
 async function deleteSelectedResolvedChat() {
   const uid = state.selectedChatUid;
   if (!validPathSegment(uid)) {
-    showToast("Select a livechat thread first.");
+    showToast("Pilih sesi livechat terlebih dahulu.");
     return;
   }
 
   const thread = getSupportThreads().find((item) => item.uid === uid);
-  if (!thread || text(thread.status).toLowerCase() !== "resolved") {
-    showToast("Resolve the livechat before deleting it.");
-    return;
-  }
+  const displayName = thread ? thread.name : "pengguna ini";
 
-  if (!window.confirm(`Delete resolved livechat for ${thread.name}?`)) return;
-  await remove(ref(db, `supportChats/${uid}`));
-  state.selectedChatUid = "";
-  showToast("Resolved livechat deleted.");
+  if (!window.confirm(`Padam perbualan livechat untuk "${displayName}"? Seluruh rekod perbualan ini akan dipadamkan daripada pangkalan data.`)) return;
+
+  try {
+    await remove(ref(db, `supportChats/${uid}`));
+    state.selectedChatUid = "";
+    showToast("Perbualan livechat telah dipadam.");
+    renderLivechat();
+  } catch (err) {
+    console.error("Gagal memadam livechat:", err);
+    showToast("Gagal memadam livechat: " + (err.message || err));
+  }
+}
+
+async function deleteSingleLivechatMessage(msgId) {
+  const uid = state.selectedChatUid;
+  if (!validPathSegment(uid) || !msgId) return;
+  if (!window.confirm("Padam mesej ini?")) return;
+
+  try {
+    await remove(ref(db, `supportChats/${uid}/messages/${msgId}`));
+    showToast("Mesej telah dipadam.");
+    renderLivechat();
+  } catch (err) {
+    console.error("Gagal memadam mesej:", err);
+    showToast("Gagal memadam: " + (err.message || err));
+  }
 }
 
 async function deleteSelectedAiChat() {
@@ -6960,6 +7091,32 @@ function handleAction(button) {
       render();
       return;
     }
+    if (action === "delete-sos-session-quick") {
+      if (event) event.stopPropagation();
+      const sessionId = button.dataset.sessionId;
+      const session = getSosLivechatSessions().find((s) => s.sessionId === sessionId || (s.allSessionIds && s.allSessionIds.includes(sessionId)));
+      if (session) deleteSosLivechatSession(session);
+      return;
+    }
+    if (action === "delete-support-thread-quick") {
+      if (event) event.stopPropagation();
+      const targetUid = button.dataset.uid;
+      if (targetUid) {
+        state.selectedChatUid = targetUid;
+        deleteSelectedResolvedChat();
+      }
+      return;
+    }
+    if (action === "delete-sos-msg") {
+      if (event) event.stopPropagation();
+      deleteSingleSosMessage(button.dataset.msgId);
+      return;
+    }
+    if (action === "delete-livechat-msg") {
+      if (event) event.stopPropagation();
+      deleteSingleLivechatMessage(button.dataset.msgId);
+      return;
+    }
     if (action === "clear-detail") state.selected = null;
     if (action === "manage-sos-case") {
       sosAlarmSound.mute(alert);
@@ -7369,6 +7526,11 @@ function bindEvents() {
         console.error(error);
         showToast(error.message || "Unable to reset AI chat.");
       });
+    });
+  }
+  if (els.soslivechatDeleteBtn) {
+    els.soslivechatDeleteBtn.addEventListener("click", () => {
+      deleteSosLivechatSession();
     });
   }
 

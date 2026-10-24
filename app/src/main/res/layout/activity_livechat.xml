@@ -89,6 +89,16 @@
                     android:textSize="12sp" />
             </LinearLayout>
         </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/btn_delete_livechat"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_room_header_icon"
+            android:contentDescription="Padam Chat"
+            android:padding="12dp"
+            android:src="@drawable/ic_delete"
+            app:tint="@color/white" />
     </LinearLayout>
 
     <androidx.core.widget.NestedScrollView

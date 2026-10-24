@@ -59,6 +59,24 @@
         </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_delete_sos_chat"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="6dp"
+            android:contentDescription="Padam Chat"
+            app:backgroundTint="@android:color/transparent"
+            app:cornerRadius="999dp"
+            app:icon="@drawable/ic_delete"
+            app:iconPadding="0dp"
+            app:iconSize="20dp"
+            app:iconTint="@color/brand_danger"
+            app:strokeWidth="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btn_call_from_livechat"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_call_from_livechat"
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="40dp"

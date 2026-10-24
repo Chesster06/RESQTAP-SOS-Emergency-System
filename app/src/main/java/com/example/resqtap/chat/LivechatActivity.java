@@ -195,8 +195,28 @@ public class LivechatActivity extends BaseActivity {
             });
         }
 
+        View btnDeleteLivechat = findViewById(R.id.btn_delete_livechat);
+        if (btnDeleteLivechat != null) {
+            btnDeleteLivechat.setOnClickListener(v -> confirmDeleteChat());
+        }
+
         showInitialSupportState();
         setupLivechat();
+    }
+
+    private void confirmDeleteChat() {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Padam Livechat")
+                .setMessage("Adakah anda pasti ingin memadam semua mesej dalam perbualan ini?")
+                .setPositiveButton("Padam", (dialog, which) -> {
+                    if (chatRef != null) {
+                        chatRef.child("messages").removeValue();
+                        chatRef.child("meta").child("lastMessage").setValue("");
+                        Toast.makeText(this, "Perbualan telah dipadam", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Batal", null)
+                .show();
     }
 
     // SEKSYEN: ONDESTROY
@@ -776,7 +796,7 @@ public class LivechatActivity extends BaseActivity {
                     ? getString(R.string.support_livechat_you)
                     : (senderName.isEmpty() ? getString(R.string.support_livechat_admin) : senderName);
             long createdAt = asLong(child.child("createdAt").getValue());
-            addMessageBubble(text, mine, label, createdAt, attachmentName, attachmentUrl, attachmentMime);
+            addMessageBubble(child.getKey(), text, mine, label, createdAt, attachmentName, attachmentUrl, attachmentMime);
         }
 
         updateTypingIndicator();
@@ -879,7 +899,7 @@ public class LivechatActivity extends BaseActivity {
         ));
     }
 
-    private void addMessageBubble(String message, boolean mine, String labelText, long createdAt,
+    private void addMessageBubble(String messageKey, String message, boolean mine, String labelText, long createdAt,
                                   String attachmentName, String attachmentUrl, String attachmentMime) {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.VERTICAL);
@@ -949,6 +969,20 @@ public class LivechatActivity extends BaseActivity {
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
         bubbleParams.topMargin = dp(3);
+        bubble.setOnLongClickListener(v -> {
+            new androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Padam Mesej")
+                    .setMessage("Adakah anda pasti ingin memadam mesej ini?")
+                    .setPositiveButton("Padam", (dialog, which) -> {
+                        if (chatRef != null && messageKey != null) {
+                            chatRef.child("messages").child(messageKey).removeValue();
+                            Toast.makeText(this, "Mesej dipadam", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNegativeButton("Batal", null)
+                    .show();
+            return true;
+        });
         row.addView(bubble, bubbleParams);
 
         String time = formatTime(createdAt);

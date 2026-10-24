@@ -9896,6 +9896,57 @@ body.dark-mode .session-title {
   margin: 0;
 }
 
+/* Chat Deletion Action Styles */
+.msg-delete-btn {
+  background: transparent;
+  border: none;
+  padding: 3px 5px;
+  cursor: pointer;
+  opacity: 0.45;
+  color: inherit;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.msg-delete-btn:hover {
+  opacity: 1 !important;
+  color: #e11d48 !important;
+  background: rgba(225, 29, 72, 0.12) !important;
+}
+.msg-delete-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.small-icon-delete {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  opacity: 0.4;
+  cursor: pointer;
+  color: var(--ink);
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+body.dark-mode .small-icon-delete {
+  color: #CBD5E1;
+}
+.small-icon-delete:hover {
+  opacity: 1 !important;
+  color: #e11d48 !important;
+  background: rgba(225, 29, 72, 0.15) !important;
+}
+.small-icon-delete svg {
+  width: 15px;
+  height: 15px;
+}
+
+
 
 
 
