@@ -5919,13 +5919,13 @@ function updateReportCaseAutoSaveStatus(msg, type = "saved") {
   if (!indicator) return;
   if (type === "saving") {
     indicator.className = "sos-case-autosave is-saving";
-    indicator.innerHTML = `<i data-lucide="refresh-cw" class="spin" style="width:13px;height:13px;"></i> <span>${msg || "Saving changes..."}</span>`;
+    indicator.innerHTML = `<i data-lucide="refresh-cw" class="spin" style="width:13px;height:13px;margin-right:4px;"></i> <span>${msg || "Saving changes..."}</span>`;
   } else if (type === "error") {
     indicator.className = "sos-case-autosave is-error";
-    indicator.innerHTML = `<i data-lucide="alert-circle" style="width:13px;height:13px;"></i> <span>${msg || "Error saving"}</span>`;
+    indicator.innerHTML = `<i data-lucide="alert-circle" style="width:13px;height:13px;margin-right:4px;"></i> <span>${msg || "Error saving"}</span>`;
   } else {
     indicator.className = "sos-case-autosave is-saved";
-    indicator.innerHTML = `<i data-lucide="check" style="width:13px;height:13px;"></i> <span>${msg || "All changes saved"}</span>`;
+    indicator.innerHTML = `<i data-lucide="check" style="width:13px;height:13px;margin-right:4px;"></i> <span>${msg || "All changes saved"}</span>`;
   }
   refreshIcons();
 }

@@ -8767,7 +8767,9 @@ body.dark-mode.admin-site-active .livechat-selected-attachment button:hover {
   }
 }
 .sos-case-autosave {
-  margin-right: auto;
+  margin-left: auto;
+  margin-right: 0;
+  padding-left: 14px;
   display: inline-flex;
   align-items: center;
   gap: 7px;
