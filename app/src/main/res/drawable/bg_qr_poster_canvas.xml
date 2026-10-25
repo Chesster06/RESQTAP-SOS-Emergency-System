@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="420dp"
+    android:height="680dp"
+    android:viewportWidth="420"
+    android:viewportHeight="680">
+
+    <!-- Base Vibrant Pink Background -->
+    <path
+        android:fillColor="#E60067"
+        android:pathData="M0,0 L420,0 L420,680 L0,680 Z" />
+
+    <!-- Wave Layer 1 (Top Upper Light Wave) -->
+    <path
+        android:fillColor="#35FFFFFF"
+        android:pathData="M0,110 C120,155 280,80 420,120 L420,680 L0,680 Z" />
+
+    <!-- Center Light Rose Panel Surface -->
+    <path
+        android:fillColor="#FFF4F8"
+        android:pathData="M0,135 C100,175 280,105 420,150 L420,580 C320,530 150,600 0,550 Z" />
+
+    <!-- Bottom Deep Pink Wave -->
+    <path
+        android:fillColor="#E60067"
+        android:pathData="M0,550 C140,610 300,535 420,580 L420,680 L0,680 Z" />
+
+    <!-- Top Right Decorative Circle Outline -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#45FFFFFF"
+        android:strokeWidth="2"
+        android:pathData="M395,50 A10,10 0,1 1,394.9,50" />
+
+    <!-- Small decorative circle -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#30E60067"
+        android:strokeWidth="1.5"
+        android:pathData="M50,185 A5,5 0,1 1,49.9,185" />
+</vector>

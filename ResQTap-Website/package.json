@@ -1,0 +1,9 @@
+{
+  "name": "resqtap-website",
+  "version": "1.0.0",
+  "description": "ResQTap Website & Admin Dashboard",
+  "scripts": {
+    "start": "node server.js",
+    "deploy": "firebase deploy --only hosting"
+  }
+}

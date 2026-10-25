@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_rounded"
+    android:paddingStart="26dp"
+    android:paddingTop="20dp"
+    android:paddingEnd="26dp"
+    android:paddingBottom="26dp">
+
+    <!-- Top-Right Close Button -->
+    <ImageView
+        android:id="@+id/btn_close"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:contentDescription="@string/cancel"
+        android:focusable="true"
+        android:padding="7dp"
+        android:src="@drawable/ic_close_24"
+        app:tint="@color/text_primary" />
+
+    <!-- Main Content Container -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btn_close"
+        android:layout_marginTop="4dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <!-- Illustration: Door with girl and cat -->
+        <ImageView
+            android:id="@+id/iv_logout_illustration"
+            android:layout_width="190dp"
+            android:layout_height="190dp"
+            android:adjustViewBounds="true"
+            android:contentDescription="@null"
+            android:scaleType="fitCenter"
+            android:src="@drawable/img_logout_door" />
+
+        <!-- Title: Are You Logging Out? -->
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:gravity="center"
+            android:text="@string/logout_confirm_title"
+            android:textColor="@color/text_primary"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <!-- Description with underlined text -->
+        <TextView
+            android:id="@+id/tv_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="6dp"
+            android:gravity="center"
+            android:lineSpacingExtra="3dp"
+            android:text="@string/logout_confirm_message"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp" />
+
+        <!-- Actions Row: Cancel & Log out -->
+        <LinearLayout
+            android:id="@+id/actions_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="26dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <!-- Cancel Button: Outline pill -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_cancel"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:backgroundTint="@android:color/transparent"
+                android:letterSpacing="0"
+                android:text="@string/cancel"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:cornerRadius="999dp"
+                app:strokeColor="#D1D5DB"
+                app:strokeWidth="1.5dp" />
+
+            <!-- Log out Button: Solid black/dark pill -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_logout"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:backgroundTint="#111827"
+                android:letterSpacing="0"
+                android:text="@string/logout"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:cornerRadius="999dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+</RelativeLayout>

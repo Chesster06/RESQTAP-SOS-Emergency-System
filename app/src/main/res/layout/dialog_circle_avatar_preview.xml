@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/dialog_avatar_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- Latar belakang kabur (Blur snapshot of underlying screen) -->
+    <ImageView
+        android:id="@+id/img_dialog_blur_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop"
+        android:visibility="gone" />
+
+    <!-- Lapisan halus frosted scrim untuk kedalaman visual yang lembut tanpa menjadi gelap -->
+    <View
+        android:id="@+id/view_frosted_scrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#22000000" />
+
+    <!-- Avatar Bulat di tengah skrin dan butang Close -->
+    <LinearLayout
+        android:id="@+id/layout_preview_content"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/img_preview_circle"
+            android:layout_width="280dp"
+            android:layout_height="280dp"
+            android:layout_gravity="center"
+            android:elevation="18dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_avatar"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.ResQTap.Circle"
+            app:strokeColor="#FFFFFF"
+            app:strokeWidth="3dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_close_avatar_preview"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:layout_marginTop="22dp"
+            android:backgroundTint="#FFFFFF"
+            android:elevation="8dp"
+            android:fontFamily="sans-serif-medium"
+            android:paddingStart="22dp"
+            android:paddingEnd="24dp"
+            android:text="Close"
+            android:textAllCaps="false"
+            android:textColor="@color/brand_primary"
+            android:textSize="14sp"
+            app:cornerRadius="22dp"
+            app:icon="@drawable/ic_close_24"
+            app:iconTint="@color/brand_primary"
+            app:rippleColor="#20E91E63"
+            app:strokeColor="#E5E7EB"
+            app:strokeWidth="1dp" />
+    </LinearLayout>
+</FrameLayout>

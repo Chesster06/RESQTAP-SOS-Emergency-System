@@ -1,0 +1,14 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="28dp"
+    android:height="28dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Big center 4-point sparkle star -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M11,2.5 C11,7.2 7.2,11 2.5,11 C7.2,11 11,14.8 11,19.5 C11,14.8 14.8,11 19.5,11 C14.8,11 11,7.2 11,2.5 Z" />
+    <!-- Small top-right 4-point sparkle star -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M18.5,2.5 C18.5,4.5 16.5,6.5 14.5,6.5 C16.5,6.5 18.5,8.5 18.5,10.5 C18.5,8.5 20.5,6.5 22.5,6.5 C20.5,6.5 18.5,4.5 18.5,2.5 Z" />
+</vector>
